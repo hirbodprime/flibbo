@@ -18,15 +18,16 @@ OpenAIImageInteractionSerializer,ChatInteractionSerializer,
 import tempfile
 import os
 import mimetypes
-
+from dotenv import load_dotenv
+load_dotenv()
 # open ai imports
 # import openai
 from openai import OpenAI
 
 # Correct way to initialize the OpenAI client with your API key
 client = OpenAI(
-  api_key="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",
-  organization="org-DEwPdQ2OtgPIlZSyhQJkBCGu"
+  api_key=os.getenv("OPENAI_API_KEY"),
+  organization=os.getenv("OPENAI_ORG_API_KEY")
 )
 
 
@@ -61,6 +62,7 @@ class OpenAIChatInteractionView(CreateAPIView):
         # if user_chat_history:
         chat_history_messages = [
             {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
+            # {"role": "assistant", "content": 'Flibbo is an AI powered social media'} 
         ]
         # else:
         #     chat_history_messages = [
