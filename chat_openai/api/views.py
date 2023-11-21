@@ -4,37 +4,35 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+
 # rest imports
 from rest_framework.generics import CreateAPIView,GenericAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 
 from chat_openai.models import OpenAIChatInteraction,OpenAIAudioInteraction,OpenAIImageInteraction
 from .serializers import (OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,
- AudioInteractionSerializer, ImageInteractionSerializer)# python imports 
+ AudioInteractionSerializer, ImageInteractionSerializer)
+ 
+# python imports 
 import tempfile
 import os
 import mimetypes
 from dotenv import load_dotenv
-load_dotenv()
-# open ai imports
-# import openai
 from openai import OpenAI
+load_dotenv()
 
-# Correct way to initialize the OpenAI client with your API key
 client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
   organization=os.getenv("OPENAI_ORG_API_KEY")
 )
 
 
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+
 
 class DeleteUserHistory(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -177,118 +175,7 @@ class OpenAIImageInteractionView(CreateAPIView):
         serializer.save(**save_dict)
 
 
-# open ai imports
-# import openai
 
-# # open ai keys
-# openai.organization = "org-DEwPdQ2OtgPIlZSyhQJkBCGu"
-# openai.api_key = "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"
-
-
-# class OpenAIChatInteractionView(CreateAPIView):
-#     queryset = OpenAIChatInteraction.objects.all()
-#     serializer_class = OpenAIChatInteractionSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def perform_create(self, serializer):
-#         user_prompt = self.request.data.get('user_text_prompt')
-
-#         # Call OpenAI API for GPT-4 completion
-#         completion = openai.ChatCompletion.create(
-#             model="gpt-4",
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant."},
-#                 {"role": "user", "content": user_prompt}
-#             ]
-#         )
-        
-#         gpt_response = completion.choices[0].message['content']
-        
-#         # Save model instance
-#         serializer.save(user=self.request.user, gpt_response=gpt_response)
-
-
-
-
-
-
-# class OpenAIAudioInteractionView(CreateAPIView):
-#     queryset = OpenAIAudioInteraction.objects.all()
-#     serializer_class = OpenAIAudioInteractionSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def perform_create(self, serializer):
-#         audio_file = self.request.data.get('user_audio_prompt')
-        
-#         # Saving audio file temporarily to disk
-#         # audio_path = default_storage.save('temp_audio.mp3', ContentFile(audio_file.read()))
-    
-#         transcript = openai.Audio.translate("whisper-1", audio_file)
-#         transcript_text = transcript.get('text', '')
-
-#         # Generate text with GPT-4 based on transcript
-#         completion = openai.ChatCompletion.create(
-#             model="gpt-4",
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant. You do speech to text"},
-#                 {"role": "user", "content": transcript_text}  # Use the extracted transcript
-#             ]
-#         )
-        
-#         gpt_response = completion.choices[0].message['content']
-        
-#         # Save model instance with user and GPT-4 response
-#         serializer.save(user=self.request.user, gpt_response=gpt_response)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# class OpenAIImageInteractionView(CreateAPIView):
-#     queryset = OpenAIImageInteraction.objects.all()
-#     serializer_class = OpenAIImageInteractionSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def perform_create(self, serializer):
-#         image_text = self.request.data.get('user_text_prompt_image')
-#         n_cout_str = self.request.data.get('n_cout', '1')  # default to 1 if not provided
-
-#         try:
-#             n_cout = int(n_cout_str)
-#         except ValueError:
-#             return Response({'error': 'Invalid value for n_cout'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             response = openai.Image.create(
-#                 prompt=image_text,
-#                 n=n_cout,
-#                 size="1024x1024"
-#             )
-#         except Exception as e:
-#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Dynamically build the save dictionary
-#         save_dict = {'user': self.request.user}
-#         for i in range(n_cout):
-#             save_dict[f'gpt_response{i + 1}'] = response['data'][i]['url']
-
-#         serializer.save(**save_dict)
-
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
 
 class InteractionListView(APIView):
     def get(self, request, *args, **kwargs):
