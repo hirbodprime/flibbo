@@ -25,7 +25,7 @@ from openai import OpenAI
 
 # Correct way to initialize the OpenAI client with your API key
 client = OpenAI(
-  api_key="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",
+  api_key="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",
   organization="org-DEwPdQ2OtgPIlZSyhQJkBCGu"
 )
 
