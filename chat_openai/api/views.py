@@ -38,7 +38,7 @@ from rest_framework.response import Response
 class DeleteUserHistory(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['delete'])
+    @action(detail=False, methods=['post'])
     def delete_history(self, request):
         user = request.user
         try:
@@ -46,10 +46,10 @@ class DeleteUserHistory(viewsets.ViewSet):
             OpenAIAudioInteraction.objects.filter(user=user).delete()
             OpenAIImageInteraction.objects.filter(user=user).delete()
 
-            return Response({"success": True, "message": "User history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"success": True, "message": "User history deleted successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"success": False, "error": "Something happened while trying to delete your history: " + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            
 class OpenAIChatInteractionView(CreateAPIView):
     queryset = OpenAIChatInteraction.objects.all()
     serializer_class = OpenAIChatInteractionSerializer
