@@ -30,11 +30,16 @@ client = OpenAI(
 )
 
 
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-class DeleteUserHistory(GenericAPIView):
+class DeleteUserHistory(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request, *args, **kwargs):
+    @action(detail=False, methods=['delete'])
+    def delete_history(self, request):
         user = request.user
         try:
             OpenAIChatInteraction.objects.filter(user=user).delete()

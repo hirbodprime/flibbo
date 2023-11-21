@@ -5,7 +5,8 @@ from .views import (
 )
 
 urlpatterns = [
-    path('delete-history/', DeleteUserHistory.as_view(), name='delete-history'),
+    path('delete-history/', DeleteUserHistory.as_view({'delete': 'delete_history'}), name='delete-history'),
+
     
     path('history/',InteractionListView.as_view()),
     
