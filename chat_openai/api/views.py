@@ -49,7 +49,7 @@ class DeleteUserHistory(viewsets.ViewSet):
             return Response({"success": True, "message": "User history deleted successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"success": False, "error": "Something happened while trying to delete your history: " + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+
 class OpenAIChatInteractionView(CreateAPIView):
     queryset = OpenAIChatInteraction.objects.all()
     serializer_class = OpenAIChatInteractionSerializer
@@ -58,9 +58,14 @@ class OpenAIChatInteractionView(CreateAPIView):
     def perform_create(self, serializer):
         user_prompt = self.request.data.get('user_text_prompt')
         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
-        chat_history_messages = [
-            {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
-        ]
+        if user_chat_history:
+            chat_history_messages = [
+                {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
+            ]
+        else:
+            chat_history_messages = [
+                {"role": "assistant", "content": 'Flibbo is An AI powered Social Media'}
+            ]
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             *chat_history_messages,
