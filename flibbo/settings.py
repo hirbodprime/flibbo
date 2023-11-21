@@ -2,13 +2,22 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+import os
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p-a-$+fet#iu^-e)s^z^d^vkv=(u7-howm07h1si+06%sikd0h'
+# SECRET_KEY = 'django-insecure-p-a-$+fet#iu^-e)s^z^d^vkv=(u7-howm07h1si+06%sikd0h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -238,7 +247,7 @@ FCM_DJANGO_SETTINGS = {
      # an instance of firebase_admin.App to be used as default for all fcm-django requests
      # default: None (the default Firebase app)
     "DEFAULT_FIREBASE_APP": FIREBASE_APP_NOTIFICATION,
-    "FCM_SERVER_KEY": "AAAAeKC9SJY:APA91bF2yrQG0i6MXAU945zB28hrBSzOqFkBmmRWntdBXSRGJBaYGiNgn4jalX3HvVr5jxY_yM0Q8lb5a2XnFlUrtgOhEX2uAAIL4O8SPzDKQknFit6FNotg6ENaG_n9n1m_Sz0isCmQ",
+    "FCM_SERVER_KEY": os.getenv("FCM_SERVER_KEY"),
      # default: _('FCM Django')
     "APP_VERBOSE_NAME": "[string for AppConfig's verbose_name]",
      # true if you want to have only one active device per registered user at a time
