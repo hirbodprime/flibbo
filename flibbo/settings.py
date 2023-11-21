@@ -20,7 +20,10 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECRET_KEY = 'django-insecure-p-a-$+fet#iu^-e)s^z^d^vkv=(u7-howm07h1si+06%sikd0h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if os.getenv("DEBUG") == "True":
+    DEBUG = True
+else:
+    DEBUG = False
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # # Set the 'SECURE_SSL_REDIRECT' setting to True to force HTTPS
