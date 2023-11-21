@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 # rest imports
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView,GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
@@ -29,7 +29,9 @@ client = OpenAI(
   organization="org-DEwPdQ2OtgPIlZSyhQJkBCGu"
 )
 
-class DeleteUserHistory(APIView):
+
+
+class DeleteUserHistory(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, *args, **kwargs):
@@ -39,10 +41,9 @@ class DeleteUserHistory(APIView):
             OpenAIAudioInteraction.objects.filter(user=user).delete()
             OpenAIImageInteraction.objects.filter(user=user).delete()
 
-            return Response({"success":True,"message": "User history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-        except:
-            return Response({"success":False,"error": "Something happened While trying to delete your History"}, status=status.HTTP_204_NO_CONTENT)
-
+            return Response({"success": True, "message": "User history deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({"success": False, "error": "Something happened while trying to delete your history: " + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class OpenAIChatInteractionView(CreateAPIView):
     queryset = OpenAIChatInteraction.objects.all()
