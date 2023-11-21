@@ -21,12 +21,14 @@ User = get_user_model()
 class RequestToFollowCreateAPIView(generics.CreateAPIView):
     queryset = RequestToFollow.objects.all()
     serializer_class = RequestToFollowSerializer
+    permission_classes = [IsAuthenticated]
 
 
 
 class RequestToFollowUpdateAPIView(generics.UpdateAPIView):
     queryset = RequestToFollow.objects.all()
     serializer_class = RequestToFollowStatusUpdateSerializer
+    permission_classes = [IsAuthenticated]
     def update(self, request, *args, **kwargs):
         request_to_follow_id = kwargs.get('id')  # Get the ID from the URL
         try:
@@ -44,6 +46,7 @@ class RequestToFollowUpdateAPIView(generics.UpdateAPIView):
 
 class FollowersModelUsersListView(generics.ListAPIView):
     serializer_class = FollowersModelListSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         user_id = self.kwargs.get('id')  # Get the user_id from URL parameters
@@ -61,6 +64,8 @@ class FollowersModelUsersListView(generics.ListAPIView):
 class FollowingModelUserListView(generics.ListAPIView):
     queryset = FollowModel.objects.all()
     serializer_class = FollowingModelListSerializer
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         user = self.kwargs.get('id')  # Assuming you want the APIs for the currently authenticated user
         user_follow_model_obj, created = FollowModel.objects.get_or_create(user=user)
@@ -76,6 +81,8 @@ class FollowingModelUserListView(generics.ListAPIView):
 class FollowingModelListView(generics.ListAPIView):
     queryset = FollowModel.objects.all()
     serializer_class = FollowingModelListSerializer
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         user = self.request.user  # Assuming you want the APIs for the currently authenticated user
         user_follow_model_obj, created = FollowModel.objects.get_or_create(user=user)
@@ -89,9 +96,12 @@ class FollowingModelListView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+
 class FollowersModelListView(generics.ListAPIView):
     queryset = FollowModel.objects.all()
     serializer_class = FollowersModelListSerializer
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         user = self.request.user  # Assuming you want the APIs for the currently authenticated user
         user_follow_model_obj, created = FollowModel.objects.get_or_create(user=user)
@@ -108,6 +118,8 @@ class FollowersModelListView(generics.ListAPIView):
 class FollowModelCreateView(generics.CreateAPIView):
     queryset = FollowModel.objects.all()
     serializer_class = FollowModelCreateSerializer
+    permission_classes = [IsAuthenticated]
+
     def perform_create(self, serializer):
         serializer.save()
 
@@ -123,6 +135,8 @@ class FollowModelCreateView(generics.CreateAPIView):
 class UnFollowModelCreateView(generics.CreateAPIView):
     queryset = FollowModel.objects.all()
     serializer_class = UnFollowModelDestroySerializer
+    permission_classes = [IsAuthenticated]
+
     def perform_create(self, serializer):
         serializer.save()
 
@@ -137,6 +151,8 @@ class UnFollowModelCreateView(generics.CreateAPIView):
 class FollowModelRetrieveView(generics.RetrieveAPIView):
     queryset = FollowModel.objects.all()
     serializer_class = FollowModelRetrieveSerializer
+    permission_classes = [IsAuthenticated]
+
     def get_object(self):
         # Customize how you retrieve the object, e.g., filter by user and followed_user
         return FollowModel.objects.get(user=self.request.user, followers=self.kwargs['pk'])

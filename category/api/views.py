@@ -1,9 +1,13 @@
-from rest_framework import generics,status
 from category.models import CategoryModel, MenuCategoryModel,UserFavoriteCategories
 from .serializers import CategorySerializer
+from rest_framework import generics,status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+
 class FavoriteCategoryAPI(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # Fetch the user's favorite categories
@@ -47,6 +51,8 @@ class FavoriteCategoryAPI(APIView):
 class CategoryListView(generics.ListAPIView):
     queryset = CategoryModel.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+
     def list(self, request, *args, **kwargs):
         # Get the serialized data using the serializer class
         serializer = self.get_serializer(self.get_queryset(), many=True)
@@ -62,8 +68,10 @@ class CategoryListView(generics.ListAPIView):
 class CategoryDetailView(generics.RetrieveAPIView):
     queryset = CategoryModel.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
 class AddFavoriteCategory(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, ids):
         id_list = ids.split(',')  # Split the string into a list of IDs
         user = request.user
@@ -84,12 +92,5 @@ class AddFavoriteCategory(APIView):
         }
         return Response(response_data)
         
-# class MenuCategoryListView(generics.ListAPIView):
-#     queryset = MenuCategoryModel.objects.all()
-#     serializer_class = MenuCategorySerializer
-
-# class MenuCategoryDetailView(generics.RetrieveAPIView):
-#     queryset = MenuCategoryModel.objects.all()
-#     serializer_class = MenuCategorySerializer
 
 

@@ -1,6 +1,14 @@
+from rest_framework import status
 from rest_framework import generics
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
+
+from marketplace.models import NftProductModel,OrderNumber,PurchaseTestModel
+from wallet.models import UsersNfts
+from wallet.api.serializers import UsersNftsSerializer
+from accounts.models import CustomUser
 from marketplace.models import NftProductModel
 from .serializers import (
     NftProductlistSerializer,NftProductCreateSerializer,
@@ -8,21 +16,15 @@ from .serializers import (
     NftProductUpdateSerializer
     )
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from marketplace.models import NftProductModel,OrderNumber,PurchaseTestModel
-from wallet.models import UsersNfts
-from wallet.api.serializers import UsersNftsSerializer
-from accounts.models import CustomUser
-
 from decimal import Decimal
 from django.http import JsonResponse
 import plisio
-import json  # Import the json module
+import json  
 import re
 
 class CreatePaymentAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, id):
         try:
             client = plisio.PlisioClient(api_key='3FCDL8ON_OOFKfCT-qzQQ0GnQb6iu5uDdWvKbk3KFxYpXkVujz6YMGJJvz1nCP8T')
@@ -46,6 +48,7 @@ class CreatePaymentAPI(APIView):
 
 
 class PlisioCallback(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
             data = request.body.decode('utf-8')  # Convert bytes to string
@@ -84,6 +87,7 @@ class PlisioCallback(APIView):
 
 
 class PurchaseNFT(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request, nft_id, format=None):
         try:
             nft = NftProductModel.objects.get(pk=nft_id)
@@ -121,6 +125,7 @@ class PurchaseNFT(APIView):
 class NftProductListView(generics.ListAPIView):
     queryset = NftProductModel.objects.all()
     serializer_class = NftProductlistSerializer
+    permission_classes = [IsAuthenticated]
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
@@ -133,8 +138,7 @@ class NftProductListView(generics.ListAPIView):
 class NftProductDetailView(generics.RetrieveAPIView):
     queryset = NftProductModel.objects.all()
     serializer_class = NftProductGeterializer
-
-
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -149,10 +153,13 @@ class NftProductDetailView(generics.RetrieveAPIView):
 class NftProductCreateView(generics.CreateAPIView):
     queryset = NftProductModel.objects.all()
     serializer_class = NftProductCreateSerializer
+    permission_classes = [IsAuthenticated]
 
 class NftProductUpdateView(generics.UpdateAPIView):
     queryset = NftProductModel.objects.all()
     serializer_class = NftProductUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         instance = self.get_object()  # Get the instance you are updating
         serializer = self.get_serializer(instance)
@@ -161,3 +168,4 @@ class NftProductUpdateView(generics.UpdateAPIView):
 class NftProductDeleteView(generics.DestroyAPIView):
     queryset = NftProductModel.objects.all()
     serializer_class = NftProductSerializer
+    permission_classes = [IsAuthenticated]

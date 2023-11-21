@@ -1,15 +1,16 @@
 # views.py
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
-from rest_framework import status
-from rest_framework import generics
-from notification.models import UserDeviceModel
+
 from .serializers import UserDeviceModelSerializer
+from notification.models import UserDeviceModel
+
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework import generics, status
 from rest_framework.response import Response
-
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def user_device_list(request):
     if request.method == 'GET':
         devices = UserDeviceModel.objects.all()
@@ -19,7 +20,7 @@ def user_device_list(request):
 # views.py
 
 class UserDeviceListCreateView(generics.ListCreateAPIView):
-    # queryset = UserDeviceModel.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = UserDeviceModelSerializer
     def get_queryset(self):
         return UserDeviceModel.objects.filter(user=self.request.user)
@@ -49,4 +50,5 @@ class UserDeviceListCreateView(generics.ListCreateAPIView):
 class UserDeviceUpdateView(generics.UpdateAPIView):
     queryset = UserDeviceModel.objects.all()
     serializer_class = UserDeviceModelSerializer
+    permission_classes = [IsAuthenticated]
     lookup_field = 'pk'  # or any other field that uniquely identifies a record

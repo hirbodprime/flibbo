@@ -13,7 +13,6 @@ from following_system.api.serializers import RequestToFollowListSerializer
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def activity_feed(request, activity_type_url):
-    print(activity_type_url)
     if activity_type_url == 'follow':
         activity_type_values = Activity.objects.filter(activity_type=activity_type_url).values_list('activity_type', flat=True)
         follower_activities = Activity.objects.filter(Q(activity_type=Activity.FOLLOW, followed_user=request.user)).order_by('-created_at')
@@ -40,34 +39,3 @@ def activity_feed(request, activity_type_url):
     return Response(response_data)
 
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def activity_feed(request):
-    
-#     user_posts = TweetPostModel.objects.filter(user=request.user)
-    
-#     # Query activities related to the user's own tweets
-#     user_activities = Activity.objects.filter(Q(tweet__in=user_posts)).order_by('-created_at')
-
-#     # Query activities related to users who followed the authenticated user
-#     follower_activities = Activity.objects.filter(Q(activity_type=Activity.FOLLOW, followed_user=request.user)|Q(activity_type=Activity.UNFOLLOW, followed_user=request.user)).order_by('-created_at')
-
-#     # Combine the two querysets and order by created_at
-#     activities = user_activities.union(follower_activities).order_by('-created_at')[:10]
-
-#     # Assuming you have a serializer for activities
-#     serializer = ActivitySerializer(instance=activities, context={'request': request}, many=True)
-    
-#     return Response(serializer.data)
-
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def activity_feed(request):
-#     user_posts = TweetPostModel.objects.filter(user=request.user)
-#     activities = Activity.objects.filter(
-#         Q(tweet__in=user_posts) 
-#     ).order_by('-created_at')[:10]
-
-#     # Assuming you have a serializer for activities | Q(followed_user=request.user)
-#     serializer = ActivitySerializer(instance=activities, context={'request': request},many=True)
-#     return Response(serializer.data)
