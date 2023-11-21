@@ -1,0 +1,28 @@
+import firebase_admin
+from firebase_admin import credentials, messaging
+# D:/technology/web/real_word_projects/flibbo/flibbo-backend/serviceAccountKey.json
+
+import os
+
+cred = credentials.Certificate(f"{os.getcwd()}/serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+
+
+
+def sendPush(title, msg, registration_token, dataObject=None):
+    print(os.getcwd())
+    # See documentation on defining a message payload.
+    message = messaging.MulticastMessage(
+        notification=messaging.Notification(
+            title=title,
+            body=msg
+        ),
+        data=dataObject,
+        tokens=registration_token,
+    )
+    print(message)
+    # Send a message to the device corresponding to the provided
+    # registration token.
+    response = messaging.send_multicast(message)
+    # Response is a message ID string.
+    print('Successfully sent message:', response)
