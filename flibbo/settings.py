@@ -127,9 +127,9 @@ WSGI_APPLICATION = 'flibbo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flxdev_flibbo_db',
-        'USER': 'flxdev_flibbo_db_user',
-        'PASSWORD': '#@0AHirbodaflaki13831383',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
         'HOST': '127.0.0.1',  # Change this if your database is on a different host
         'PORT': '5432',           # Leave this empty to use the default PostgreSQL port (5432)
     }
@@ -227,9 +227,9 @@ EMAIL_HOST = 'smtp.gmail.com'  # Google's SMTP server
 EMAIL_PORT = 587  # Use port 587 for TLS
 EMAIL_USE_TLS = True  # Use TLS for secure communication
 EMAIL_USE_SSL = False  # Set this to False when using TLS
-EMAIL_HOST_USER = 'flibboapp.info@gmail.com'  # Your Gmail email address
-EMAIL_HOST_PASSWORD = 'saadvedokxaiksyb'  # Your Gmail email password
-DEFAULT_FROM_EMAIL = 'flibboapp.info@gmail.com'  # The default "from" email address
+EMAIL_HOST_USER = os.getenv("MAIL_SERVER_EMAIL_HOST_USER")  # Your Gmail email address
+EMAIL_HOST_PASSWORD = os.getenv("MAIL_SERVER_EMAIL_HOST_PASSWORD") # Your Gmail email password
+DEFAULT_FROM_EMAIL = os.getenv("MAIL_SERVER_DEFAULT_FROM_EMAIL")  # The default "from" email address
 
 
 
@@ -249,7 +249,7 @@ FCM_DJANGO_SETTINGS = {
     "DEFAULT_FIREBASE_APP": FIREBASE_APP_NOTIFICATION,
     "FCM_SERVER_KEY": os.getenv("FCM_SERVER_KEY"),
      # default: _('FCM Django')
-    "APP_VERBOSE_NAME": "[string for AppConfig's verbose_name]",
+    "APP_VERBOSE_NAME": "FCM Flibbo",
      # true if you want to have only one active device per registered user at a time
      # default: False
     # "ONE_DEVICE_PER_USER": True/False,
@@ -264,8 +264,8 @@ FCM_DJANGO_SETTINGS = {
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '518092834966-avk6omgdn1spp3162joo3rdtpn5p97fr.apps.googleusercontent.com',
-            'secret': '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',
+            'client_id': os.getenv("GOOGLE_CLIEND_ID"),
+            'secret': os.getenv("GOOGLE_SECRET"),
             'key': ''
         },
         'SCOPE': [
@@ -279,25 +279,19 @@ SOCIALACCOUNT_PROVIDERS = {
     "apple": {
         "APP": {
             # Your service identifier.
-            "client_id": "com.flibbo.app",
+            "client_id": os.getenv("APPLE_CLIEND_ID"),
 
             # The Key ID (visible in the "View Key Details" page).
-            "secret": "97KZ9297PC",
+            "secret": os.getenv("APPLE_SECRET"),
 
              # Member ID/App ID Prefix -- you can find it below your name
              # at the top right corner of the page, or it’s your App ID
              # Prefix in your App ID.
-            "key": "DX759ANS8K",
+            "key": os.getenv("APPLE_KEY"),
 
             "settings": {
                 # The certificate you downloaded when generating the key.
-                "certificate_key": """-----BEGIN PRIVATE KEY-----
-                MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgkMu+ZswmcQW7dWF2
-                NHfpcwipuWZxAmUq3rU7nHTgNPugCgYIKoZIzj0DAQehRANCAAS+j9yoV7IfzIq8
-                Tk6wOHc0rW9aX7cJbCAnNgeQjrVTKLp7+KZ620ycCvddwvxFKEaPA33jYym+vEKm
-                GOPgtAtO
-                -----END PRIVATE KEY-----
-                """
+                "certificate_key":os.getenv("APPLE_CERTIFICATE_KEY")
                 }
             },
         }
