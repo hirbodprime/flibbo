@@ -58,14 +58,14 @@ class OpenAIChatInteractionView(CreateAPIView):
     def perform_create(self, serializer):
         user_prompt = self.request.data.get('user_text_prompt')
         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
-        if user_chat_history:
-            chat_history_messages = [
-                {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
-            ]
-        else:
-            chat_history_messages = [
-                {"role": "assistant", "content": 'Flibbo is An AI powered Social Media'}
-            ]
+        # if user_chat_history:
+        chat_history_messages = [
+            {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
+        ]
+        # else:
+        #     chat_history_messages = [
+        #         {"role": "assistant", "content": 'Flibbo is An AI powered Social Media'}
+        #     ]
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             *chat_history_messages,
