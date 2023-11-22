@@ -1,7 +1,7 @@
 
 from rest_framework import generics as gn
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +16,7 @@ from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
- ,ChangeUsernameSerializer
+ ,ChangeUsernameSerializer,ChangePasswordSerializer
  )
 from explore.custom_pagination import CustomPagination,CustomPagination2
 
@@ -55,6 +55,31 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Max
+
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({"old_password": ["Wrong password."]}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({"success": "Password updated successfully"}, 
+                            status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
 
 class ChangeUsernameView(APIView):
     def post(self, request, *args, **kwargs):

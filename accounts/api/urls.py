@@ -1,13 +1,19 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import (UserLoginView, SignupConfirmationView, LogoutAPIView,ProfileApiView,UpdateProfileApiView,UsernameCheckView,
-UserSignupValidationView,UsernameValidationView,UserProfileApiView,SavedPostsApiView,CustomTokenObtainPairView, CustomTokenRefreshView,PasswordResetApi,PasswordResetConfirmApi,CustomUsersListApiView,ReportUserCreateApiView,DeleteAccountAPIView,CheckLoginStatusAPIView,UserSearchView,delete_account,AccessTokenLoginView,BlockUserView,UnblockUserView,ReportReasonsListAPIView,SavedTweetsMediaListView,SavedTweetsTextListView,BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView
+UserSignupValidationView,UsernameValidationView,UserProfileApiView,SavedPostsApiView,
+CustomTokenObtainPairView, CustomTokenRefreshView,PasswordResetApi,
+PasswordResetConfirmApi,CustomUsersListApiView,ReportUserCreateApiView,
+DeleteAccountAPIView,CheckLoginStatusAPIView,UserSearchView,delete_account,AccessTokenLoginView,
+BlockUserView,UnblockUserView,ReportReasonsListAPIView,SavedTweetsMediaListView,SavedTweetsTextListView,
+BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView,ChangePasswordView
 )
 from dj_rest_auth.registration.views import (
     SocialAccountListView, SocialAccountDisconnectView
 )
 
 urlpatterns = [
+    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('profile/update/username/', ChangeUsernameView.as_view(), name='change_username'),
     path(
         'socialaccounts/',

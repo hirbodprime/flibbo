@@ -2,12 +2,13 @@
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework.decorators import api_view
 from rest_framework import status,serializers
 from rest_framework.views import APIView
-from django.db.models import F, Count
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+from rest_framework import viewsets
+
+from django.db.models import F, Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -15,6 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+
 
 from notification.models import UserDeviceModel
 from notification import FCMManager  as fcm
@@ -31,7 +33,6 @@ from .serializers import (
     TweetCommentSerializer,TweetReplyCommentSerializer,PodcastCommentSerializer,
     PodcastReplyCommentSerializer,BookCommentSerializer,BookReplyCommentSerializer,ReportPostSerializer,UserSerializer,TweetSignlePostSerializer
     )
-from rest_framework import viewsets
 from category.models import UserFavoriteCategories
 from following_system.models import FollowModel
 from posts.utils.view_calculate import (increment_views_count_book , increment_views_count_podcast,
@@ -42,13 +43,11 @@ from posts.utils.view_calculate import (increment_views_count_book , increment_v
  increment_saves_count_podcasts,increment_likes_count_podcasts,
  increment_likes_count_tweet_comments,dicrement_likes_count_tweets_comments
  )
-from django.db.models import Q
 from explore.custom_pagination import CustomPagination
 from accounts.models import BlockModel
 
 User = get_user_model()
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+
 
 def get_photo_sizes(request, tweet_post_id):
     # Retrieve the TweetPostModel instance by ID
@@ -65,6 +64,7 @@ def get_photo_sizes(request, tweet_post_id):
     }
 
     return JsonResponse(data)
+    
 class ReportCommentView(APIView):
     def post(self, request, comment_id):
         user = request.user  # Assuming you're using Django's built-in authentication

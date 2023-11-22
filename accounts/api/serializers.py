@@ -1,26 +1,38 @@
 from rest_framework import serializers
-from accounts.models import CustomUser, ReportUser, BlockModel
-from rest_framework.validators import UniqueValidator
-from django.contrib.auth import get_user_model,authenticate
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from following_system.models import FollowModel
 from rest_framework import serializers
-from accounts.models import SavedByUser,ChangeUsernameModel
-from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.validators import UniqueValidator
+
+from following_system.models import FollowModel
+from accounts.models import SavedByUser,ChangeUsernameModel,CustomUser, ReportUser, BlockModel
 from following_system.models import FollowModel,RequestToFollow
+from accounts.custom_authentication import UsernameBackend
 
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from allauth.socialaccount.helpers import complete_social_login
-from django.http import HttpRequest, HttpResponseBadRequest
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client, OAuth2Error
 from requests.exceptions import HTTPError
-from accounts.custom_authentication import UsernameBackend
-from django.contrib.auth import load_backend, login as django_login
-from django.utils import timezone
 from datetime import timedelta
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model,authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.http import HttpRequest, HttpResponseBadRequest
+from django.utils import timezone
+from django.contrib.auth import load_backend, login as django_login
+from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
+
 User = get_user_model()
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value)
+        return value
+
 class ChangeUsernameSerializer(serializers.ModelSerializer):
     new_username = serializers.CharField(max_length=150)
 
