@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     OpenAIChatInteractionView,OpenAIAudioInteractionView,
-    OpenAIImageInteractionView,InteractionListView,DeleteUserHistory
+    OpenAIImageInteractionView,InteractionListView,DeleteUserHistory,OpenAIChatInteractionViewe
 )
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
     
     path('history/',InteractionListView.as_view()),
     
+    path('chat2/',OpenAIChatInteractionViewe.as_view()),
     path('chat/',OpenAIChatInteractionView.as_view()),
     path('image/',OpenAIImageInteractionView.as_view()),
     path('audio/',OpenAIAudioInteractionView.as_view()),

@@ -200,3 +200,36 @@ class InteractionListView(APIView):
         }
 
         return Response(response_data)
+
+class OpenAIChatInteractionViewe(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user_prompt = request.data.get('user_text_prompt')
+        history = request.data.get('user_text_history')
+        if history:
+            chat_history_messages = [
+                {"role": "assistant", "content": history}
+            ]
+
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant."},
+                *chat_history_messages,
+                {"role": "user", "content": user_prompt}
+            ]
+        else:
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": user_prompt}
+            ]
+
+
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=messages
+        )
+
+        # Extract GPT response message
+        gpt_response = completion.choices[0].message.content
+
+        return Response({"gpt_response": gpt_response})
