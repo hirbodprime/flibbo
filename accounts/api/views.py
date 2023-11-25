@@ -769,7 +769,14 @@ class SignupConfirmationView(gn.CreateAPIView):
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-
+            else:
+                return Response({
+                        'token': str(user_token.token),
+                        'user_data':user_data,
+                        'access_token': access_token,
+                        'refresh_token': refresh_token,
+                        'success': True
+                    }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from .serializers import ProfileSerializer,SavedByUserSerializer
