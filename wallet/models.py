@@ -32,7 +32,7 @@ class WalletModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.owner}'s Wallet"
+        return f"{self.user}'s Wallet"
 
     # Optional: Add methods for deposit, withdraw, etc.
     def deposit(self, amount):
