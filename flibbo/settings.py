@@ -52,10 +52,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'dj_rest_auth',
-    'django.contrib.sites',
-
-    'django_countries',
-    'fcm_django',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -63,6 +59,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.apple',
     'allauth.socialaccount.providers.google',
     'dj_rest_auth.registration',
+    'django.contrib.sites',
+
+    'django_countries',
+    'fcm_django',
     # Project Apps:
     'flibbo_base',
     'notification',
@@ -213,16 +213,6 @@ SIMPLE_JWT = {
 }
 
 
-
-
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'mail.flxdevpanel.com'  # Google's SMTP server
-# EMAIL_PORT = 465  # Use port 587 for TLS
-# EMAIL_USE_TLS = True  # Use TLS for secure communication
-# EMAIL_USE_SSL = False  # Set this to False when using TLS
-# EMAIL_HOST_USER = 'noreply@flxdevpanel.com'  # Your Gmail email address
-# EMAIL_HOST_PASSWORD = '0AFlibbo3002617425@'  # Your Gmail email password
-# DEFAULT_FROM_EMAIL = 'noreply@flxdevpanel.com'  # The default "from" email address
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
