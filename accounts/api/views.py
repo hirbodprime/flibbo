@@ -1,4 +1,4 @@
-
+import requests
 from rest_framework import generics as gn
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -36,7 +36,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
-User = get_user_model()
 from django.db.models import Q, Case, When, Value, IntegerField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import  permission_classes
@@ -56,6 +55,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Max
 
+User = get_user_model()
 
 
 class ChangePasswordView(APIView):
@@ -747,14 +747,27 @@ class SignupConfirmationView(gn.CreateAPIView):
             }
             bonus_code = request.data['bonus_code']
             if bonus_code:
-                pass
-            return Response({
-                'token': str(user_token.token),
-                'user_data':user_data,
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'success': True
-            }, status=status.HTTP_201_CREATED)
+                url = "http://127.0.0.1:8080/bonus/api/create/"
+                data = {
+                    'bonus_code': bonus_code,
+                    'used_user_username': user.username,
+                    'used_user_first_name': user.full_name,
+                    'used_user_email': user.email,
+                }
+
+                response = requests.post(url, data=data)
+
+                if response.status_code == 201:
+                    return Response({
+                        'token': str(user_token.token),
+                        'user_data':user_data,
+                        'access_token': access_token,
+                        'refresh_token': refresh_token,
+                        'success': True
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -22,7 +22,7 @@ from django.utils import timezone
 from django.contrib.auth import load_backend, login as django_login
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
-
+import requests
 User = get_user_model()
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -659,6 +659,16 @@ class SignupSerializer(serializers.ModelSerializer):
     def validate(self, data):
         password = data.get("password")
         confirm_password = data.pop("confirm_password")
+        bonus_code = data.get("bonus_code")
+        if bonus_code:
+            print(bonus_code)
+            url = f"http://127.0.0.1:8080/users/api/check-bonus-code/{bonus_code}/"
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                pass
+            else:
+                raise serializers.ValidationError({"error_bonus":"The Bonus Code is wronge!"})
         if password != confirm_password:
             raise serializers.ValidationError("Passwords do not match!")
 

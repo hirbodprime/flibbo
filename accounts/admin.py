@@ -11,7 +11,7 @@ class CustomUserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal Info', {'fields': ('username', 'full_name', 'birthday','profile_image','country','private')}),
+        ('Personal Info', {'fields': ('username', 'bonus_code','full_name', 'birthday','profile_image','country','private')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions','followers_count','followings_count')}),
     )
 

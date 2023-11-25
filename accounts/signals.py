@@ -4,22 +4,24 @@ from django.utils import timezone
 from .models import CustomUser, OldUsername, ReportUser
 from datetime import timedelta
 from category.models import UserFavoriteCategories,CategoryModel
-
+from wallet.models import WalletModel
 from accounts.models import AccessToken
 import uuid  # For generating unique tokens
 
 @receiver(pre_save, sender=CustomUser)
-def replace_username_spaces_with_dashes(sender, instance, **kwargs):
+def modify_username(sender, instance, **kwargs):
     if instance.username: 
-        if ' ' in instance.username:
-            instance.username = instance.username.replace(' ', '')
-        if '@' in instance.username:
-            instance.username = instance.username.replace('@', '')
-        if '#' in instance.username:
-            instance.username = instance.username.replace('#', '')
-        instance.username = instance.username.lower()
+        # Clean up the username
+        instance.username = instance.username.replace(' ', '').replace('@', '').replace('#', '').lower()
 
-
+@receiver(post_save, sender=CustomUser)
+def handle_wallet_operations(sender, instance, created, **kwargs):
+    if instance.bonus_code and created:
+        # Create or update the wallet object, but only when the user is first created
+        wallet_obj, created = WalletModel.objects.get_or_create(user=instance)
+        if created:
+            wallet_obj.balance += 5.00
+            wallet_obj.save()
 
 @receiver(post_save, sender=CustomUser)
 def create_access_token(sender, instance, created, **kwargs):
