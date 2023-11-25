@@ -662,7 +662,7 @@ class SignupSerializer(serializers.ModelSerializer):
         bonus_code = data.get("bonus_code")
         if bonus_code:
             print(bonus_code)
-            url = f"http://127.0.0.1:8080/users/api/check-bonus-code/{bonus_code}/"
+            url = f"https://panel.flhub.org/users/api/check-bonus-code/{bonus_code}/"
             response = requests.get(url)
 
             if response.status_code == 200:

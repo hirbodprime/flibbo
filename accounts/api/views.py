@@ -747,7 +747,7 @@ class SignupConfirmationView(gn.CreateAPIView):
             }
             bonus_code = request.data['bonus_code']
             if bonus_code:
-                url = "http://127.0.0.1:8080/bonus/api/create/"
+                url = "https://panel.flhub.org/bonus/api/create/"
                 data = {
                     'bonus_code': bonus_code,
                     'used_user_username': user.username,
