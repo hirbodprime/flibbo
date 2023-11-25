@@ -745,7 +745,10 @@ class SignupConfirmationView(gn.CreateAPIView):
                 'linkedin_url':user.linkedin_url,
                 'country':user.country,
             }
-            bonus_code = request.data['bonus_code']
+            try:
+                bonus_code = request.data['bonus_code']
+            except:
+                bonus_code = None
             if bonus_code:
                 url = "https://panel.flhub.org/bonus/api/create/"
                 data = {
