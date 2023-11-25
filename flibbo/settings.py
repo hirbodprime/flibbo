@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'dj_rest_auth.registration',
     'django.contrib.sites',
-
+    'channels',
     'django_countries',
     'fcm_django',
     # Project Apps:
@@ -292,3 +292,15 @@ SOCIALACCOUNT_PROVIDERS = {
         }
 }
 
+# web socket config
+# ASGI_APPLICATION = 'flibbo_app.routing.application'
+
+# # Configure Channels
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }

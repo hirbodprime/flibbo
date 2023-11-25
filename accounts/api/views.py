@@ -16,7 +16,7 @@ from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
- ,ChangeUsernameSerializer,ChangePasswordSerializer
+ ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer
  )
 from explore.custom_pagination import CustomPagination,CustomPagination2
 
@@ -57,6 +57,36 @@ from django.db.models import Max
 
 User = get_user_model()
 
+class AddBonusApiview(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        # Check if the user already has a bonus code
+        if user.bonus_code:
+            return Response({
+                'message': 'User already has a registered point.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AddBonusCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            bonus_code = serializer.validated_data.get('bonus_code')
+
+            # Rest of your code for making the external API call
+            # ...
+
+            # Assuming the external API call is successful and response.status_code == 201
+            # Save the bonus code to the user model
+            user.bonus_code = bonus_code
+            user.save()
+
+            return Response({
+                'data': {'bonus_code': bonus_code},
+                'success': True
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]

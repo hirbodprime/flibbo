@@ -25,6 +25,28 @@ from django.core.exceptions import ValidationError
 import requests
 User = get_user_model()
 
+
+
+
+
+class AddBonusCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('bonus_code',)
+    def validate(self, data):
+        bonus_code = data.get("bonus_code")
+        if bonus_code:
+            print(bonus_code)
+            url = f"https://panel.flhub.org/users/api/check-bonus-code/{bonus_code}/"
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                pass
+            else:
+                raise serializers.ValidationError({"error_bonus":"The Point Code is wronge!"})
+        return data
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
