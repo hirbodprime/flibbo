@@ -72,7 +72,7 @@ class OpenAIChatInteractionView(CreateAPIView):
             {"role": "user", "content": user_prompt}
         ]
         completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4-1106-preview",
             messages=messages
         )
         
