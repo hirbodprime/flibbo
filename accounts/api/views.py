@@ -745,10 +745,8 @@ class SignupConfirmationView(gn.CreateAPIView):
                 'linkedin_url':user.linkedin_url,
                 'country':user.country,
             }
-            try:
-                bonus_code = request.data['bonus_code']
-            except:
-                bonus_code = None
+            # Instead of directly accessing the key, use the .get() method
+            bonus_code = request.data.get('bonus_code', None)
             if bonus_code:
                 url = "https://panel.flhub.org/bonus/api/create/"
                 data = {
