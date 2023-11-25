@@ -18,6 +18,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True, null=True, blank=True)  # Add username field 
     full_name = models.CharField(max_length=60,null=True,blank=True)
+    bonus_code = models.CharField(max_length=8,null=True,blank=True)
     country = models.CharField(max_length=100,null=True,blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

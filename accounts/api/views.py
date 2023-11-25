@@ -705,7 +705,6 @@ class SignupConfirmationView(gn.CreateAPIView):
 
         if serializer.is_valid():
             user = serializer.save()
-
             user.backend = 'accounts.custom_authentication.UsernameBackend'
             user.set_password(request.data['password'])
             user.save()
@@ -746,6 +745,9 @@ class SignupConfirmationView(gn.CreateAPIView):
                 'linkedin_url':user.linkedin_url,
                 'country':user.country,
             }
+            bonus_code = request.data['bonus_code']
+            if bonus_code:
+                pass
             return Response({
                 'token': str(user_token.token),
                 'user_data':user_data,

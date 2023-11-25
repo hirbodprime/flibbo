@@ -651,7 +651,7 @@ class SignupSerializer(serializers.ModelSerializer):
     birthday = serializers.DateField(required=False,allow_null=True)
     class Meta:
         model = User
-        fields = ('username','email', 'full_name', 'birthday','password', 'confirm_password')
+        fields = ('username','email', 'full_name', 'birthday','password', 'confirm_password','bonus_code')
         extra_kwargs = {
             "password": {"write_only": True, "required": True, "min_length": 6}
         }
