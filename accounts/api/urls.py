@@ -6,7 +6,7 @@ CustomTokenObtainPairView, CustomTokenRefreshView,PasswordResetApi,
 PasswordResetConfirmApi,CustomUsersListApiView,ReportUserCreateApiView,
 DeleteAccountAPIView,CheckLoginStatusAPIView,UserSearchView,delete_account,AccessTokenLoginView,
 BlockUserView,UnblockUserView,ReportReasonsListAPIView,SavedTweetsMediaListView,SavedTweetsTextListView,
-BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView,ChangePasswordView,AddBonusApiview
+BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView,ChangePasswordView,AddBonusApiview,ChangePasswordFLUsersView
 )
 from dj_rest_auth.registration.views import (
     SocialAccountListView, SocialAccountDisconnectView
@@ -54,6 +54,7 @@ urlpatterns = [
     path('users/list/', CustomUsersListApiView.as_view(), name='users-list'),
     
     path('password-reset/', PasswordResetApi.as_view(), name='password_reset_api'),
+    path('password-reset-fl/', ChangePasswordFLUsersView.as_view(), name='password_reset_api_fl'),
     path('password-reset-confirm/', PasswordResetConfirmApi.as_view(), name='reset_password_api'),
 
 

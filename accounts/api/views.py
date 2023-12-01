@@ -16,7 +16,7 @@ from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
- ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer
+ ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer
  )
 from explore.custom_pagination import CustomPagination,CustomPagination2
 
@@ -107,9 +107,28 @@ class ChangePasswordView(APIView):
 
 
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 
+# ... rest of your code ...
 
-
+class ChangePasswordFLUsersView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ChangePasswordFLSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                user = CustomUser.objects.get(email=serializer.validated_data['email'])
+                user.set_password(serializer.validated_data['new_password'])
+                user.save()
+                return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
+            except CustomUser.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                # Log the exception here if needed
+                return Response({"message": f"Unexpected error: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangeUsernameView(APIView):
     def post(self, request, *args, **kwargs):

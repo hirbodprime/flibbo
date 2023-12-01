@@ -55,6 +55,14 @@ class ChangePasswordSerializer(serializers.Serializer):
         password_validation.validate_password(value)
         return value
 
+class ChangePasswordFLSerializer(serializers.Serializer):
+    new_password = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value)
+        return value
+
 class ChangeUsernameSerializer(serializers.ModelSerializer):
     new_username = serializers.CharField(max_length=150)
 

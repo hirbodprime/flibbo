@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'django_countries',
     'fcm_django',
     # Project Apps:
+    'message_system',
     'flibbo_base',
     'notification',
     'chat_openai',
