@@ -17,7 +17,7 @@ from .serializers import ( UserLoginSerializer , LogoutSerializer,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
  ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer,EmailCheckSerializer
- )
+ ,UsernameCheckSerializer)
 from explore.custom_pagination import CustomPagination,CustomPagination2
 
 from following_system.models import FollowModel,RequestToFollow
@@ -58,6 +58,20 @@ from django.db.models import Max
 
 User = get_user_model()
 
+@api_view(['POST'])
+def check_username_exists(request):
+    serializer = UsernameCheckSerializer(data=request.data)
+
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+
+        # Check if the email exists in the database
+        if CustomUser.objects.filter(username=username).exists():
+            return Response({'detail': 'This username already exists.',"success":True}, status=status.HTTP_200_OK)
+
+        return Response({'detail': 'This username does not exist.',"success":False}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

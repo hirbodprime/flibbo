@@ -25,6 +25,8 @@ from django.core.exceptions import ValidationError
 import requests
 User = get_user_model()
 
+class UsernameCheckSerializer(serializers.Serializer):
+    username = serializers.EmailField()
 
 
 class EmailCheckSerializer(serializers.Serializer):
