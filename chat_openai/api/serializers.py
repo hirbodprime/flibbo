@@ -44,3 +44,14 @@ class ImageInteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpenAIImageInteraction
         fields = '__all__'
+    
+
+
+
+
+class OpenAITextToSpeechInteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpenAIAudioInteraction
+        fields = ('id', 'user', 'user_text_prompt','gpt_response', 'created_at')
+        read_only_fields = ('user', 'created_at', 'gpt_response')
+

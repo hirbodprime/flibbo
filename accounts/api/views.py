@@ -16,7 +16,7 @@ from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
- ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer
+ ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer,EmailCheckSerializer
  )
 from explore.custom_pagination import CustomPagination,CustomPagination2
 
@@ -39,6 +39,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q, Case, When, Value, IntegerField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import  permission_classes
+from rest_framework.decorators import api_view
 from accounts.models import report_reasons_choices
 
 from django.contrib.auth import login
@@ -56,6 +57,24 @@ from datetime import timedelta
 from django.db.models import Max
 
 User = get_user_model()
+
+
+
+@api_view(['POST'])
+def check_email_exists(request):
+    serializer = EmailCheckSerializer(data=request.data)
+
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+
+        # Check if the email exists in the database
+        if CustomUser.objects.filter(email=email).exists():
+            return Response({'detail': 'This email already exists.',"success":True}, status=status.HTTP_200_OK)
+
+        return Response({'detail': 'This email does not exist.',"success":False}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class AddBonusApiview(APIView):
     permission_classes = [IsAuthenticated]

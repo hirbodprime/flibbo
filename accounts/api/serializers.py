@@ -27,7 +27,8 @@ User = get_user_model()
 
 
 
-
+class EmailCheckSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 class AddBonusCodeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -13,10 +13,10 @@ from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 
-from chat_openai.models import OpenAIChatInteraction,OpenAIAudioInteraction,OpenAIImageInteraction
+from chat_openai.models import OpenAIChatInteraction,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction
 from .serializers import (OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,
- AudioInteractionSerializer, ImageInteractionSerializer)
+ AudioInteractionSerializer, ImageInteractionSerializer, OpenAITextToSpeechInteractionSerializer)
  
 # python imports 
 import tempfile
@@ -134,6 +134,32 @@ class OpenAIAudioInteractionView(CreateAPIView):
 
 
 
+class OpenAITextToSpeechInteractionView(CreateAPIView):
+    queryset = OpenAITextToSpeechInteraction.objects.all()
+    serializer_class = OpenAITextToSpeechInteractionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user_prompt = self.request.data.get('user_text_prompt')
+
+        try:
+            # Convert the user prompt to speech
+            response = openai.Audio.speech.create(
+                model="tts-1",
+                voice="nova",
+                input=user_prompt,
+            )
+
+            # Save the audio response
+            with open("output.mp3", "wb") as audio_file:
+                audio_file.write(response)
+
+            # Save the model instance with the user prompt
+            serializer.save(user=self.request.user, user_text_prompt=user_prompt)
+            
+        except Exception as e:
+            # Handle exceptions (logging, custom error messages, etc.)
+            print(f"An error occurred: {e}")
 
 
 

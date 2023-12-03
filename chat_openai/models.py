@@ -35,3 +35,14 @@ class OpenAIImageInteraction(models.Model):
 
     def __str__(self):
         return self.gpt_response1[:50]
+
+
+class OpenAITextToSpeechInteraction(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    user_text_prompt = models.TextField()
+    gpt_response = models.FileField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.gpt_response[:50]
+
