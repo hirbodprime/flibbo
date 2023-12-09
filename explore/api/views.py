@@ -64,7 +64,7 @@ class ExploreCategoriesViewApi(APIView):
         paginator = CustomPagination()
 
         # Retrieve additional query parameters
-        sort_by = request.query_params.get('sort_by', 'popular').lower()
+        sort_by = request.query_params.get('sort_by', 'views').lower()
 
         # Get lists of blocked users
         block_obj, created = BlockModel.objects.get_or_create(user=user)
