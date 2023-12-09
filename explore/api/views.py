@@ -91,3 +91,67 @@ class ExploreCategoriesViewApi(APIView):
             return Response({'success': False, 'message': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class SortByLikesAndViewsApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            tweets = TweetPostModel.objects.filter(
+                user__private=False,
+                hide=False
+            ).annotate(
+                like_count=Count('likes'),
+                view_count=Count('viewed_by_users')
+            ).order_by('-like_count', '-view_count', '-created_date')
+
+            tweets = tweets.select_related('user').prefetch_related('category')
+
+            paginator = CustomPagination()
+            paginated_tweets = paginator.paginate_queryset(tweets, request)
+
+            if not paginated_tweets and request.query_params.get('page', '1') != '1':
+                return Response({'success': True, 'data': 'No more tweets available'}, status=status.HTTP_200_OK)
+
+            tweet_data = TweetPostSerializer(paginated_tweets, many=True, context={'request': request}).data
+
+            response_data = {
+                "tweets": tweet_data,
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link(),
+            }
+
+            return Response({'success': True, 'data': response_data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SortByRecencyApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            tweets = TweetPostModel.objects.filter(
+                user__private=False,
+                hide=False
+            ).order_by('-created_date')
+
+            tweets = tweets.select_related('user').prefetch_related('category')
+
+            paginator = CustomPagination()
+            paginated_tweets = paginator.paginate_queryset(tweets, request)
+
+            if not paginated_tweets and request.query_params.get('page', '1') != '1':
+                return Response({'success': True, 'data': 'No more tweets available'}, status=status.HTTP_200_OK)
+
+            tweet_data = TweetPostSerializer(paginated_tweets, many=True, context={'request': request}).data
+
+            response_data = {
+                "tweets": tweet_data,
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link(),
+            }
+
+            return Response({'success': True, 'data': response_data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
