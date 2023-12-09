@@ -294,14 +294,14 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # web socket config
-# ASGI_APPLICATION = 'flibbo_app.routing.application'
+ASGI_APPLICATION = 'flibbo_app.routing.application'
 
-# # Configure Channels
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],
-#         },
-#     },
-# }
+# Configure Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
