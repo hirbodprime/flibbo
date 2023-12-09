@@ -84,6 +84,8 @@ class ExploreCategoriesViewApi(APIView):
                 tweets_query = tweets_query.order_by('-created_date')
             elif sort_by == 'views':
                 tweets_query = tweets_query.annotate(views_count=Count('viewed_by_users')).order_by('-views_count')
+            elif sort_by == 'popular':
+                tweets_query = tweets_query.annotate(like_count=Count('likes')).order_by('-like_count', '-created_date')
             else:  # Default to 'popular'
                 tweets_query = tweets_query.annotate(like_count=Count('likes')).order_by('-like_count', '-created_date')
 
