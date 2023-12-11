@@ -706,11 +706,11 @@ class SignupSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Passwords do not match!")
 
         # Validate the password using Django's built-in password validation
-        try:
-            validate_password(password)
-        except ValidationError:
-            print("Password is too weak")
-            raise serializers.ValidationError("Password is too weak")
+        # try:
+        #     validate_password(password)
+        # except ValidationError:
+        #     print("Password is too weak")
+        #     raise serializers.ValidationError("Password is too weak")
         return data
 
 
