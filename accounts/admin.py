@@ -4,7 +4,7 @@ from .models import CustomUser,OldUsername,SavedByUser,ReportUser,AccessToken,Bl
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 admin.site.register(ChangeUsernameModel)
 class CustomUserAdmin(BaseUserAdmin):
-    list_display = ('id', 'email', 'username', 'full_name', 'is_active', 'is_staff','followers_count','followings_count')
+    list_display = ('id', 'join_date','email', 'username', 'full_name', 'is_active', 'is_staff','followers_count','followings_count')
     list_filter = ('is_active', 'is_staff', 'birthday','followers_count','followings_count')
     search_fields = ('email', 'username', 'full_name')
     ordering = ('email',)
