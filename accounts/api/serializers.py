@@ -532,10 +532,10 @@ class UserSignupValidationSerializer(serializers.Serializer):
             raise serializers.ValidationError("Passwords do not match!")
 
         # Validate the password using Django's built-in password validation
-        try:
-            validate_password(password)
-        except serializers.ValidationError as e:
-            raise serializers.ValidationError(e.messages[0])
+        # try:
+        #     validate_password(password)
+        # except serializers.ValidationError as e:
+        #     raise serializers.ValidationError(e.messages[0])
 
         return data
 
