@@ -563,10 +563,16 @@ class UsernameCheckSerializer(serializers.Serializer):
         username = data.get("username")
 
         # Check if the username exists in the database
-        if User.objects.filter(username=username).exists():
-            return data  # Username exists
+        if '@' in username: 
+            if User.objects.filter(email=username).exists():
+                return data  # Username exists
+            else:
+                raise serializers.ValidationError({"username": "Username does not exist"})
         else:
-            raise serializers.ValidationError({"username": "Username does not exist"})
+            if User.objects.filter(username=username).exists():
+                return data  # Username exists
+            else:
+                raise serializers.ValidationError({"username": "Username does not exist"})
             
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
