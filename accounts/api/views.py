@@ -731,10 +731,11 @@ class UserLoginView(gn.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         password = serializer.validated_data.get('password')
-
-        # Authenticate the user using Django's built-in authentication
-        print(username,password)
-        user = authenticate(request=self.request, username=username, password=password,backend='accounts.custom_authentication.UsernameBackend')
+        if '@' in username:
+            user = authenticate(request=self.request, email=username, password=password,backend='accounts.custom_authentication.UsernameBackend')
+            print(username,password)
+        else:
+            user = authenticate(request=self.request, username=username, password=password,backend='accounts.custom_authentication.UsernameBackend')
 
         if user is not None:
             # User authentication is successful
