@@ -183,7 +183,7 @@ class BasePostModel(models.Model):
         self.saved_by_users.remove(user)
 
 class TweetPostModel(BasePostModel):
-    video = models.FileField(upload_to=upload_video_post, blank=True, null=True)
+    video = models.FileField(upload_to=upload_video_post, blank=True, null=True,max_length=2000)
     photo = models.ImageField(upload_to=upload_image_post, blank=True, null=True)
     likes = models.ManyToManyField(User, related_name='tweet_posts_liked', blank=True)
     viewed_by_users = models.ManyToManyField(User, related_name='viewed_posts_post', blank=True)
