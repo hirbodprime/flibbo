@@ -79,7 +79,7 @@ class BasePostModel(models.Model):
     shared_by_users = models.ManyToManyField(User, blank=True)
     hide = models.BooleanField(default=False)
     urls = ArrayField(models.CharField(max_length=255), blank=True, null=True)
-    photo_blur_hash = models.CharField(max_length=100, blank=True, null=True)
+    photo_blur_hash = models.CharField(max_length=1000, blank=True, null=True)
     height = models.CharField(blank=True, null=True)
     cover = models.ImageField(upload_to=upload_image_post, blank=True, null=True)
     class Meta:
