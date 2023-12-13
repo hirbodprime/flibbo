@@ -177,11 +177,7 @@ class CategoryPostsViewSet(APIView):
             'previous': paginator.get_previous_link()
             # "podcasts": podcast_data,
         }
-        start_byte = 0
-        end_byte = 324781223
-        response['Content-Length'] = str(end_byte - start_byte + 1)
-        response['Content-Range'] = f'bytes {start_byte}-{end_byte}'
-        response['Accept-Ranges'] = 'bytes'
+        
         return Response(response_data, status=status.HTTP_200_OK)
 
 
