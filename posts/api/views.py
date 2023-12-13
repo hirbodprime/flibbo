@@ -177,17 +177,7 @@ class CategoryPostsViewSet(APIView):
             'previous': paginator.get_previous_link()
             # "podcasts": podcast_data,
         }
-        start_byte = 0
-        end_byte = 324781223
-        file_size = os.path.getsize(file_path)
-        
-        if end_byte > file_size - 1:
-            end_byte = file_size - 1
-
-        response = FileResponse(open(file_path, 'rb'), content_type='application/octet-stream')
-        response['Content-Length'] = str(end_byte - start_byte + 1)
-        response['Content-Range'] = f'bytes {start_byte}-{end_byte}/{file_size}'
-        response['Accept-Ranges'] = 'bytes'
+            
         return Response(response_data, status=status.HTTP_200_OK)
 
 
