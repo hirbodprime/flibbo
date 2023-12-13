@@ -178,7 +178,7 @@ class CategoryPostsViewSet(APIView):
             # "podcasts": podcast_data,
         }
             
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(response_data, status=status.HTTP_206_OK)
 
 
 
