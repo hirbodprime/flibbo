@@ -47,7 +47,8 @@ def upload_book_post(instance, filename):
     return upload_book_post_handler.get_filename(instance, filename)
 
 def upload_image_post(instance, filename):
-    return upload_image_post_handler.get_filename(instance, filename)
+    new_filename = filename[:100]
+    return upload_image_post_handler.get_filename(instance, new_filename)
 
 def upload_video_post(instance, filename):
     return upload_video_post_handler.get_filename(instance, filename)
