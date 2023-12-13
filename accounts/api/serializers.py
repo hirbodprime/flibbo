@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from following_system.models import FollowModel

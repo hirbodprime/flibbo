@@ -182,7 +182,9 @@ import os
 STATIC_URL = '/static/'
 STATIC_ROOT = '../flibbo/static/'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '../flibbo/media/'
+# MEDIA_ROOT = '../flibbo/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -216,16 +218,25 @@ SIMPLE_JWT = {
 }
 
 
-
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Google's SMTP server
-EMAIL_PORT = 587  # Use port 587 for TLS
-EMAIL_USE_TLS = True  # Use TLS for secure communication
-EMAIL_USE_SSL = False  # Set this to False when using TLS
-EMAIL_HOST_USER = os.getenv("MAIL_SERVER_EMAIL_HOST_USER")  # Your Gmail email address
-EMAIL_HOST_PASSWORD = os.getenv("MAIL_SERVER_EMAIL_HOST_PASSWORD") # Your Gmail email password
-DEFAULT_FROM_EMAIL = os.getenv("MAIL_SERVER_DEFAULT_FROM_EMAIL")  # The default "from" email address
+EMAIL_HOST = 'mail.flibbo.com'  # Google's SMTP server
+EMAIL_PORT = 465  # Use port 587 for TLS
+EMAIL_USE_TLS = False  # Use TLS for secure communication
+EMAIL_USE_SSL = True  # Set this to False when using TLS
+EMAIL_HOST_USER = "no-reply@flhub.org"  # Your Gmail email address
+EMAIL_HOST_PASSWORD = "xDUS#wn!zKQ7R_F" # Your Gmail email password
+DEFAULT_FROM_EMAIL = "no-reply@flhub.org"  # The default "from" email address
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'  # Google's SMTP server
+# EMAIL_PORT = 587  # Use port 587 for TLS
+# EMAIL_USE_TLS = True  # Use TLS for secure communication
+# EMAIL_USE_SSL = False  # Set this to False when using TLS
+# EMAIL_HOST_USER = os.getenv("MAIL_SERVER_EMAIL_HOST_USER")  # Your Gmail email address
+# EMAIL_HOST_PASSWORD = os.getenv("MAIL_SERVER_EMAIL_HOST_PASSWORD") # Your Gmail email password
+# DEFAULT_FROM_EMAIL = os.getenv("MAIL_SERVER_DEFAULT_FROM_EMAIL")  # The default "from" email address
 
 
 
