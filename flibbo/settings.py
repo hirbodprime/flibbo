@@ -89,7 +89,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.CheckHostMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    "django.middleware.security.SecurityMiddleware",
 ]
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'ALLOW-FROM uri'
 
 ROOT_URLCONF = 'flibbo.urls'
 
