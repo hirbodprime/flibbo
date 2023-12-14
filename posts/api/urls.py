@@ -1,10 +1,10 @@
 from django.urls import path , include
 from . import views as custom_views
-
-
+from posts.partial_videos import serve_video
 
 urlpatterns = [
     # URLs for Post
+    path('stream-video/<int:post_id>/', serve_video, name='stream-video'),
     # path('home/', include(router.urls)),
     path('followings-posts/', custom_views.FollowerPostsViewSet.as_view(), name='user-followers-posts'),
     path('favorite-categories/', custom_views.CategoryPostsViewSet.as_view(), name='user-favorite-categories-posts'),
