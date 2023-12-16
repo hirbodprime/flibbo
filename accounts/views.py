@@ -25,6 +25,7 @@ def delete_account(request):
                 form = DeleteAccountForm()  # Reset the form
             else:
                 # Add an error message
+                messages.error(request, 'Invalid credentials or confirmation not checked.')
                 form.add_error(None, "Invalid credentials or confirmation not checked.")
     else:
         form = DeleteAccountForm()
