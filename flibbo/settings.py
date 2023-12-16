@@ -99,7 +99,7 @@ ROOT_URLCONF = 'flibbo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -183,7 +183,11 @@ USE_TZ = True
 import os
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '../flibbo/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR,'static'),
+]
+# STATIC_ROOT = '../flibbo/static/'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '../flibbo/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
