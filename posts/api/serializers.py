@@ -199,7 +199,9 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
         # Check if the object has a 'photo' field
         if obj.video:
             # Get the full URL for the photo by prepending the domain
-            return request.build_absolute_uri(obj.video.url)
+            site_domain_stream = "http://app.flxdevpanel.com/posts/api/stream-video/"  # Replace this with your actual website domain
+            return f"{site_domain_stream}{obj.id}"
+            # return request.build_absolute_uri(obj.video.url)
         else:
             return None
 
