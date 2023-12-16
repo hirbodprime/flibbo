@@ -496,7 +496,8 @@ class TweetPostSerializer(serializers.ModelSerializer):
         if obj.video:
             # Get the full URL for the photo by prepending the domain
             site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.video.url}"
+            site_domain_stream = "http://app.flxdevpanel.com/posts/api/stream-video/"  # Replace this with your actual website domain
+            return f"{site_domain_stream}{obj.id}"
         else:
             return None
 
