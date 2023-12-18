@@ -1,7 +1,10 @@
 from django.db import models
 from django.urls import reverse
-
+import os
 from category.models import CategoryModel, SubCategoryModel
+from moviepy.editor import VideoFileClip
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 from posts.utils.upload_image import PostUploadHandler 
 
@@ -203,6 +206,26 @@ class TweetPostModel(BasePostModel):
         }
         short_link = builder.generate_short_link(app_code='flibbo', **options)
         return short_link
+    def compress_video(self, video_path):
+        clip = VideoFileClip(video_path)
+
+        # Maintain the original size
+        original_size = clip.size
+
+        # Specify a lower bitrate (e.g., '500k' - can be adjusted as needed)
+        # Bitrate effectively controls the quality and size of the video
+        bitrate = '500k'  # Example bitrate
+
+        # Create a temporary file path
+        temp_path = f"temp_{os.path.basename(video_path)}"
+
+        # Write the video file with the specified bitrate
+        clip.write_videofile(temp_path, codec="libx264", audio_codec="aac", bitrate=bitrate)
+
+        return temp_path
+
+
+
     def save(self, *args, **kwargs):
         if self.photo:  # Check if an image has been uploaded
             # Open the uploaded image
@@ -224,6 +247,23 @@ class TweetPostModel(BasePostModel):
                                               'image/jpeg', 
                                               output_io_stream.getbuffer().nbytes, 
                                               None)
+        if self.video:  # Check if a video has been uploaded
+            # Save the uploaded video file temporarily
+            temp_video_path = default_storage.save(f"temp_{self.video.name}", ContentFile(self.video.read()))
+
+            # Get the full path of the temporary video
+            full_temp_video_path = default_storage.path(temp_video_path)
+
+            # Compress the video
+            compressed_video_path = self.compress_video(full_temp_video_path)
+
+            # Update self.video with the compressed video
+            with open(compressed_video_path, 'rb') as f:
+                self.video.save(os.path.basename(compressed_video_path), ContentFile(f.read()), save=False)
+
+            # Clean up the temp files
+            os.remove(compressed_video_path)
+            default_storage.delete(temp_video_path)
 
         super(TweetPostModel, self).save(*args, **kwargs)
 class BookPostModel(BasePostModel):
