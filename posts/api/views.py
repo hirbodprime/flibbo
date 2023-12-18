@@ -395,7 +395,7 @@ class TweetPostListAPIView(ListAPIView):
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']
-        return TweetPostModel.objects.exclude(Q(photo__exact="") & Q(video__exact="")).filter(user=user_id)
+        return TweetPostModel.objects.exclude(Q(photo__exact="") & Q(video__exact="")).filter(user=user_id).order_by('-created_at')
 
 # Another view class
 class TweetPostTextListAPIView(ListAPIView):
@@ -404,7 +404,7 @@ class TweetPostTextListAPIView(ListAPIView):
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']
-        return TweetPostModel.objects.filter(photo__exact="", video__exact="", user=user_id)
+        return TweetPostModel.objects.filter(photo__exact="", video__exact="", user=user_id).order_by('-created_at')
 
 
 
