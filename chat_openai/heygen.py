@@ -129,4 +129,31 @@ def list_templates():
 
 # create_video()
 # get_video('cbf38fa4fc9e49abb5dd8c678d6ce385')
-list_avatars()
+# list_avatars()
+def generate_from_template():
+
+    url = "https://api.heygen.com/v1/template.generate"
+
+    payload = {
+        "template_id": "02548b8c42da4f259d24af69e5d318d7",
+        "title": "video_title",
+        "video_id": "85fa1df2a0dd48f5908781df11a63c2f",
+        "test": False,
+        "variables": [
+        {
+            "properties": { "newKey": "New Value" },
+            "name": "name"
+        }
+    ]
+    }
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "x-api-key": api_key
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    print(response.text)
+
+generate_from_template()
