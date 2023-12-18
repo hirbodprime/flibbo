@@ -389,25 +389,40 @@ class TweetPostUpdateAPIView(RetrieveAPIView):
 
 
 
-
-
-
-
 class TweetPostListAPIView(ListAPIView):
     serializer_class = TweetPostSerializer
-    # pagination_class = CustomPagination()
+    pagination_class = CustomPagination  # Add your custom pagination class here
+
     def get_queryset(self):
-        user_id = self.kwargs['user_id']  # Get the user_id from the URL kwargs
-        # Exclude posts that have both fields empty
+        user_id = self.kwargs['user_id']
         return TweetPostModel.objects.exclude(Q(photo__exact="") & Q(video__exact="")).filter(user=user_id)
 
+# Another view class
 class TweetPostTextListAPIView(ListAPIView):
     serializer_class = TweetPostSerializer
-    # pagination_class = CustomPagination()
+    pagination_class = CustomPagination  # Add your custom pagination class here
+
     def get_queryset(self):
-        user_id = self.kwargs['user_id']  # Get the user_id from the URL kwargs
-        # Filter posts that have both fields empty
+        user_id = self.kwargs['user_id']
         return TweetPostModel.objects.filter(photo__exact="", video__exact="", user=user_id)
+
+
+
+# class TweetPostListAPIView(ListAPIView):
+#     serializer_class = TweetPostSerializer
+#     # pagination_class = CustomPagination()
+#     def get_queryset(self):
+#         user_id = self.kwargs['user_id']  # Get the user_id from the URL kwargs
+#         # Exclude posts that have both fields empty
+#         return TweetPostModel.objects.exclude(Q(photo__exact="") & Q(video__exact="")).filter(user=user_id)
+
+# class TweetPostTextListAPIView(ListAPIView):
+#     serializer_class = TweetPostSerializer
+#     # pagination_class = CustomPagination()
+#     def get_queryset(self):
+#         user_id = self.kwargs['user_id']  # Get the user_id from the URL kwargs
+#         # Filter posts that have both fields empty
+#         return TweetPostModel.objects.filter(photo__exact="", video__exact="", user=user_id)
         
         
 class TweetPostCreateAPIView(CreateAPIView):
