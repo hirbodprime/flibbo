@@ -1,8 +1,73 @@
 # my_app/serializers.py
 
 from rest_framework import serializers
-from chat_openai.models import OpenAIChatInteraction,OpenAIAudioInteraction,OpenAIImageInteraction
+from chat_openai.models import VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 
+MAIN_DOMAIN = 'app.flxdevpanel.com'
+LOCAL_DOMAIN = '127.0.0.1:8000'
+SAHAND_DOMAIN = '192.168.3.90:8000'
+
+class VoiceActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VoiceActorModel
+        fields = ['country', 'voice_id', 'name', 'gender', 'locale', 'language', 'access', 'provider', 'styles']
+
+
+class StylesModelSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    def get_description(self,obj):
+        if obj.description:
+            return obj.description
+        return 
+    def get_image(self,obj):
+        if obj.image:
+            return f"http://{SAHAND_DOMAIN}{obj.image.url}"
+        return 
+    class Meta:
+        model = StyleListModel
+        fields = ['id','name', 'image','description', 'created_at']
+
+
+
+class AIToolsModelSerializer(serializers.ModelSerializer):
+    icon_image = serializers.SerializerMethodField()
+    bg_image = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    def get_description(self,obj):
+        if obj.description:
+            return obj.description
+        return 
+    def get_icon_image(self,obj):
+        if obj.icon_image:
+            return f"http://{SAHAND_DOMAIN}{obj.icon_image.url}"
+        return 
+    def get_bg_image(self,obj):
+        if obj.bg_image:
+            return f"http://{SAHAND_DOMAIN}{obj.bg_image.url}"
+        return 
+    class Meta:
+        model = AIToolsModel
+        fields = ['name', 'short_description', 'bg_image','icon_image','description', 'created_at']
+
+
+
+class OpenAICategoriesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoriesModel
+        fields = ('id','name','created_at')
+
+class OpenAIChatCategoriesSerializer(serializers.ModelSerializer):
+    icon = serializers.SerializerMethodField()
+    class Meta:
+        model = OpenAIChatCategories
+        fields = ('id','name','icon','hex_code','description','created_at')
+    def get_icon(self,obj):
+        if obj.icon:
+            return f'https://{MAIN_DOMAIN}{obj.icon.url}'
+            # return f'http://{LOCAL_DOMAIN}{obj.icon.url}'
+        else:
+            return 
 class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpenAIChatInteraction

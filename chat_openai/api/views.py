@@ -4,21 +4,27 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 # rest imports
-from rest_framework.generics import CreateAPIView,GenericAPIView
+from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 
-from chat_openai.models import OpenAIChatInteraction,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction
-from .serializers import (OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
+from chat_openai.models import VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from .serializers import (VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,
- AudioInteractionSerializer, ImageInteractionSerializer, OpenAITextToSpeechInteractionSerializer)
- 
+ AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
+from explore.custom_pagination import CustomPagination
+from chat_openai.studio_d import create_talk,get_animation,get_talk,create_animation,get_presenters,get_presenter_drivers,create_clip,get_clip
+from chat_openai.fliki import generate_text_to_image,get_langunages,get_dialects,get_voices,get_status,create_video,generate_text_to_speech
 # python imports 
+import json
+from datetime import datetime
 import tempfile
 import os
 import mimetypes
@@ -31,7 +37,413 @@ client = OpenAI(
   organization=os.getenv("OPENAI_ORG_API_KEY")
 )
 
+class VoiceActorListView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        language = request.query_params.get('language')
+        gender = request.query_params.get('gender')
+        
+        if language and gender:
+            voice_actors = VoiceActorModel.objects.filter(language=language, gender=gender)
+        else:
+            return Response({"error": "Language and gender parameters are required."}, status=400)
 
+        serializer = VoiceActorSerializer(voice_actors, many=True)
+        response_data = {
+            'data':serializer.data
+        }
+        return Response(response_data)
+
+
+class GetStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request,video_id):
+        status_data = get_status(video_id)
+        return Response(status_data)
+
+class GetVoicesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, language_id=None, dialect_id=None):
+        # Check if language_id is provided and valid
+        if not language_id:
+            return Response({'error': 'Language ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not dialect_id:
+            return Response({'error': 'Dialect ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Assuming get_voices is a function that handles the retrieval of voice data
+        voice_data = get_voices(language_id, dialect_id)
+        return Response(voice_data)
+
+class GetDialectsView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        dialects_data = get_dialects()
+        return Response(dialects_data)
+
+class GetLanguagesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        languages_data = get_langunages()
+        return Response(languages_data)
+
+class StylesListView(APIView):
+    # permission_classes = [IsAuthenticated]
+    def get(self, request):
+        style_list = StyleListModel.objects.all()
+        serializer = StylesModelSerializer(style_list, many=True)
+        return Response({'data': serializer.data})
+
+class AIToolsListView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user_limit = UserAIStudioLimit.objects.get(user=request.user)
+        ai_tools = AIToolsModel.objects.all()
+        serializer = AIToolsModelSerializer(ai_tools, many=True)
+        return Response({'data': serializer.data,"limit":user_limit.limit})
+
+
+
+class GetClipView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, clip_id):
+        try:
+            clip_response = ClipResponse.objects.get(clip_id=clip_id)
+        except clip_response.DoesNotExist:
+            return Response({"error": "Clip not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        clip_data = get_clip(clip_response.clip_id)
+        return Response(clip_data)
+
+class GetPresentersView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, limit):
+        presenters_data = get_presenters(limit)
+        return Response(presenters_data)
+
+class GetPresenterDriversView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, presenter_id):
+        driver_data = get_presenter_drivers(presenter_id)
+        return Response(driver_data)
+
+class GetTalkView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, talk_id):
+        try:
+            talk_response = TalkResponse.objects.get(talk_id=talk_id)
+        except TalkResponse.DoesNotExist:
+            return Response({"error": "Talk not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        talk_data = get_talk(talk_response.talk_id)
+        return Response(talk_data)
+
+class GetAnimationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, animation_id):
+        try:
+            animation_response = AnimationResponse.objects.get(animation_id=animation_id)
+            print(animation_response)
+        except animation_response.DoesNotExist:
+            return Response({"error": "Animation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        animation_data = get_animation(animation_response.animation_id)
+        return Response(animation_data)
+
+class GetStatusVideoView(APIView):
+    def post(self, request, *args, **kwargs):
+        required_fields = ['video_id']
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response(
+                    {"error": f"'{field}' field is required and cannot be empty."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        get_video_status = get_status(
+            request.data['video_id'],
+        )
+        # Check if the operation was successful
+        # print(get_video_status)
+        if get_video_status['data']['data']['status'] == "processing":
+            return Response({"message": "Video is Being Created","status":get_video_status['data']['data']['progress']})
+
+        if get_video_status['data']['data']['status'] == "success":
+
+            fliki_obj  = FlikiVideoModel.objects.get(video_id=request.data['video_id'])
+            fliki_obj.image_link = get_video_status['data']['data']['file']
+            fliki_obj.save()
+            print(get_video_status)
+            return Response({"message": f"Video created successfully",**get_video_status})
+
+        # Handle error case
+        return Response({"error": animation_response.get("error", "Failed to create animation")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CreateVideoFlikiView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        required_fields = ['text_input', 'voice_id', 'aspectratio', 'bg_music']
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response(
+                    {"error": f"'{field}' field is required and cannot be empty."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        create_video_res = create_video(
+            request.data['text_input'],
+            request.data['voice_id'],
+            request.data['aspectratio'],
+            request.data['bg_music'],
+        )
+        if create_video_res.get("success"):
+            FlikiVideoModel.objects.create(
+                video_id = create_video_res['data']['data']['id'],
+                text_input=request.data['text_input'],
+                voice_id=request.data['voice_id'],
+                aspectratio=request.data['aspectratio'],
+                bg_music=request.data['bg_music'],
+                user=request.user
+            )
+            return Response({"message": f"Video created successfully","data":create_video_res['data']['data']['id']})
+
+        # Handle error case
+        return Response({"error": create_video_res.get("error", "Failed to create video")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CreateTextToSpeechView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        required_fields = ['text_input','voice_id']
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response(
+                    {"error": f"'{field}' field is required and cannot be empty."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        text_to_speech = generate_text_to_speech(
+            request.data['text_input'],
+            request.data['voice_id'],
+        )
+
+        # Check if the operation was successful
+        if text_to_speech.get("success"):
+            # Save response data to model
+            print(text_to_speech)
+            response_data = text_to_speech["data"]
+            # print(response_data['data']['image'])
+            style_obj = get_object_or_404(StyleListModel,name=request.data['style'])
+            TextToImageResponse.objects.create(
+                audio_link=response_data['data']['image'],
+                text_input=request.data['text_input'],
+                style=style_obj,
+                user=request.user
+            )
+
+            return Response({"message": f"Animation created successfully","data":response_data})
+
+        # Handle error case
+        return Response({"error": animation_response.get("error", "Failed to create animation")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class CreateTextToImageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        required_fields = ['text_input','style']
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response(
+                    {"error": f"'{field}' field is required and cannot be empty."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        text_to_image = generate_text_to_image(
+            request.data['text_input'],
+            request.data['style'],
+        )
+
+        # Check if the operation was successful
+        if text_to_image.get("success"):
+            # Save response data to model
+            print(text_to_image)
+            response_data = text_to_image["data"]
+            # print(response_data['data']['image'])
+            style_obj = get_object_or_404(StyleListModel,name=request.data['style'])
+            TextToImageResponse.objects.create(
+                image_link=response_data['data']['image'],
+                text_input=request.data['text_input'],
+                style=style_obj,
+                user=request.user
+            )
+
+            return Response({"message": f"Animation created successfully","data":response_data})
+
+        # Handle error case
+        return Response({"error": animation_response.get("error", "Failed to create animation")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class CreateAnimationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # Uncomment these lines if you're handling image uploads
+        # image = request.FILES.get('image')
+        # if not image:
+        #     return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+        # image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+        # image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+        image_url = "https://app.flxdevpanel.com/media/test.jpg"
+        animation_response = create_animation(
+            image_url
+        )
+
+        # Check if the operation was successful
+        if animation_response.get("success"):
+            # Save response data to model
+            print(animation_response)
+            response_data = animation_response["data"]
+            AnimationResponse.objects.create(
+                animation_id=response_data["id"],
+                created_at=datetime.fromisoformat(response_data["created_at"]),
+                created_by=response_data["created_by"],
+                object_type=response_data["object"],
+                status=response_data["status"],
+                user=request.user
+
+            )
+
+            return Response({"message": f"Animation created successfully","data":response_data})
+
+        # Handle error case
+        return Response({"error": animation_response.get("error", "Failed to create animation")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CreateClipView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        # text_input,presenter_id,driver_id,bg_color
+        # Validate other required fields
+        required_fields = ['text_input', 'presenter_id', 'driver_id', 'bg_color']
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response(
+                    {"error": f"'{field}' field is required and cannot be empty."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Call create_talk with validated data and image URL
+        clip_response = create_clip(
+            request.data['text_input'],
+            request.data['presenter_id'],
+            request.data['driver_id'],
+            request.data['bg_color']
+        )
+
+        # Check if the operation was successful
+        if clip_response.get("success"):
+            # Save response data to model
+            response_data = clip_response["data"]
+            ClipResponse.objects.create(
+                clip_id=response_data["id"],
+                created_at=datetime.fromisoformat(response_data["created_at"]),
+                object_type=response_data["object"],
+                status=response_data["status"]
+            )
+
+            return Response({"message": f"Clip created successfully","data":response_data})
+
+        # Handle error case
+        return Response({"error": clip_response.get("error", "Failed to create clip")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+class CreateTalkView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        # Uncomment these lines if you're handling image uploads
+        image = request.FILES.get('image')
+        if not image:
+            return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+        image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+        image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+        
+        # Temporary image URL for testing
+        # image_url = "https://app.flxdevpanel.com/media/test.jpg"
+
+        # Validate other required fields
+        required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response(
+                    {"error": f"'{field}' field is required and cannot be empty."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Call create_talk with validated data and image URL
+        talk_response = create_talk(
+            request.data['text_input'],
+            image_url,
+            request.data['fluent'],
+            request.data['expression'],
+            request.data['speed_rate'],
+            request.data['voice_id'],
+        )
+
+        # Check if the operation was successful
+        if talk_response.get("success"):
+            # Save response data to model
+            response_data = talk_response["data"]
+            TalkResponse.objects.create(
+                talk_id=response_data["id"],
+                created_at=datetime.fromisoformat(response_data["created_at"]),
+                created_by=response_data["created_by"],
+                status=response_data["status"]
+            )
+
+            return Response({"message": f"Talk created successfully","data":response_data})
+
+        # Handle error case
+        return Response({"error": talk_response.get("error", "Failed to create talk")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class CategoriesListAPIView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = CategoriesModel.objects.all()
+    serializer_class = OpenAICategoriesSerializer
+    # pagination_class = CustomPagination
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)  # Get the original response
+        response_data = {
+            'categories': response.data
+        }
+        return Response(response_data)
+
+class OpenAICategoryListAPIView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OpenAIChatCategoriesSerializer
+    # pagination_class = CustomPagination
+
+    def get_queryset(self):
+        """
+        Optionally restricts the returned purchases to a given category,
+        by filtering against a `category_id` query parameter in the URL.
+        """
+        queryset = OpenAIChatCategories.objects.all()
+        category_id = self.request.query_params.get('category_id')
+        if category_id is not None:
+            queryset = queryset.filter(category=category_id)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)  # Get the original response
+        response_data = {
+            'chat_categories': response.data
+        }
+        return Response(response_data)
 
 
 class DeleteUserHistory(viewsets.ViewSet):
