@@ -13,8 +13,15 @@ class OpenAIImageAdmin(admin.ModelAdmin):
 class OpenAIAudioAdmin(admin.ModelAdmin):
     list_display = ('user', 'user_audio_prompt', 'gpt_response', 'created_at')
 
+class ToolsOptionsModelAdmin(admin.ModelAdmin):
+    change_form_template = "custom_admin.html"
 
 
+admin.site.register(models.LanguageAndDialectRelation)
+admin.site.register(models.Language)
+admin.site.register(models.Dialect)
+admin.site.register(models.ToolsOptionsModel,ToolsOptionsModelAdmin)
+admin.site.register(models.TextToSpeechResponse)
 admin.site.register(models.VoiceActorModel)
 admin.site.register(models.UserAIStudioLimit)
 admin.site.register(models.TextToImageResponse)

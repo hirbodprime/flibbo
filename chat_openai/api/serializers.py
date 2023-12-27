@@ -1,7 +1,7 @@
 # my_app/serializers.py
 
 from rest_framework import serializers
-from chat_openai.models import VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
+from chat_openai.models import ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 
 MAIN_DOMAIN = 'app.flxdevpanel.com'
 LOCAL_DOMAIN = '127.0.0.1:8000'
@@ -28,12 +28,30 @@ class StylesModelSerializer(serializers.ModelSerializer):
         model = StyleListModel
         fields = ['id','name', 'image','description', 'created_at']
 
-
+class ToolsOptionsModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ToolsOptionsModel
+        fields = '__all__' 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # Add logic here to filter out fields based on the choice_field
+        if instance.choice_field == 'talk':
+            # Keep only fields relevant to 'talk'
+            ret = {key: value for key, value in ret.items() if key in ['fluent', 'subtitle', 'expression', 'speed_rate']}
+        elif instance.choice_field == 'clip':
+            # Keep only fields relevant to 'clip'
+            ret = {key: value for key, value in ret.items() if key in ['bg_color']}
+        # ... Add more conditions for other choices if necessary
+        elif instance.choice_field == 'fliki-video':
+            # Keep only fields relevant to 'clip'
+            ret = {key: value for key, value in ret.items() if key in ['aspectratio','bg_music']}
+        return ret
 
 class AIToolsModelSerializer(serializers.ModelSerializer):
     icon_image = serializers.SerializerMethodField()
     bg_image = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
+    options = ToolsOptionsModelSerializer(read_only=True)
     def get_description(self,obj):
         if obj.description:
             return obj.description
@@ -48,7 +66,7 @@ class AIToolsModelSerializer(serializers.ModelSerializer):
         return 
     class Meta:
         model = AIToolsModel
-        fields = ['name', 'short_description', 'bg_image','icon_image','description', 'created_at']
+        fields = ['name', 'options','short_description', 'bg_image','icon_image','description', 'created_at']
 
 
 

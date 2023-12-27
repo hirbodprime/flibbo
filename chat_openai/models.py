@@ -10,6 +10,56 @@ expression_choice = (
     ('suprise','suprise'),
     )
 # voice_id, aspectratio, bg_music
+
+class Dialect(models.Model):
+    _id = models.CharField(max_length=50, unique=True,null=True,blank=True)
+    name = models.CharField(max_length=100,null=True,blank=True)
+    name_post_space = models.CharField(max_length=100, null=True, blank=True)
+    initials = models.CharField(max_length=2, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.name_post_space}'
+
+class Language(models.Model):
+    _id = models.CharField(max_length=50, unique=True,null=True,blank=True)
+    name = models.CharField(max_length=100,null=True,blank=True)
+    def __str__(self):
+        return self.name
+class LanguageAndDialectRelation(models.Model):
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    dialect = models.ForeignKey(Dialect, on_delete=models.CASCADE)
+    def __str__(self):
+        return f'{self.language} {self.dialect}'
+class ToolsOptionsModel(models.Model):
+    CHOICES = (
+        ('talk', 'Talk'),
+        ('clip', 'Clip'),
+        ('fliki-video', 'Fliki-Video'),
+        # ... add other choices here ...
+    )
+
+    choice_field = models.CharField(max_length=15, choices=CHOICES)
+    
+    # talk fields
+    fluent = models.BooleanField(default=True)
+    subtitle = models.BooleanField(default=True)
+    expression = models.BooleanField(default=True)
+    speed_rate = models.BooleanField(default=True)
+    
+    # clip fields
+    bg_color = models.BooleanField(default=True)
+    
+    # animation fields
+    # text to image fields
+    # text to speech fields
+
+    # fliki video fields
+    aspectratio = models.BooleanField(default=True)
+    bg_music = models.BooleanField(default=True)
+    def __str__(self):
+        return self.choice_field
+    
+
 class FlikiVideoModel(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     image_link = models.TextField(null=True,blank=True) 
@@ -67,12 +117,14 @@ class TextToSpeechResponse(models.Model):
     audio_link = models.TextField(null=True,blank=True) 
     text_input = models.TextField(null=True,blank=True) 
     voice_id = models.TextField(null=True,blank=True) 
+    duration = models.TextField(null=True,blank=True) 
 
     def __str__(self):
-        return f'{self.style} - {self.user}'
+        return f'{self.user} - {self.duration}'
 
 
 class AIToolsModel(models.Model):
+    options = models.ForeignKey(ToolsOptionsModel, on_delete=models.CASCADE,null=True,blank=True)
     name = models.CharField(max_length=255,null=True,blank=True)
     bg_image = models.FileField(upload_to='ai/',null=True,blank=True)
     icon_image = models.FileField(upload_to='ai/',null=True,blank=True)

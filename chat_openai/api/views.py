@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 
-from chat_openai.models import VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from chat_openai.models import Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
 from .serializers import (VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
@@ -63,15 +63,17 @@ class GetStatusView(APIView):
 
 class GetVoicesView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, language_id=None, dialect_id=None):
+    def get(self, request, language=None, gender=None):
         # Check if language_id is provided and valid
-        if not language_id:
+        if not language:
             return Response({'error': 'Language ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if not dialect_id:
-            return Response({'error': 'Dialect ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not gender:
+            return Response({'error': 'Gender ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Assuming get_voices is a function that handles the retrieval of voice data
-        voice_data = get_voices(language_id, dialect_id)
+        obj = Language.objects.get(name = language)
+        obj_relation = LanguageAndDialectRelation.objects.get(language=obj)
+        voice_data = get_voices(obj._id, obj_relation.dialect._id,gender)
         return Response(voice_data)
 
 class GetDialectsView(APIView):
@@ -229,24 +231,22 @@ class CreateTextToSpeechView(APIView):
         )
 
         # Check if the operation was successful
-        if text_to_speech.get("success"):
-            # Save response data to model
-            print(text_to_speech)
+        if text_to_speech.get("success") == True:
             response_data = text_to_speech["data"]
-            # print(response_data['data']['image'])
-            style_obj = get_object_or_404(StyleListModel,name=request.data['style'])
-            TextToImageResponse.objects.create(
-                audio_link=response_data['data']['image'],
+            TextToSpeechResponse.objects.create(
+                audio_link=response_data['data']['audio'],
                 text_input=request.data['text_input'],
-                style=style_obj,
-                user=request.user
+                voice_id=request.data['voice_id'],
+                user=request.user,
+                duration=response_data['data']['duration']
             )
 
-            return Response({"message": f"Animation created successfully","data":response_data})
+            return Response({"message": f"Video created successfully","data":response_data})
 
         # Handle error case
-        return Response({"error": animation_response.get("error", "Failed to create animation")},
+        return Response({"error": text_to_speech.get("error", "Failed to create video")},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                        
 class CreateTextToImageView(APIView):
     permission_classes = [IsAuthenticated]
 

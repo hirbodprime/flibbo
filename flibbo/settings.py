@@ -29,7 +29,7 @@ else:
 # # Set the 'SECURE_SSL_REDIRECT' setting to True to force HTTPS
 # SECURE_SSL_REDIRECT = True
 # ALLOWED_HOSTS = ["192.168.3.73"]
-ALLOWED_HOSTS = ['www.lab.flxdevpanel.com','lab.flxdevpanel.com',"*","127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
+ALLOWED_HOSTS = ['www.dev.flxdevpanel.com','dev.flxdevpanel.com','www.lab.flxdevpanel.com','lab.flxdevpanel.com',"*","127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
 
 AUTHENTICATION_BACKENDS = [
     'accounts.custom_authentication.UsernameBackend',  # Replace 'your_app_name' with the actual name of your app
@@ -38,7 +38,7 @@ AUTHENTICATION_BACKENDS = [
 ]   
 SITE_ID = 1
 
-CSRF_TRUSTED_ORIGINS = ['https://app.flxdevpanel.com','https://lab.flxdevpanel.com']
+CSRF_TRUSTED_ORIGINS = ['https://app.flxdevpanel.com','http://dev.flxdevpanel.com/']
 # Application definition
 USE_X_FORWARDED_HOST = True
 INSTALLED_APPS = [

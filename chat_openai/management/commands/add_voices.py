@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 import json
-from chat_openai.models import VoiceActorModel  # Replace 'yourapp' with your actual app name
+from chat_openai.models import VoiceActorModel  # Replace 'chat_openai' with your actual app name
+
 class Command(BaseCommand):
     help = 'Load or update a list of voice actors from a JSON file'
 
@@ -14,8 +15,8 @@ class Command(BaseCommand):
             voice_actors = json.load(file)
 
             for actor in voice_actors:
-                # Extract country from the language field
-                country = actor['language'].split('(')[-1].rstrip(')')
+                # Extract the language before the space
+                language = actor['language'].split(' ')[0]
 
                 # Check if the actor already exists
                 obj, created = VoiceActorModel.objects.update_or_create(
@@ -24,10 +25,10 @@ class Command(BaseCommand):
                         'name': actor['name'],
                         'gender': actor['gender'],
                         'locale': actor['locale'],
-                        'language': actor['language'],
+                        'language': language,  # Save only the language part before the space
                         'access': actor['access'],
-                        'provider': actor['provider'],
-                        'country': country
+                        'provider': actor['provider']
+                        # Removed 'country' as it's no longer extracted
                     }
                 )
 

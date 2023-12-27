@@ -10,7 +10,8 @@ load_dotenv()
 # The API endpoint where you need to send the request
 
 api_key = os.getenv("FLIKI_API_KEY")
-
+# from .pycountry_test import all_dialects 
+# all_dialects()
 # Headers
 headers = {
     "Authorization": f"Bearer {api_key}",
@@ -48,24 +49,55 @@ def get_dialects():
         error_data = response.json()
         return {"success":False,"error":error_data}
 
-def get_voices(language_id,dialect_id):
+def get_voices(language_id, dialect_id, gender):
     url = "https://api.fliki.ai/v1/voices"
     payload = {
-        "languageId": language_id,  # Replace with your language ID
-        "dialectId": dialect_id  # Replace with your dialect ID
+        "languageId": language_id,
+        "dialectId": dialect_id
     }
-    # Making a GET request
     response = requests.post(url, headers=headers, data=json.dumps(payload))
 
-    # Checking the response
     if response.status_code == 200:
-        print(response.json())
         response_data = response.json()
-        return {"success":True,**response_data}
-
+        # Filter voices by gender
+        filtered_voices = [voice for voice in response_data['data'] if voice['gender'] == gender.upper()]
+        return {"success": True, "data": filtered_voices}
     else:
         error_data = response.json()
-        return {"success":False,"error":error_data}
+        return {"success": False, "error": error_data}
+
+from .models import Dialect, Language
+import re
+
+def load_data_from_json():
+    with open('chat_openai/dialect.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+
+    for item in data['data']:
+        full_name = item['name']
+
+        # Extract the first two letters of the name
+        initials = full_name[:2]
+
+        # Extract the part of the name after the first space
+        name_post_space = full_name.split(' ', 1)[1] if ' ' in full_name else ''
+
+        dialect, created = Dialect.objects.get_or_create(
+            _id=item['_id'],
+            defaults={
+                'name': full_name, 
+                'name_post_space': name_post_space,
+                'initials': initials
+            }
+        )
+
+        if created:
+            print(f'Added new dialect: {dialect.name}')
+        else:
+            print(f'Dialect already exists: {dialect.name}')
+
+
+# load_data_from_json()
 
 def create_video(text_input, voice_id, aspectratio, bg_music):
     # Define accepted aspect ratios
@@ -139,16 +171,19 @@ def generate_text_to_speech(content, voice_id):
         # "voiceStyleId": voice_style_id
     }
     response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
+    print(response.status_code)
+    if response.json()['success'] == True:
         print(response.json())
         response_data = response.json()
         return {"success":True,'data':response_data}
 
     else:
         error_data = response.json()
+        print(error_data)
         return {"success":False,"error":error_data}
         
-#  generate_text_to_speech('some prompt','AZnzlk1XvdvUeBnXmlld')
+# generate_text_to_speech('سامان. داداش یکم صبر داشته باش ','61b8b4814268666c126bb3ef')
+
 def generate_text_to_image(content, style):
     url = "https://api.fliki.ai/v1/generate/text-to-image"
     payload = {
@@ -170,5 +205,4 @@ def generate_text_to_image(content, style):
 # create_video()
 # get_status("6582b5547dfd314748c0724e")
 
-# generate_text_to_speech('سامان. داداش یکم صبر داشته باش ','61b8b4814268666c126bb3ef')
 # generate_text_to_image('A MAN FLYING', '3d-model')

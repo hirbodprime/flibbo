@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
     OpenAIChatInteractionView,OpenAIAudioInteractionView,GetPresenterDriversView,CreateAnimationView,
     OpenAIImageInteractionView,InteractionListView,DeleteUserHistory, CategoriesListAPIView,OpenAIChatInteractionViewe,OpenAICategoryListAPIView
-    ,CreateVideoFlikiView,GetStatusVideoView,VoiceActorListView
+    ,CreateVideoFlikiView,GetStatusVideoView,VoiceActorListView,CreateTextToSpeechView
 )
 
 urlpatterns = [
@@ -20,7 +20,8 @@ urlpatterns = [
     path('fliki/video/status/', GetStatusVideoView.as_view(), name='fliki-video-status'),
     path('fliki/video/create/', CreateVideoFlikiView.as_view(), name='fliki-create-video'),
     path('fliki/image/create/', CreateTextToImageView.as_view(), name='fliki-create-image'),
-    path('fliki/voices/list/<str:language_id>/<str:dialect_id>/', GetVoicesView.as_view(), name='get_languages'),
+    path('fliki/voice/create/', CreateTextToSpeechView.as_view(), name='fliki-create-voice'),
+    path('fliki/voices/list/<str:language>/<str:gender>/', GetVoicesView.as_view(), name='get_languages'),
     path('fliki/languages/list/', GetLanguagesView.as_view(), name='get_languages'),
     path('fliki/dialects/list/', GetDialectsView.as_view(), name='get_languages'),
     
