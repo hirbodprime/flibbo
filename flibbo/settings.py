@@ -38,7 +38,7 @@ AUTHENTICATION_BACKENDS = [
 ]   
 SITE_ID = 1
 
-CSRF_TRUSTED_ORIGINS = ['https://app.flxdevpanel.com','https://dev.flxdevpanel.com/']
+CSRF_TRUSTED_ORIGINS = ['https://app.flxdevpanel.com','https://dev.flxdevpanel.com']
 # Application definition
 USE_X_FORWARDED_HOST = True
 INSTALLED_APPS = [
