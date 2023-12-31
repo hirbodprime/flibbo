@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'marketplace',
     'wallet',
     'activity',
+    'point',
 ]
 
 MIDDLEWARE = [

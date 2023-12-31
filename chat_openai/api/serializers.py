@@ -1,11 +1,34 @@
 # my_app/serializers.py
 
 from rest_framework import serializers
-from chat_openai.models import ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
+from chat_openai.models import OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 
 MAIN_DOMAIN = 'app.flxdevpanel.com'
 LOCAL_DOMAIN = '127.0.0.1:8000'
 SAHAND_DOMAIN = '192.168.3.90:8000'
+
+class OpenAIChatIDSerializer(serializers.ModelSerializer):
+    first_message = serializers.CharField(required=True)  # Explicitly set as required
+    
+
+    class Meta:
+        model = OpenAIChatID
+        fields = ['user', 'first_message', 'created_at','chat_id']
+    read_only_fields = ('chat_id', 'user')  # Making user read-only
+    def __init__(self, *args, **kwargs):
+        super(OpenAIChatIDSerializer, self).__init__(*args, **kwargs)
+        self.fields['user'].required = False
+        self.fields['chat_id'].required = False
+
+class TalkImagesListSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    def get_image(self,obj):
+        if obj.image:
+            return f"https://{MAIN_DOMAIN}{obj.image.url}"
+        return 
+    class Meta:
+        model = TalkImages
+        fields = ['id','image']
 
 class VoiceActorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,7 +45,7 @@ class StylesModelSerializer(serializers.ModelSerializer):
         return 
     def get_image(self,obj):
         if obj.image:
-            return f"http://{SAHAND_DOMAIN}{obj.image.url}"
+            return f"https://{MAIN_DOMAIN}{obj.image.url}"
         return 
     class Meta:
         model = StyleListModel
@@ -58,11 +81,11 @@ class AIToolsModelSerializer(serializers.ModelSerializer):
         return 
     def get_icon_image(self,obj):
         if obj.icon_image:
-            return f"http://{SAHAND_DOMAIN}{obj.icon_image.url}"
+            return f"https://{MAIN_DOMAIN}{obj.icon_image.url}"
         return 
     def get_bg_image(self,obj):
         if obj.bg_image:
-            return f"http://{SAHAND_DOMAIN}{obj.bg_image.url}"
+            return f"https://{MAIN_DOMAIN}{obj.bg_image.url}"
         return 
     class Meta:
         model = AIToolsModel
@@ -86,12 +109,19 @@ class OpenAIChatCategoriesSerializer(serializers.ModelSerializer):
             # return f'http://{LOCAL_DOMAIN}{obj.icon.url}'
         else:
             return 
+
+
 class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
+    chat = serializers.SerializerMethodField()
+    def get_chat(self,obj):
+        if obj.chat:
+            return obj.chat.chat_id
+        else:
+            return
     class Meta:
         model = OpenAIChatInteraction
-        fields = ('id', 'user', 'user_text_prompt','gpt_response', 'created_at')
-        read_only_fields = ('user', 'created_at', 'gpt_response')
-
+        fields = ('id', 'user', 'chat', 'user_text_prompt', 'gpt_response', 'created_at')
+        read_only_fields = ('user', 'chat', 'created_at', 'gpt_response')
 
 class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
     class Meta:

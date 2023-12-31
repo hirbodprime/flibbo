@@ -137,10 +137,16 @@ class AIToolsModel(models.Model):
 
 
 
+class TalkImages(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    image = models.FileField(upload_to='talk-images/',null=True,blank=True,max_length=400)
+    def __str__(self):
+        return f'{self.id}'
+
 class TalkResponse(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     talk_id = models.CharField(max_length=100)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=100)
     status = models.CharField(max_length=50)
 
@@ -150,7 +156,7 @@ class TalkResponse(models.Model):
 class ClipResponse(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     clip_id = models.CharField(max_length=100)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
     object_type = models.CharField(max_length=100)
     status = models.CharField(max_length=50)
 
@@ -160,7 +166,7 @@ class ClipResponse(models.Model):
 class AnimationResponse(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     animation_id = models.CharField(max_length=100)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
     object_type = models.CharField(max_length=100)
     created_by = models.CharField(max_length=100)
 
@@ -178,32 +184,39 @@ class CategoriesModel(models.Model):
 
 
 
+
 class OpenAIChatCategories(models.Model):
     category = models.ForeignKey(CategoriesModel, on_delete=models.CASCADE,null=True,blank=True)
     name = models.CharField(max_length=255,null=True,blank=True)
     hex_code = models.CharField(max_length=255,null=True,blank=True)
     description = models.TextField(null=True,blank=True)
+    admin_description = models.TextField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     icon = models.FileField(upload_to='icons/',null=True,blank=True)
     def __str__(self):
         return self.name
 
-class OpenAIChatChatID(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
-    chat_id = models.IntegerField()
+
+
+class OpenAIChatID(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    first_message = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    chat_id = models.TextField(unique=True)  # Ensure chat_id is unique
 
     def __str__(self):
-        return self.user_text_prompt[:50]
-
+        return f"Chat {self.chat_id} ({self.user.username})"  # Adjusted for better representation
 
 class OpenAIChatInteraction(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    chat = models.ForeignKey(OpenAIChatID, on_delete=models.CASCADE,null=True, blank=True)  # Link to OpenAIChatID
     user_text_prompt = models.TextField()
     gpt_response = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user_text_prompt[:50]
+
 
 
 class OpenAIAudioInteraction(models.Model):

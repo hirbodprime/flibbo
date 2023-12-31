@@ -689,7 +689,7 @@ class SignupSerializer(serializers.ModelSerializer):
     birthday = serializers.DateField(required=False,allow_null=True)
     class Meta:
         model = User
-        fields = ('username','email', 'full_name', 'birthday','password', 'confirm_password','bonus_code')
+        fields = ('username','email', 'full_name', 'birthday','password', 'confirm_password')
         extra_kwargs = {
             "password": {"write_only": True, "required": True, "min_length": 6}
         }
@@ -697,16 +697,6 @@ class SignupSerializer(serializers.ModelSerializer):
     def validate(self, data):
         password = data.get("password")
         confirm_password = data.pop("confirm_password")
-        bonus_code = data.get("bonus_code")
-        if bonus_code:
-            print(bonus_code)
-            url = f"https://panel.flhub.org/users/api/check-bonus-code/{bonus_code}/"
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                pass
-            else:
-                raise serializers.ValidationError({"error_bonus":"The Bonus Code is wronge!"})
         if password != confirm_password:
             raise serializers.ValidationError("Passwords do not match!")
 

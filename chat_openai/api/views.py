@@ -14,9 +14,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 
-from chat_openai.models import Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
-from .serializers import (VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
+from chat_openai.models import OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from .serializers import (OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
@@ -30,12 +31,55 @@ import os
 import mimetypes
 from dotenv import load_dotenv
 from openai import OpenAI
+from chat_openai.chat_id import generate_chat_id
 load_dotenv()
 
 client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
   organization=os.getenv("OPENAI_ORG_API_KEY")
 )
+
+class OpenAIChatIDCreateView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OpenAIChatIDSerializer
+    
+
+    def perform_create(self, serializer):
+        # Ensure uniqueness of chat_id
+        max_attempts = 10
+        for _ in range(max_attempts):
+            chat_id = generate_chat_id()
+            if not OpenAIChatID.objects.filter(chat_id=chat_id).exists():
+                # Set the user to the request user and save
+                serializer.save(user=self.request.user, chat_id=chat_id)
+                return
+        # Handle the rare case where a unique chat_id is not found
+        raise IntegrityError("Unable to generate a unique chat ID")
+
+
+class OpenAIChatIDHistoryView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OpenAIChatIDSerializer
+
+    def get_queryset(self):
+        # Filter the queryset to only include records for the request user
+        user = self.request.user
+        return OpenAIChatID.objects.filter(user=user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'data': serializer.data})
+
+class TalkImagesListAPIView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TalkImagesListSerializer
+    queryset = TalkImages.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'data': serializer.data})
 
 class VoiceActorListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -290,12 +334,12 @@ class CreateAnimationView(APIView):
 
     def post(self, request, *args, **kwargs):
         # Uncomment these lines if you're handling image uploads
-        # image = request.FILES.get('image')
-        # if not image:
-        #     return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
-        # image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-        # image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
-        image_url = "https://app.flxdevpanel.com/media/test.jpg"
+        image = request.FILES.get('image')
+        if not image:
+            return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+        image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+        image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+        # image_url = "https://app.flxdevpanel.com/media/test.jpg"
         animation_response = create_animation(
             image_url
         )
@@ -359,18 +403,24 @@ class CreateClipView(APIView):
         return Response({"error": clip_response.get("error", "Failed to create clip")},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-
+MAIN_DOMAIN = 'app.flxdevpanel.com'
+LOCAL_DOMAIN = '127.0.0.1:8000'
 
 class CreateTalkView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
+        image_id = self.request.data.get('image_id',None)
+        if image_id:
+            image = TalkImages.objects.get(id=image_id)
+            image_url = f'http://{LOCAL_DOMAIN}{image.image.url}'
         # Uncomment these lines if you're handling image uploads
-        image = request.FILES.get('image')
-        if not image:
-            return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
-        image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-        image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
-        
+        else:
+            image = request.FILES.get('image')
+            if not image:
+                return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+            image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+            image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+            print('herer',image_url)
         # Temporary image URL for testing
         # image_url = "https://app.flxdevpanel.com/media/test.jpg"
 
@@ -461,6 +511,7 @@ class DeleteUserHistory(viewsets.ViewSet):
         except Exception as e:
             return Response({"success": False, "error": "Something happened while trying to delete your history: " + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class OpenAIChatInteractionView(CreateAPIView):
     queryset = OpenAIChatInteraction.objects.all()
     serializer_class = OpenAIChatInteractionSerializer
@@ -468,31 +519,71 @@ class OpenAIChatInteractionView(CreateAPIView):
 
     def perform_create(self, serializer):
         user_prompt = self.request.data.get('user_text_prompt')
+        response_type = self.request.data.get('response_type', 'detailed')  # default to 'detailed' if not specified
+        chat_id = self.request.data.get('chat_id')  # Get chat_id from the request
+        if chat_id:
+            try:
+                chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
+            except OpenAIChatID.DoesNotExist:
+                # If chat_id does not exist, raise a ValidationError
+                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        else:
+            # If no chat_id is provided, raise a ValidationError
+            raise ValidationError({'chat_id': ['Chat ID is required.']})
+
+        assistant_type = OpenAIChatCategories.objects.get(id=response_type)
         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
-        # if user_chat_history:
         chat_history_messages = [
             {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
-            # {"role": "assistant", "content": 'Flibbo is an AI powered social media'} 
         ]
-        # else:
-        #     chat_history_messages = [
-        #         {"role": "assistant", "content": 'Flibbo is An AI powered Social Media'}
-        #     ]
+
         messages = [
-            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "system", "content": f"You are a helpful assistant. Please provide a {assistant_type.admin_description} response."},
             *chat_history_messages,
             {"role": "user", "content": user_prompt}
         ]
+
         completion = client.chat.completions.create(
             model="gpt-4-1106-preview",
             messages=messages
         )
         
-        # Extract GPT response message
-        gpt_response = completion.choices[0].message.content  # Corrected line
+        gpt_response = completion.choices[0].message.content
+        
+        serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
 
-        # Save model instance
-        serializer.save(user=self.request.user, gpt_response=gpt_response)
+# class OpenAIChatInteractionView(CreateAPIView):
+#     queryset = OpenAIChatInteraction.objects.all()
+#     serializer_class = OpenAIChatInteractionSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def perform_create(self, serializer):
+#         user_prompt = self.request.data.get('user_text_prompt')
+#         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
+#         # if user_chat_history:
+#         chat_history_messages = [
+#             {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
+#             # {"role": "assistant", "content": 'Flibbo is an AI powered social media'} 
+#         ]
+#         # else:
+#         #     chat_history_messages = [
+#         #         {"role": "assistant", "content": 'Flibbo is An AI powered Social Media'}
+#         #     ]
+#         messages = [
+#             {"role": "system", "content": "You are a helpful assistant."},
+#             *chat_history_messages,
+#             {"role": "user", "content": user_prompt}
+#         ]
+#         completion = client.chat.completions.create(
+#             model="gpt-4-1106-preview",
+#             messages=messages
+#         )
+        
+#         # Extract GPT response message
+#         gpt_response = completion.choices[0].message.content  # Corrected line
+
+#         # Save model instance
+#         serializer.save(user=self.request.user, gpt_response=gpt_response)
 
 
 class OpenAIAudioInteractionView(CreateAPIView):

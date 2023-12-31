@@ -5,7 +5,7 @@ from . import models
 class OpenAIChatCategoriesAdmin(admin.ModelAdmin):
     pass
 class OpenAIChatAdmin(admin.ModelAdmin):
-    list_display = ('user', 'user_text_prompt', 'gpt_response', 'created_at')
+    list_display = ('user', 'user_text_prompt', 'gpt_response', 'created_at','chat')
 
 class OpenAIImageAdmin(admin.ModelAdmin):
     list_display = ('user', 'user_text_prompt_image', 'gpt_response1', 'created_at')
@@ -17,6 +17,8 @@ class ToolsOptionsModelAdmin(admin.ModelAdmin):
     change_form_template = "custom_admin.html"
 
 
+admin.site.register(models.OpenAIChatID)
+admin.site.register(models.TalkImages)
 admin.site.register(models.LanguageAndDialectRelation)
 admin.site.register(models.Language)
 admin.site.register(models.Dialect)

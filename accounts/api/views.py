@@ -779,6 +779,7 @@ class UserLoginView(gn.CreateAPIView):
         else:
             # User authentication failed
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+# from point.signals import referral_signup_signal
 
 class SignupConfirmationView(gn.CreateAPIView):
     serializer_class = SignupSerializer
@@ -829,37 +830,18 @@ class SignupConfirmationView(gn.CreateAPIView):
                 'country':user.country,
             }
             # Instead of directly accessing the key, use the .get() method
-            bonus_code = request.data.get('bonus_code', None)
-            if bonus_code:
-                url = "https://panel.flhub.org/bonus/api/create/"
-                data = {
-                    'bonus_code': bonus_code,
-                    'used_user_username': user.username,
-                    'used_user_first_name': user.full_name,
-                    'used_user_email': user.email,
-                }
-
-                response = requests.post(url, data=data)
-
-                if response.status_code == 201:
-                    return Response({
-                        'token': str(user_token.token),
-                        'user_data':user_data,
-                        'access_token': access_token,
-                        'refresh_token': refresh_token,
-                        'success': True
-                    }, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            referral_code = request.data.get('referral_code', None)
+            print(referral_code)
+            # if referral_code:
+            #     referral_signup_signal.send(sender=self.__class__, new_user=user, referral_code=referral_code)
             
-            else:
-                return Response({
+            return Response({
                         'token': str(user_token.token),
                         'user_data':user_data,
                         'access_token': access_token,
                         'refresh_token': refresh_token,
                         'success': True
-                    }, status=status.HTTP_201_CREATED)
+                }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from .serializers import ProfileSerializer,SavedByUserSerializer
