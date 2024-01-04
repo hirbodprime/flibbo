@@ -11,7 +11,7 @@ from rest_framework.generics import ListCreateAPIView,CreateAPIView
 from rest_framework.views import APIView
 
 from point.permissions import HasValidWallet
-from .serializers import UserSerializer, WithDrawalRequestSerializer, UserWalletCreateSerializer, UserWalletSerializer, ReferralCodeSerializer, PointWalletSerializer, RefMoneySerializer
+from .serializers import UserSerializer,WithDrawalRequestGetSerializer, WithDrawalRequestSerializer, UserWalletCreateSerializer, UserWalletSerializer, ReferralCodeSerializer, PointWalletSerializer, RefMoneySerializer
 from point.models import WithDrawalRequestModel, RefMoneyModel, UserWalletModel, ReferralCodeModel, PointWalletModel, GoldUsersListModel
 
 
@@ -61,7 +61,7 @@ class UserAggregatedDataView(APIView):
 
         points_data = PointWalletSerializer(user_points, many=True).data
         referral_codes_data = ReferralCodeSerializer(referral_codes, many=True).data
-        withdrawal_requests_data = WithDrawalRequestSerializer(withdrawal_requests, many=True).data
+        withdrawal_requests_data = WithDrawalRequestGetSerializer(withdrawal_requests, many=True).data
         ref_money_data = RefMoneySerializer(ref_money, many=True).data
 
         gold_user_record = GoldUsersListModel.objects.filter(user=user).first()
