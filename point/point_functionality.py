@@ -108,7 +108,7 @@ def assign_to_level(new_user, gold_user, level):
     print("User assigned to level", level)
 
     # Reward the gold user
-    reward_user(gold_user, 5)
+    reward_user(gold_user, real_amount.amount)
     print("Gold user rewarded:", gold_user)
 
 def reward_user(user, amount):
