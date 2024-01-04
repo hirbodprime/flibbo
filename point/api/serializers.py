@@ -52,10 +52,14 @@ class WithDrawalRequestSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'balance', 'created_at', 'status', 'status_failed']
         read_only_fields = ('user',)  # Make user read-only
 
-    # Optionally, override create method if you need custom behavior
     def create(self, validated_data):
-        # Custom creation logic here, if needed
+        # Check if 'balance' is in validated_data
+        if 'balance' not in validated_data:
+            raise serializers.ValidationError({"balance": "Balance is required."})
+
+        # If balance is present, proceed with creation
         return super().create(validated_data)
+
 
 class UserWalletCreateSerializer(serializers.ModelSerializer):
     class Meta:
