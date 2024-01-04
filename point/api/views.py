@@ -109,7 +109,7 @@ class UserAggregatedDataView(APIView):
 
             enriched_ref_money_data.append(item)
         return Response({
-            'points': points_data[0]['balance'] if points_data else None,
+            'points': points_data[0]['balance'] if points_data else 0.0,
             'referral_code': referral_codes_data[0]['ref_code'] if referral_codes_data else None,
             'user_wallet': wallet,
             'users': gold_data,
