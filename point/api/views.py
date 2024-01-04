@@ -46,7 +46,7 @@ class UserAggregatedDataView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        profile_image_url = user.profile_image.url if user.profile_image else None
+        profile_image_url = f"https://{dev_url}{user.profile_image.url}" if user.profile_image else None
         
         user_wallet = UserWalletModel.objects.filter(user=user).first()
         user_wallet_data = UserWalletSerializer(user_wallet).data if user_wallet else None
