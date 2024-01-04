@@ -43,13 +43,13 @@ class PointWalletSerializer(serializers.ModelSerializer):
 
 class WithDrawalRequestSerializer(serializers.ModelSerializer):
     # Optional: Include user as a read-only field to return it in the response
-    user = serializers.ReadOnlyField(source='user.username')  # Or just 'user.id'
+    username = serializers.ReadOnlyField(source='user.username')  # Or just 'user.id'
     balance = serializers.SerializerMethodField()
     def get_balance(self,obj):
         return float(obj.balance)
     class Meta:
         model = WithDrawalRequestModel
-        fields = ['id', 'user', 'balance', 'created_at', 'status', 'status_failed']
+        fields = ['id', 'username', 'balance', 'created_at', 'status', 'status_failed']
         read_only_fields = ('user',)  # Make user read-only
 
     # Optionally, override create method if you need custom behavior

@@ -108,10 +108,9 @@ class UserAggregatedDataView(APIView):
             item['profile_image'] = f"https://{dev_url}{ref_user_instance.profile_image.url}" if ref_user_instance.profile_image else None
 
             enriched_ref_money_data.append(item)
-
         return Response({
-            'points': points_data,
-            'referral_code': referral_codes_data,
+            'points': points_data[0]['balance'],
+            'referral_code': referral_codes_data[0]['ref_code'],
             'user_wallet': wallet,
             'users': gold_data,
             'withdrawal_requests': withdrawal_requests_data,

@@ -6,7 +6,7 @@ User = get_user_model()
 
 class ReferralCodeModel(models.Model):
     user = models.ForeignKey(User, related_name='referral_codes', on_delete=models.CASCADE)
-    ref_code = models.CharField(max_length=8)
+    ref_code = models.CharField(max_length=8,null=True, blank=True)
     referrer = models.ForeignKey(User, related_name='referred_by', on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
