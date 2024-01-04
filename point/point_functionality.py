@@ -115,6 +115,9 @@ def reward_user(user, amount):
     real_amount = AmountModel.objects.first()
     print("Rewarding user:", user, "with amount:", real_amount.amount)
     wallet, created = PointWalletModel.objects.get_or_create(user=user)
-    wallet.balance += real_amount.amount
+    if wallet.balance != Decimal('0.0'):
+        wallet.balance += real_amount.amount
+    else:
+        wallet.balance += float(real_amount.amount)
     wallet.save()
     print("User rewarded. New balance:", wallet.balance)
