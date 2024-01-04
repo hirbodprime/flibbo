@@ -28,17 +28,27 @@ class GoldUsersListAPIView(APIView):
 
         try:
             gold_users_list = GoldUsersListModel.objects.get(user=request.user)
-        except ObjectDoesNotExist:
+        except GoldUsersListModel.DoesNotExist:
             return Response({'error': 'Gold users list not found'}, status=404)
 
+        # Extract sort_by parameter from URL
+        sort_by = request.query_params.get('sort_by', '')
+
+        # Get queryset based on level
         users_qs = getattr(gold_users_list, f'level_{level}').all()
-        # users_qs = users_qs.order_by('-date_joined')  # Sort by join date
+
+        # Apply sorting based on sort_by parameter
+        if sort_by == 'ascending':
+            users_qs = users_qs.order_by('join_date')
+        elif sort_by == 'descending':
+            users_qs = users_qs.order_by('-join_date')
 
         serializer = UserSerializer(users_qs, many=True)
         response_data = {
-            'users':serializer.data
+            'users': serializer.data
         }
         return Response(response_data)
+
 
 
 class UserAggregatedDataView(APIView):
