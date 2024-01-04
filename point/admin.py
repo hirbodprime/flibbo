@@ -4,8 +4,14 @@ from .models import (
     PointWalletModel, 
     GoldUsersListModel, 
     NormalUsersListModel, 
-    WithDrawalRequestModel
+    WithDrawalRequestModel,
+    AmountModel,
+    RefMoneyModel,
+    UserWalletModel
 )
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from django import forms
 
 # Admin class for ReferralCodeModel
 class ReferralCodeAdmin(admin.ModelAdmin):
@@ -32,6 +38,24 @@ class WithDrawalRequestAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__email')
 
 # Register your models here
+
+class AmountModelForm(forms.ModelForm):
+    class Meta:
+        model = AmountModel
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.instance.pk and AmountModel.objects.exists():
+            raise ValidationError(_('Only one instance of AmountModel is allowed.'))
+        return cleaned_data
+
+@admin.register(AmountModel)
+class AmountModelAdmin(admin.ModelAdmin):
+    form = AmountModelForm
+
+admin.site.register(UserWalletModel)
+admin.site.register(RefMoneyModel)
 admin.site.register(ReferralCodeModel, ReferralCodeAdmin)
 admin.site.register(PointWalletModel, PointWalletAdmin)
 admin.site.register(GoldUsersListModel, GoldUsersListAdmin)

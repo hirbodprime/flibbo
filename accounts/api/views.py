@@ -11,6 +11,8 @@ from accounts.permissions import IsOwnerOrReadOnly
 from accounts.models import CustomUser , SavedByUser, ReportUser,AccessToken,BlockModel,ChangeUsernameModel
 from posts.models import TweetPostModel , PodcastPostModel, BookPostModel
 from posts.api.serializers import TweetPostSerializer
+from point.models import ReferralCodeModel
+from point.point_functionality import process_referral_signup
 from wallet.models import UsersNfts
 from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
@@ -831,10 +833,17 @@ class SignupConfirmationView(gn.CreateAPIView):
             }
             # Instead of directly accessing the key, use the .get() method
             referral_code = request.data.get('referral_code', None)
+            if referral_code:
+                try:
+                    referrer = ReferralCodeModel.objects.get(ref_code=referral_code).user
+                    ReferralCodeModel.objects.create(referrer=referrer, user=user)
+                    process_referral_signup(new_user=user, referral_code=referral_code)
+                except ReferralCodeModel.DoesNotExist:
+                    print("Invalid referral code:", referral_code)
+            else:
+                ReferralCodeModel.objects.create(user=user)
+                
             print(referral_code)
-            # if referral_code:
-            #     referral_signup_signal.send(sender=self.__class__, new_user=user, referral_code=referral_code)
-            
             return Response({
                         'token': str(user_token.token),
                         'user_data':user_data,

@@ -10,14 +10,16 @@ from .point_functionality import  process_referral_signup
 
 User = get_user_model()
 
-@receiver(post_save, sender=User)
-def create_referral_code(sender, instance, created, **kwargs):
-    if created:
-        # Create ReferralCodeModel instance and assign it to a variable
-        referral_code_obj = ReferralCodeModel.objects.create(user=instance)
+# @receiver(post_save, sender=User)
+# def create_referral_code(sender, instance, created, **kwargs):
+#     if created:
+        
+#         # Create ReferralCodeModel instance and assign it to a variable
+#         referral_code_obj = ReferralCodeModel.objects.get(user=instance)
 
-        # Send the custom signal with the correct referral code
-        process_referral_signup(
-            new_user=instance, 
-            referral_code=referral_code_obj.ref_code
-        )
+#         # Send the custom signal with the correct referral code
+#         print("calling function")
+#         process_referral_signup(
+#             new_user=instance, 
+#             referral_code=referral_code_obj.ref_code
+#         )
