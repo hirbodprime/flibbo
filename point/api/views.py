@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Count
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from rest_framework.response import Response
