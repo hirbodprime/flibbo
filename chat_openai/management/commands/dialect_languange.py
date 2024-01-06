@@ -56,6 +56,6 @@ class Command(BaseCommand):
         )
 
         if created:
-            print(f'Added new dialect: {dialect.name}')
+            print(f'Added new Language: {dialect.name}')
         else:
-            print(f'Dialect already exists: {dialect.name}')
+            print(f'Language already exists: {dialect.name}')
