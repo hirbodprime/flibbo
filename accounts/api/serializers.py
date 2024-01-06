@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.contrib.auth import load_backend, login as django_login
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.conf import settings
 import requests
 User = get_user_model()
 
@@ -354,8 +355,7 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.private
     def get_profile_image(self, obj):
         if obj.profile_image:
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
     class Meta:
@@ -428,8 +428,7 @@ class CustomUsersListSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         if obj.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
     class Meta:
@@ -463,8 +462,7 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         if obj.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
 
@@ -620,8 +618,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         if obj.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
     class Meta:

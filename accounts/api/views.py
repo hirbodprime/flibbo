@@ -258,8 +258,7 @@ class AppleLogin(SocialLoginView):
             refresh_token = str(refresh)
             # Add additional data to the response\
             user = request.user
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            profile_image_url = f"https://{site_domain}{user.profile_image.url}" if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             # profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
             user_data = {
                 'id': user.id,
@@ -442,10 +441,9 @@ class CheckLoginStatusAPIView(APIView):
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
-                site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
             # Build the profile image URL using request.build_absolute_uri
             
-                profile_image_url = f"https://{site_domain}/{user.profile_image.url}" if user.profile_image else None
+                profile_image_url = f"{settings.SITE_DOMAIN}/{user.profile_image.url}" if user.profile_image else None
                 user_token = AccessToken.objects.get(user=user)
                 user_data = {
                     
@@ -566,7 +564,7 @@ class PasswordResetApi(APIView):
 
             # Construct the password reset link
             # reset_link = reverse('reset_password_api')
-            reset_link = f'https://app.flxdevpanel.com/?uid={uid}&token={token}'
+            reset_link = f"{settings.SITE_DOMAIN}/?uid={uid}&token={token}"
 
             # Send the reset link in the response
             # Create the email subject and message
@@ -937,10 +935,9 @@ class SavedPostsApiView(gn.RetrieveAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
             # Build the profile image URL using request.build_absolute_uri
             
-            profile_image_url = f"https://{site_domain}/{user.profile_image.url}" if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}/{user.profile_image.url}" if user.profile_image else None
             saved_posts = SavedByUser.objects.filter(user=user)
             saved_tweets_list = []
             
@@ -948,15 +945,15 @@ class SavedPostsApiView(gn.RetrieveAPIView):
                 saved_tweets = saved_post.saved_tweets.all()  # Use .all() to access the related saved tweets
                 for saved_tweet in saved_tweets:
                     if saved_tweet.photo:
-                        photo = f"https://{site_domain}/{saved_tweet.photo.url}"
+                        photo = f"{settings.SITE_DOMAIN}/{saved_tweet.photo.url}"
                         
                     else:
                         photo = None
                     if saved_tweet.video:
-                        video = f"https://{site_domain}/{saved_tweet.video.url}"
+                        video = f"{settings.SITE_DOMAIN}/{saved_tweet.video.url}"
                     else:
                         video = None
-                    share_url = f"https://{site_domain}/posts/api/tweet/get/{saved_tweet.id}"
+                    share_url = f"{settings.SITE_DOMAIN}/posts/api/tweet/get/{saved_tweet.id}"
                     
                     mention_users = [mention_user.username for mention_user in saved_tweet.mention_users.all()]
                     
