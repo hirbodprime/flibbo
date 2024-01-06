@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -19,6 +19,7 @@ User = get_user_model()
 dev_url = "dev.flxdevpanel.com"
 app_url = "app.flxdevpanel.com"
 
+
 class GoldUsersListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -31,11 +32,16 @@ class GoldUsersListAPIView(APIView):
         except GoldUsersListModel.DoesNotExist:
             return Response({'error': 'Gold users list not found'}, status=404)
 
-        # Extract sort_by parameter from URL
+        # Extract sort_by and username parameters from URL
         sort_by = request.query_params.get('sort_by', '')
+        username = request.query_params.get('username', '')
 
         # Get queryset based on level
         users_qs = getattr(gold_users_list, f'level_{level}').all()
+
+        # Filter by username if provided
+        if username:
+            users_qs = users_qs.filter(Q(username__icontains=username))
 
         # Apply sorting based on sort_by parameter
         if sort_by == 'ascending':
@@ -48,6 +54,37 @@ class GoldUsersListAPIView(APIView):
             'users': serializer.data
         }
         return Response(response_data)
+
+
+# class GoldUsersListAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, level, *args, **kwargs):
+#         if level not in [1, 2, 3]:
+#             return Response({'error': 'Invalid level'}, status=400)
+
+#         try:
+#             gold_users_list = GoldUsersListModel.objects.get(user=request.user)
+#         except GoldUsersListModel.DoesNotExist:
+#             return Response({'error': 'Gold users list not found'}, status=404)
+
+#         # Extract sort_by parameter from URL
+#         sort_by = request.query_params.get('sort_by', '')
+
+#         # Get queryset based on level
+#         users_qs = getattr(gold_users_list, f'level_{level}').all()
+
+#         # Apply sorting based on sort_by parameter
+#         if sort_by == 'ascending':
+#             users_qs = users_qs.order_by('join_date')
+#         elif sort_by == 'descending':
+#             users_qs = users_qs.order_by('-join_date')
+
+#         serializer = UserSerializer(users_qs, many=True)
+#         response_data = {
+#             'users': serializer.data
+#         }
+#         return Response(response_data)
 
 
 
