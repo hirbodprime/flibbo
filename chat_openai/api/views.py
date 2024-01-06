@@ -6,6 +6,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
 
 # rest imports
 from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView
@@ -110,19 +111,23 @@ class GetStatusView(APIView):
 
 class GetVoicesView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, language=None, gender=None):
-        # Check if language_id is provided and valid
+        # Check if language and gender are provided
         if not language:
             return Response({'error': 'Language ID is required'}, status=status.HTTP_400_BAD_REQUEST)
         if not gender:
             return Response({'error': 'Gender ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Assuming get_voices is a function that handles the retrieval of voice data
-        obj = Language.objects.get(name = language)
-        obj_relation = LanguageAndDialectRelation.objects.get(language=obj)
-        voice_data = get_voices(obj._id, obj_relation.dialect._id,gender)
-        return Response(voice_data)
+        # Retrieve Language object or return 404
+        obj = get_object_or_404(Language, name=language)
 
+        # Retrieve LanguageAndDialectRelation object or return 404
+        obj_relation = get_object_or_404(LanguageAndDialectRelation, language=obj)
+
+        # Get voices data
+        voice_data = get_voices(obj.id, obj_relation.dialect.id, gender)
+        return Response(voice_data)
 class GetDialectsView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
