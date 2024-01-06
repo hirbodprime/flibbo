@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
+from .views import (TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
     OpenAIChatInteractionView,OpenAIAudioInteractionView,GetPresenterDriversView,CreateAnimationView,
     OpenAIImageInteractionView,InteractionListView,DeleteUserHistory, CategoriesListAPIView,OpenAIChatInteractionViewe,OpenAICategoryListAPIView
     ,CreateVideoFlikiView,GetStatusVideoView,VoiceActorListView,CreateTextToSpeechView,TalkImagesListAPIView,OpenAIChatIDCreateView,OpenAIChatIDHistoryView
@@ -12,6 +12,7 @@ urlpatterns = [
     path('studio/talk/get/<str:talk_id>/', GetTalkView.as_view(), name='get_talk'),
     path('studio/talk/create/', CreateTalkView.as_view(), name='studio-create-talk'),
     path('studio/talk/images/list/', TalkImagesListAPIView.as_view(), name='studio-talk-images'),
+    path('studio/talk/languages/list/', TalkVoiceActorListAPIView.as_view(), name='talk-voice-actor-list'),
     path('studio/clip/get/<str:clip_id>/', GetClipView.as_view(), name='get_talk'),
     path('studio/clip/create/', CreateClipView.as_view(), name='studio-create-clip'),
     path('studio/animation/get/<str:animation_id>/', GetAnimationView.as_view(), name='studio-create-animation'),

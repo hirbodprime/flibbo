@@ -7,6 +7,11 @@ MAIN_DOMAIN = 'app.flxdevpanel.com'
 LOCAL_DOMAIN = '127.0.0.1:8000'
 SAHAND_DOMAIN = '192.168.3.90:8000'
 
+class TalkVoiceActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VoiceActorModel
+        fields = '__all__'  
+
 class OpenAIChatIDSerializer(serializers.ModelSerializer):
     first_message = serializers.CharField(required=True)  # Explicitly set as required
     
