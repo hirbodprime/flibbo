@@ -18,7 +18,7 @@ encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
 # Headers with encoded credentials
 headers = {
-    "Authorization": f"Basic {encoded_credentials}"
+    "Authorization": f"Basic {credentials}"
 }
 
 # "config": {
