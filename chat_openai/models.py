@@ -140,6 +140,7 @@ class AIToolsModel(models.Model):
 class TalkImages(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.FileField(upload_to='talk-images/',null=True,blank=True,max_length=400)
+    big_image = models.FileField(upload_to='talk-images/big/',null=True,blank=True,max_length=1400)
     def __str__(self):
         return f'{self.id}'
 

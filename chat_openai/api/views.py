@@ -403,8 +403,8 @@ class CreateClipView(APIView):
         return Response({"error": clip_response.get("error", "Failed to create clip")},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-MAIN_DOMAIN = 'app.flxdevpanel.com'
-LOCAL_DOMAIN = '127.0.0.1:8000'
+
+
 
 class CreateTalkView(APIView):
     permission_classes = [IsAuthenticated]
@@ -412,7 +412,7 @@ class CreateTalkView(APIView):
         image_id = self.request.data.get('image_id',None)
         if image_id:
             image = TalkImages.objects.get(id=image_id)
-            image_url = f'http://{LOCAL_DOMAIN}{image.image.url}'
+            image_url = f'{settings.SITE_DOMAIN}{image.big_image.url}'
         # Uncomment these lines if you're handling image uploads
         else:
             image = request.FILES.get('image')

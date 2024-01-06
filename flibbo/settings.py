@@ -324,7 +324,14 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
+host = os.getenv("HOST")
+SITE_DOMAIN = ""
+if host == "pro":
+    SITE_DOMAIN = "https://app.flxdevpanel.com/"
+elif host == "dev":
+    SITE_DOMAIN = "https://dev.flxdevpanel.com/"
+elif host == "local":
+    SITE_DOMAIN = "http://127.0.0.1:8000/"
 
 # set_domain = os.getenv('DOMAIN')
 # if set_domain == "main":
