@@ -362,7 +362,7 @@ class CreateAnimationView(APIView):
             if not image:
                 return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
             image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-            image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+            image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
             # image_url = "https://app.flxdevpanel.com/media/test.jpg"
             animation_response = create_animation(
                 image_url
