@@ -139,6 +139,8 @@ class GetVoicesView(APIView):
         # Get voices data
         voice_data = get_voices(obj.id, obj_relation.dialect.id, gender)
         return Response(voice_data)
+
+        
 class GetDialectsView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -356,7 +358,7 @@ class CreateTextToImageView(APIView):
                 )
                 user_limit.limit -= 1
                 user_limit.save()
-                return Response({"message": f"Animation created successfully","data":response_data})
+                return Response({"message": f"Image created successfully","data":response_data})
 
             # Handle error case
             return Response({"error": animation_response.get("error", "Failed to create animation")},

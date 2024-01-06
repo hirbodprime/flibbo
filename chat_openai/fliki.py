@@ -55,17 +55,24 @@ def get_voices(language_id, dialect_id, gender):
         "languageId": language_id,
         "dialectId": dialect_id
     }
+    headers = {
+        # Your headers here (like Authorization, Content-Type, etc.)
+    }
     response = requests.post(url, headers=headers, data=json.dumps(payload))
 
     if response.status_code == 200:
         response_data = response.json()
-        # Filter voices by gender
-        filtered_voices = [voice for voice in response_data['data'] if voice['gender'] == gender.upper()]
-        return {"success": True, "data": filtered_voices}
+        # Check if 'data' key exists in the response
+        if 'data' in response_data:
+            # Filter voices by gender
+            filtered_voices = [voice for voice in response_data['data'] if voice['gender'] == gender.upper()]
+            return {"success": True, "data": filtered_voices}
+        else:
+            return {"success": False, "error": "No data key in response"}
     else:
         error_data = response.json()
         return {"success": False, "error": error_data}
-
+        
 from .models import Dialect, Language
 import re
 
