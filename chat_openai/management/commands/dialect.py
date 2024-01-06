@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 import json
-import pycountry
 from chat_openai.models import Language,Dialect
 
 class Command(BaseCommand):
