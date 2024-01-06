@@ -70,3 +70,5 @@ admin.site.register(models.OpenAIChatInteraction,OpenAIChatAdmin)
 admin.site.register(models.OpenAIAudioInteraction,OpenAIAudioAdmin)
 admin.site.register(models.OpenAIImageInteraction,OpenAIImageAdmin)
 admin.site.register(models.AIToolsModel)
+
+

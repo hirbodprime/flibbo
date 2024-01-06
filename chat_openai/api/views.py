@@ -32,8 +32,11 @@ import mimetypes
 from dotenv import load_dotenv
 from openai import OpenAI
 from chat_openai.chat_id import generate_chat_id
-load_dotenv()
+import logging
 
+load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
   organization=os.getenv("OPENAI_ORG_API_KEY")
@@ -409,23 +412,23 @@ class CreateClipView(APIView):
 class CreateTalkView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
-        image_id = self.request.data.get('image_id',None)
+        image_id = request.data.get('image_id', None)
         if image_id:
-            image = TalkImages.objects.get(id=image_id)
-            image_url = settings.SITE_DOMAIN + image.big_image.url
-            print("image id: ", image_url)
-        # Uncomment these lines if you're handling image uploads
+            try:
+                image = TalkImages.objects.get(id=image_id)
+                image_url = settings.SITE_DOMAIN + image.big_image.url
+                logger.info("Image URL from ID: %s", image_url)
+            except TalkImages.DoesNotExist:
+                return Response({"error": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
         else:
             image = request.FILES.get('image')
             if not image:
                 return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
             image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-            print('image path: ', image_path)
             image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
-
-            print('image upload: ',image_url)
+            logger.info("Image upload URL: %s", image_url)
         # # Temporary image URL for testing
-        image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
+        # image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
 
         # Validate other required fields
         required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']

@@ -333,12 +333,22 @@ elif host == "dev":
 elif host == "local":
     SITE_DOMAIN = "http://127.0.0.1:8000"
 
-# set_domain = os.getenv('DOMAIN')
-# if set_domain == "main":
-#     DOMAIN = 'app.flxdevpanel.com'
-# elif set_domain == "lab":
-#     DOMAIN = 'lab.flxdevpanel.com'
-# elif set_domain == "local":
-#     DOMAIN = 'http://127.0.0.1:8000'
-# else:
-#     DOMAIN = 'app.flxdevpanel.com'
+# settings.py
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
