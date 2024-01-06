@@ -1,6 +1,50 @@
 from django.contrib import admin
 from . import models
 
+from django.contrib.admin import AdminSite
+from django.contrib.admin import ModelAdmin
+
+class FlikiAIAdmin(AdminSite):
+    site_header = 'Fliki AI tools'
+    site_title = 'Fliki Tools Admin'
+
+class StudioAIAdmin(AdminSite):
+    site_header = 'Studio AI tools'
+    site_title = 'Studio Tools Admin'
+
+class OpenAIAdmin(AdminSite):
+    site_header = 'OpenAI AI tools'
+    site_title = 'OpenAI Tools Admin'
+
+# Repeat for other categories
+# studio 
+
+
+
+
+
+studio_admin = StudioAIAdmin(name='studioaiadmin')
+studio_admin.register(models.TalkResponse, ModelAdmin)
+studio_admin.register(models.VoiceActorModel, ModelAdmin)
+studio_admin.register(models.ClipResponse, ModelAdmin)
+studio_admin.register(models.TalkImages, ModelAdmin)
+studio_admin.register(models.AnimationResponse, ModelAdmin)
+studio_admin.register(models.UserAIStudioLimit, ModelAdmin)
+
+
+
+
+
+
+fliki_ai_admin = FlikiAIAdmin(name='flikiaiadmin')
+fliki_ai_admin.register(models.LanguageAndDialectRelation, ModelAdmin)
+fliki_ai_admin.register(models.Language, ModelAdmin)
+fliki_ai_admin.register(models.Dialect, ModelAdmin)
+fliki_ai_admin.register(models.ToolsOptionsModel, ModelAdmin)
+fliki_ai_admin.register(models.TextToSpeechResponse, ModelAdmin)
+fliki_ai_admin.register(models.TextToImageResponse, ModelAdmin)
+fliki_ai_admin.register(models.StyleListModel, ModelAdmin)
+
 
 class OpenAIChatCategoriesAdmin(admin.ModelAdmin):
     pass
@@ -18,22 +62,11 @@ class ToolsOptionsModelAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.OpenAIChatID)
-admin.site.register(models.TalkImages)
-admin.site.register(models.LanguageAndDialectRelation)
-admin.site.register(models.Language)
-admin.site.register(models.Dialect)
-admin.site.register(models.ToolsOptionsModel,ToolsOptionsModelAdmin)
-admin.site.register(models.TextToSpeechResponse)
-admin.site.register(models.VoiceActorModel)
 admin.site.register(models.UserAIStudioLimit)
-admin.site.register(models.TextToImageResponse)
-admin.site.register(models.StyleListModel)
-admin.site.register(models.AIToolsModel)
-admin.site.register(models.AnimationResponse)
-admin.site.register(models.TalkResponse)
-admin.site.register(models.ClipResponse)
+
 admin.site.register(models.CategoriesModel)
 admin.site.register(models.OpenAIChatCategories)
 admin.site.register(models.OpenAIChatInteraction,OpenAIChatAdmin)
 admin.site.register(models.OpenAIAudioInteraction,OpenAIAudioAdmin)
 admin.site.register(models.OpenAIImageInteraction,OpenAIImageAdmin)
+admin.site.register(models.AIToolsModel)

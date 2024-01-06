@@ -530,19 +530,25 @@ class OpenAIChatInteractionView(CreateAPIView):
         else:
             # If no chat_id is provided, raise a ValidationError
             raise ValidationError({'chat_id': ['Chat ID is required.']})
+        
 
-        assistant_type = OpenAIChatCategories.objects.get(id=response_type)
         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
         chat_history_messages = [
             {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
         ]
-
-        messages = [
-            {"role": "system", "content": f"You are a helpful assistant. Please provide a {assistant_type.admin_description} response."},
-            *chat_history_messages,
-            {"role": "user", "content": user_prompt}
-        ]
-
+        if response_type != "detailed":
+            assistant_type = OpenAIChatCategories.objects.get(id=response_type)
+            messages = [
+                {"role": "system", "content": f"You are a helpful assistant. Please provide a {assistant_type.admin_description} response."},
+                *chat_history_messages,
+                {"role": "user", "content": user_prompt}
+            ]
+        else:
+            messages = [
+                {"role": "system", "content": f"You are a helpful assistant. Please provide a detailed response."},
+                *chat_history_messages,
+                {"role": "user", "content": user_prompt}
+            ]
         completion = client.chat.completions.create(
             model="gpt-4-1106-preview",
             messages=messages
@@ -602,6 +608,17 @@ class OpenAIAudioInteractionView(CreateAPIView):
         if not self.is_supported_format(file_name):
             return HttpResponseBadRequest("Unsupported file format")
 
+        chat_id = self.request.data.get('chat_id')  # Get chat_id from the request
+        if chat_id:
+            try:
+                chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
+            except OpenAIChatID.DoesNotExist:
+                # If chat_id does not exist, raise a ValidationError
+                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        else:
+            # If no chat_id is provided, raise a ValidationError
+            raise ValidationError({'chat_id': ['Chat ID is required.']})
+
         mime_type, _ = mimetypes.guess_type(file_name)
         print("Original MIME Type:", mime_type)
 
@@ -622,7 +639,7 @@ class OpenAIAudioInteractionView(CreateAPIView):
                 )
                 gpt_response = transcript_response
 
-            serializer.save(user=self.request.user, gpt_response=gpt_response)
+            serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
 
         finally:
             os.remove(temp_file_path)
@@ -644,6 +661,16 @@ class OpenAITextToSpeechInteractionView(CreateAPIView):
 
     def perform_create(self, serializer):
         user_prompt = self.request.data.get('user_text_prompt')
+        chat_id = self.request.data.get('chat_id')  # Get chat_id from the request
+        if chat_id:
+            try:
+                chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
+            except OpenAIChatID.DoesNotExist:
+                # If chat_id does not exist, raise a ValidationError
+                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        else:
+            # If no chat_id is provided, raise a ValidationError
+            raise ValidationError({'chat_id': ['Chat ID is required.']})
 
         try:
             # Convert the user prompt to speech
@@ -658,7 +685,7 @@ class OpenAITextToSpeechInteractionView(CreateAPIView):
                 audio_file.write(response)
 
             # Save the model instance with the user prompt
-            serializer.save(user=self.request.user, user_text_prompt=user_prompt)
+            serializer.save(user=self.request.user, user_text_prompt=user_prompt, chat=chat_instance)
             
         except Exception as e:
             # Handle exceptions (logging, custom error messages, etc.)
@@ -676,6 +703,16 @@ class OpenAIImageInteractionView(CreateAPIView):
     def perform_create(self, serializer):
         image_text = self.request.data.get('user_text_prompt_image')
         n_cout_str = self.request.data.get('n_cout', '1')  # default to 1 if not provided
+        chat_id = self.request.data.get('chat_id')  # Get chat_id from the request
+        if chat_id:
+            try:
+                chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
+            except OpenAIChatID.DoesNotExist:
+                # If chat_id does not exist, raise a ValidationError
+                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        else:
+            # If no chat_id is provided, raise a ValidationError
+            raise ValidationError({'chat_id': ['Chat ID is required.']})
 
         try:
             n_cout = int(n_cout_str)
@@ -695,7 +732,7 @@ class OpenAIImageInteractionView(CreateAPIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Dynamically build the save dictionary
-        save_dict = {'user': self.request.user}
+        save_dict = {'user': self.request.user,'chat':chat_instance}
         for i in range(1):
             # Access each image URL in the response
             image_url = response.data[i].url

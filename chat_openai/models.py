@@ -222,6 +222,7 @@ class OpenAIChatInteraction(models.Model):
 class OpenAIAudioInteraction(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     user_audio_prompt = models.FileField()
+    chat = models.ForeignKey(OpenAIChatID, on_delete=models.CASCADE,null=True, blank=True)  # Link to OpenAIChatID
     gpt_response = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -231,6 +232,7 @@ class OpenAIAudioInteraction(models.Model):
 
 class OpenAIImageInteraction(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    chat = models.ForeignKey(OpenAIChatID, on_delete=models.CASCADE,null=True, blank=True)  # Link to OpenAIChatID
     user_text_prompt_image = models.TextField(max_length=1000)
     n_cout = models.IntegerField(default=1)
     gpt_response1 = models.TextField(max_length=1000,null=True,blank=True)
@@ -246,6 +248,7 @@ class OpenAIImageInteraction(models.Model):
 class OpenAITextToSpeechInteraction(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     user_text_prompt = models.TextField()
+    chat = models.ForeignKey(OpenAIChatID, on_delete=models.CASCADE,null=True, blank=True)  # Link to OpenAIChatID
     gpt_response = models.FileField()
     created_at = models.DateTimeField(auto_now_add=True)
 

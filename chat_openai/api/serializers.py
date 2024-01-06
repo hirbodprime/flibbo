@@ -124,16 +124,28 @@ class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'chat', 'created_at', 'gpt_response')
 
 class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
+    chat = serializers.SerializerMethodField()
+    def get_chat(self,obj):
+        if obj.chat:
+            return obj.chat.chat_id
+        else:
+            return
     class Meta:
         model = OpenAIAudioInteraction
-        fields = ('id', 'user', 'user_audio_prompt','gpt_response', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_audio_prompt','gpt_response', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response')
 
 
 class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
+    chat = serializers.SerializerMethodField()
+    def get_chat(self,obj):
+        if obj.chat:
+            return obj.chat.chat_id
+        else:
+            return
     class Meta:
         model = OpenAIImageInteraction
-        fields = ('id', 'user', 'user_text_prompt_image','gpt_response1','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_text_prompt_image','gpt_response1','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response1','gpt_response2','gpt_response3','gpt_response4')
     
     
@@ -145,7 +157,12 @@ class ChatInteractionSerializer(serializers.ModelSerializer):
 
 class AudioInteractionSerializer(serializers.ModelSerializer):
     user_audio_prompt = serializers.SerializerMethodField()
-
+    chat = serializers.SerializerMethodField()
+    def get_chat(self,obj):
+        if obj.chat:
+            return obj.chat.chat_id
+        else:
+            return
     class Meta:
         model = OpenAIAudioInteraction
         fields = '__all__'
@@ -154,6 +171,12 @@ class AudioInteractionSerializer(serializers.ModelSerializer):
         return f"https://{site_domain}/media/{obj.user_audio_prompt}"
 
 class ImageInteractionSerializer(serializers.ModelSerializer):
+    chat = serializers.SerializerMethodField()
+    def get_chat(self,obj):
+        if obj.chat:
+            return obj.chat.chat_id
+        else:
+            return
     class Meta:
         model = OpenAIImageInteraction
         fields = '__all__'
@@ -163,8 +186,14 @@ class ImageInteractionSerializer(serializers.ModelSerializer):
 
 
 class OpenAITextToSpeechInteractionSerializer(serializers.ModelSerializer):
+    chat = serializers.SerializerMethodField()
+    def get_chat(self,obj):
+        if obj.chat:
+            return obj.chat.chat_id
+        else:
+            return
     class Meta:
         model = OpenAIAudioInteraction
-        fields = ('id', 'user', 'user_text_prompt','gpt_response', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_text_prompt','gpt_response', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response')
 
