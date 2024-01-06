@@ -75,6 +75,11 @@ class AIToolsModelSerializer(serializers.ModelSerializer):
     bg_image = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
     options = ToolsOptionsModelSerializer(read_only=True)
+    tools_type = ToolsOptionsModelSerializer(read_only=True)
+    def get_tools_type(self,obj):
+        if obj.enum:
+            return obj.enum
+        return 
     def get_description(self,obj):
         if obj.description:
             return obj.description
@@ -89,7 +94,7 @@ class AIToolsModelSerializer(serializers.ModelSerializer):
         return 
     class Meta:
         model = AIToolsModel
-        fields = ['enum','name', 'options','short_description', 'bg_image','icon_image','description', 'created_at']
+        fields = ['tools_type','name', 'options','short_description', 'bg_image','icon_image','description', 'created_at']
 
 
 
