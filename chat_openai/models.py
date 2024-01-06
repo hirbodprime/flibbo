@@ -122,10 +122,19 @@ class TextToSpeechResponse(models.Model):
     def __str__(self):
         return f'{self.user} - {self.duration}'
 
+enum_choices = (
+        ('Talk', 'Talk'),
+        ('Clip', 'Clip'),
+        ('Image-Animator', 'Image-Animator'),
+        ('Text-to-Image', 'Text-to-Image'),
+        ('Text-to-Speech', 'Text-to-Speech'),
+        ('Create-Video', 'Create-Video'),
+    )
 
 class AIToolsModel(models.Model):
     options = models.ForeignKey(ToolsOptionsModel, on_delete=models.CASCADE,null=True,blank=True)
     name = models.CharField(max_length=255,null=True,blank=True)
+    enum = models.CharField(max_length=255,choices=enum_choices,null=True,blank=True)
     bg_image = models.FileField(upload_to='ai/',null=True,blank=True)
     icon_image = models.FileField(upload_to='ai/',null=True,blank=True)
     short_description = models.TextField(null=True,blank=True)
