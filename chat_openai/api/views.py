@@ -412,17 +412,20 @@ class CreateTalkView(APIView):
         image_id = self.request.data.get('image_id',None)
         if image_id:
             image = TalkImages.objects.get(id=image_id)
-            image_url = f'{settings.SITE_DOMAIN}{image.big_image.url}'
+            image_url = settings.SITE_DOMAIN + image.big_image.url
+            print("image id: ", image_url)
         # Uncomment these lines if you're handling image uploads
         else:
             image = request.FILES.get('image')
             if not image:
                 return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
             image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-            image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
-            print('herer',image_url)
-        # Temporary image URL for testing
-        # image_url = "https://app.flxdevpanel.com/media/test.jpg"
+            print('image path: ', image_path)
+            image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
+
+            print('image upload: ',image_url)
+        # # Temporary image URL for testing
+        image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
 
         # Validate other required fields
         required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
