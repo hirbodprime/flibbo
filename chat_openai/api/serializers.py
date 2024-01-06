@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 from chat_openai.models import OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
-
+from django.conf import settings
 MAIN_DOMAIN = 'app.flxdevpanel.com'
 LOCAL_DOMAIN = '127.0.0.1:8000'
 SAHAND_DOMAIN = '192.168.3.90:8000'
@@ -24,7 +24,7 @@ class TalkImagesListSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     def get_image(self,obj):
         if obj.image:
-            return f"https://{MAIN_DOMAIN}{obj.image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.image.url}"
         return 
     class Meta:
         model = TalkImages
@@ -45,7 +45,7 @@ class StylesModelSerializer(serializers.ModelSerializer):
         return 
     def get_image(self,obj):
         if obj.image:
-            return f"https://{MAIN_DOMAIN}{obj.image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.image.url}"
         return 
     class Meta:
         model = StyleListModel
@@ -81,11 +81,11 @@ class AIToolsModelSerializer(serializers.ModelSerializer):
         return 
     def get_icon_image(self,obj):
         if obj.icon_image:
-            return f"https://{MAIN_DOMAIN}{obj.icon_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.icon_image.url}"
         return 
     def get_bg_image(self,obj):
         if obj.bg_image:
-            return f"https://{MAIN_DOMAIN}{obj.bg_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.bg_image.url}"
         return 
     class Meta:
         model = AIToolsModel
@@ -105,8 +105,7 @@ class OpenAIChatCategoriesSerializer(serializers.ModelSerializer):
         fields = ('id','name','icon','hex_code','description','created_at')
     def get_icon(self,obj):
         if obj.icon:
-            return f'https://{MAIN_DOMAIN}{obj.icon.url}'
-            # return f'http://{LOCAL_DOMAIN}{obj.icon.url}'
+            return f"{settings.SITE_DOMAIN}{obj.icon.url}"
         else:
             return 
 
