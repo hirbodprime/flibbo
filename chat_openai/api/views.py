@@ -232,104 +232,122 @@ class CreateVideoFlikiView(APIView):
     # permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        required_fields = ['text_input', 'voice_id', 'aspectratio', 'bg_music']
-        for field in required_fields:
-            if field not in request.data or not request.data[field]:
-                return Response(
-                    {"error": f"'{field}' field is required and cannot be empty."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        create_video_res = create_video(
-            request.data['text_input'],
-            request.data['voice_id'],
-            request.data['aspectratio'],
-            request.data['bg_music'],
-        )
-        if create_video_res.get("success"):
-            FlikiVideoModel.objects.create(
-                video_id = create_video_res['data']['data']['id'],
-                text_input=request.data['text_input'],
-                voice_id=request.data['voice_id'],
-                aspectratio=request.data['aspectratio'],
-                bg_music=request.data['bg_music'],
-                user=request.user
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
+
+            required_fields = ['text_input', 'voice_id', 'aspectratio', 'bg_music']
+            for field in required_fields:
+                if field not in request.data or not request.data[field]:
+                    return Response(
+                        {"error": f"'{field}' field is required and cannot be empty."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            create_video_res = create_video(
+                request.data['text_input'],
+                request.data['voice_id'],
+                request.data['aspectratio'],
+                request.data['bg_music'],
             )
-            return Response({"message": f"Video created successfully","data":create_video_res['data']['data']['id']})
+            if create_video_res.get("success"):
+                FlikiVideoModel.objects.create(
+                    video_id = create_video_res['data']['data']['id'],
+                    text_input=request.data['text_input'],
+                    voice_id=request.data['voice_id'],
+                    aspectratio=request.data['aspectratio'],
+                    bg_music=request.data['bg_music'],
+                    user=request.user
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Video created successfully","data":create_video_res['data']['data']['id']})
 
-        # Handle error case
-        return Response({"error": create_video_res.get("error", "Failed to create video")},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            # Handle error case
+            return Response({"error": create_video_res.get("error", "Failed to create video")},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 class CreateTextToSpeechView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        required_fields = ['text_input','voice_id']
-        for field in required_fields:
-            if field not in request.data or not request.data[field]:
-                return Response(
-                    {"error": f"'{field}' field is required and cannot be empty."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        text_to_speech = generate_text_to_speech(
-            request.data['text_input'],
-            request.data['voice_id'],
-        )
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
 
-        # Check if the operation was successful
-        if text_to_speech.get("success") == True:
-            response_data = text_to_speech["data"]
-            TextToSpeechResponse.objects.create(
-                audio_link=response_data['data']['audio'],
-                text_input=request.data['text_input'],
-                voice_id=request.data['voice_id'],
-                user=request.user,
-                duration=response_data['data']['duration']
+            required_fields = ['text_input','voice_id']
+            for field in required_fields:
+                if field not in request.data or not request.data[field]:
+                    return Response(
+                        {"error": f"'{field}' field is required and cannot be empty."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            text_to_speech = generate_text_to_speech(
+                request.data['text_input'],
+                request.data['voice_id'],
             )
 
-            return Response({"message": f"Video created successfully","data":response_data})
+            # Check if the operation was successful
+            if text_to_speech.get("success") == True:
+                response_data = text_to_speech["data"]
+                TextToSpeechResponse.objects.create(
+                    audio_link=response_data['data']['audio'],
+                    text_input=request.data['text_input'],
+                    voice_id=request.data['voice_id'],
+                    user=request.user,
+                    duration=response_data['data']['duration']
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Video created successfully","data":response_data})
 
-        # Handle error case
-        return Response({"error": text_to_speech.get("error", "Failed to create video")},
+            # Handle error case
+            return Response({"error": text_to_speech.get("error", "Failed to create video")},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                        
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
 class CreateTextToImageView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        required_fields = ['text_input','style']
-        for field in required_fields:
-            if field not in request.data or not request.data[field]:
-                return Response(
-                    {"error": f"'{field}' field is required and cannot be empty."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        text_to_image = generate_text_to_image(
-            request.data['text_input'],
-            request.data['style'],
-        )
-
-        # Check if the operation was successful
-        if text_to_image.get("success"):
-            # Save response data to model
-            print(text_to_image)
-            response_data = text_to_image["data"]
-            # print(response_data['data']['image'])
-            style_obj = get_object_or_404(StyleListModel,name=request.data['style'])
-            TextToImageResponse.objects.create(
-                image_link=response_data['data']['image'],
-                text_input=request.data['text_input'],
-                style=style_obj,
-                user=request.user
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
+            required_fields = ['text_input','style']
+            for field in required_fields:
+                if field not in request.data or not request.data[field]:
+                    return Response(
+                        {"error": f"'{field}' field is required and cannot be empty."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            text_to_image = generate_text_to_image(
+                request.data['text_input'],
+                request.data['style'],
             )
 
-            return Response({"message": f"Animation created successfully","data":response_data})
+            # Check if the operation was successful
+            if text_to_image.get("success"):
+                # Save response data to model
+                print(text_to_image)
+                response_data = text_to_image["data"]
+                # print(response_data['data']['image'])
+                style_obj = get_object_or_404(StyleListModel,name=request.data['style'])
+                TextToImageResponse.objects.create(
+                    image_link=response_data['data']['image'],
+                    text_input=request.data['text_input'],
+                    style=style_obj,
+                    user=request.user
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Animation created successfully","data":response_data})
 
-        # Handle error case
-        return Response({"error": animation_response.get("error", "Failed to create animation")},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            # Handle error case
+            return Response({"error": animation_response.get("error", "Failed to create animation")},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class CreateAnimationView(APIView):
@@ -337,135 +355,153 @@ class CreateAnimationView(APIView):
 
     def post(self, request, *args, **kwargs):
         # Uncomment these lines if you're handling image uploads
-        image = request.FILES.get('image')
-        if not image:
-            return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
-        image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-        image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
-        # image_url = "https://app.flxdevpanel.com/media/test.jpg"
-        animation_response = create_animation(
-            image_url
-        )
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
 
-        # Check if the operation was successful
-        if animation_response.get("success"):
-            # Save response data to model
-            print(animation_response)
-            response_data = animation_response["data"]
-            AnimationResponse.objects.create(
-                animation_id=response_data["id"],
-                created_at=datetime.fromisoformat(response_data["created_at"]),
-                created_by=response_data["created_by"],
-                object_type=response_data["object"],
-                status=response_data["status"],
-                user=request.user
-
+            image = request.FILES.get('image')
+            if not image:
+                return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+            image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+            image_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+            # image_url = "https://app.flxdevpanel.com/media/test.jpg"
+            animation_response = create_animation(
+                image_url
             )
 
-            return Response({"message": f"Animation created successfully","data":response_data})
+            # Check if the operation was successful
+            if animation_response.get("success"):
+                # Save response data to model
+                print(animation_response)
+                response_data = animation_response["data"]
+                AnimationResponse.objects.create(
+                    animation_id=response_data["id"],
+                    created_at=datetime.fromisoformat(response_data["created_at"]),
+                    created_by=response_data["created_by"],
+                    object_type=response_data["object"],
+                    status=response_data["status"],
+                    user=request.user
 
-        # Handle error case
-        return Response({"error": animation_response.get("error", "Failed to create animation")},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Animation created successfully","data":response_data})
 
+            # Handle error case
+            return Response({"error": animation_response.get("error", "Failed to create animation")},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
 class CreateClipView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
         # text_input,presenter_id,driver_id,bg_color
         # Validate other required fields
-        required_fields = ['text_input', 'presenter_id', 'driver_id', 'bg_color']
-        for field in required_fields:
-            if field not in request.data or not request.data[field]:
-                return Response(
-                    {"error": f"'{field}' field is required and cannot be empty."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
+            required_fields = ['text_input', 'presenter_id', 'driver_id', 'bg_color']
+            for field in required_fields:
+                if field not in request.data or not request.data[field]:
+                    return Response(
+                        {"error": f"'{field}' field is required and cannot be empty."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
-        # Call create_talk with validated data and image URL
-        clip_response = create_clip(
-            request.data['text_input'],
-            request.data['presenter_id'],
-            request.data['driver_id'],
-            request.data['bg_color']
-        )
-
-        # Check if the operation was successful
-        if clip_response.get("success"):
-            # Save response data to model
-            response_data = clip_response["data"]
-            ClipResponse.objects.create(
-                clip_id=response_data["id"],
-                created_at=datetime.fromisoformat(response_data["created_at"]),
-                object_type=response_data["object"],
-                status=response_data["status"]
+            # Call create_talk with validated data and image URL
+            clip_response = create_clip(
+                request.data['text_input'],
+                request.data['presenter_id'],
+                request.data['driver_id'],
+                request.data['bg_color']
             )
 
-            return Response({"message": f"Clip created successfully","data":response_data})
+            # Check if the operation was successful
+            if clip_response.get("success"):
+                # Save response data to model
+                response_data = clip_response["data"]
+                ClipResponse.objects.create(
+                    clip_id=response_data["id"],
+                    created_at=datetime.fromisoformat(response_data["created_at"]),
+                    object_type=response_data["object"],
+                    status=response_data["status"]
+                )   
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Clip created successfully","data":response_data})
 
-        # Handle error case
-        return Response({"error": clip_response.get("error", "Failed to create clip")},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            # Handle error case
+            return Response({"error": clip_response.get("error", "Failed to create clip")},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 
 class CreateTalkView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
-        image_id = request.data.get('image_id', None)
-        if image_id:
-            try:
-                image = TalkImages.objects.get(id=image_id)
-                image_url = settings.SITE_DOMAIN + image.big_image.url
-                logger.info("Image URL from ID: %s", image_url)
-            except TalkImages.DoesNotExist:
-                return Response({"error": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            image = request.FILES.get('image')
-            if not image:
-                return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
-            image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-            image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
-            logger.info("Image upload URL: %s", image_url)
-        # # Temporary image URL for testing
-        # image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
+            image_id = request.data.get('image_id', None)
+            if image_id:
+                try:
+                    image = TalkImages.objects.get(id=image_id)
+                    image_url = settings.SITE_DOMAIN + image.big_image.url
+                    logger.info("Image URL from ID: %s", image_url)
+                except TalkImages.DoesNotExist:
+                    return Response({"error": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                image = request.FILES.get('image')
+                if not image:
+                    return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+                image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+                image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
+                logger.info("Image upload URL: %s", image_url)
+            # # Temporary image URL for testing
+            image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
 
-        # Validate other required fields
-        required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
-        for field in required_fields:
-            if field not in request.data or not request.data[field]:
-                return Response(
-                    {"error": f"'{field}' field is required and cannot be empty."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            # Validate other required fields
+            required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
+            for field in required_fields:
+                if field not in request.data or not request.data[field]:
+                    return Response(
+                        {"error": f"'{field}' field is required and cannot be empty."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
-        # Call create_talk with validated data and image URL
-        talk_response = create_talk(
-            request.data['text_input'],
-            image_url,
-            request.data['fluent'],
-            request.data['expression'],
-            request.data['speed_rate'],
-            request.data['voice_id'],
-        )
-
-        # Check if the operation was successful
-        if talk_response.get("success"):
-            # Save response data to model
-            response_data = talk_response["data"]
-            TalkResponse.objects.create(
-                talk_id=response_data["id"],
-                created_at=datetime.fromisoformat(response_data["created_at"]),
-                created_by=response_data["created_by"],
-                status=response_data["status"]
+            # Call create_talk with validated data and image URL
+            talk_response = create_talk(
+                request.data['text_input'],
+                image_url,
+                request.data['fluent'],
+                request.data['expression'],
+                request.data['speed_rate'],
+                request.data['voice_id'],
             )
 
-            return Response({"message": f"Talk created successfully","data":response_data})
+            # Check if the operation was successful
+            if talk_response.get("success"):
+                # Save response data to model
+                response_data = talk_response["data"]
+                TalkResponse.objects.create(
+                    talk_id=response_data["id"],
+                    created_at=datetime.fromisoformat(response_data["created_at"]),
+                    created_by=response_data["created_by"],
+                    status=response_data["status"]
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Talk created successfully","data":response_data})
 
-        # Handle error case
-        return Response({"error": talk_response.get("error", "Failed to create talk")},
+            # Handle error case
+            return Response({"error": talk_response.get("error", "Failed to create talk")},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
 class CategoriesListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = CategoriesModel.objects.all()
