@@ -326,8 +326,9 @@ class CreateTextToImageView(APIView):
 
     def post(self, request, *args, **kwargs):
         user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        style_obj_id = get_object_or_404(StyleListModel,id=request.data['style_id'])
         if user_limit.limit > 0:
-            required_fields = ['text_input','style']
+            required_fields = ['text_input','style_id']
             for field in required_fields:
                 if field not in request.data or not request.data[field]:
                     return Response(
@@ -336,7 +337,7 @@ class CreateTextToImageView(APIView):
                     )
             text_to_image = generate_text_to_image(
                 request.data['text_input'],
-                request.data['style'],
+                style_obj_id.name,
             )
 
             # Check if the operation was successful
@@ -345,11 +346,11 @@ class CreateTextToImageView(APIView):
                 print(text_to_image)
                 response_data = text_to_image["data"]
                 # print(response_data['data']['image'])
-                style_obj = get_object_or_404(StyleListModel,name=request.data['style'])
+                
                 TextToImageResponse.objects.create(
                     image_link=response_data['data']['image'],
                     text_input=request.data['text_input'],
-                    style=style_obj,
+                    style=style_obj_id,
                     user=request.user
                 )
                 user_limit.limit -= 1
