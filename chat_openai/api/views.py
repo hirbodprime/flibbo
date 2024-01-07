@@ -472,7 +472,7 @@ class CreateTalkView(APIView):
                 image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
                 logger.info("Image upload URL: %s", image_url)
             # # Temporary image URL for testing
-            image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
+            # image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
 
             # Validate other required fields
             required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
