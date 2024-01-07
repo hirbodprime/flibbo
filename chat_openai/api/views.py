@@ -229,17 +229,13 @@ class GetStatusVideoView(APIView):
         get_video_status = get_status(
             request.data['video_id'],
         )
-        # Check if the operation was successful
-        # print(get_video_status)
         if get_video_status['data']['data']['status'] == "processing":
             return Response({"message": "Video is Being Created","status":get_video_status['data']['data']['progress']})
 
         if get_video_status['data']['data']['status'] == "success":
-
-            fliki_obj  = FlikiVideoModel.objects.get(video_id=request.data['video_id'])
+            fliki_obj = get_object_or_404(FlikiVideoModel, video_id=request.data['video_id'])
             fliki_obj.image_link = get_video_status['data']['data']['file']
             fliki_obj.save()
-            print(get_video_status)
             return Response({"message": f"Video created successfully",**get_video_status})
 
         # Handle error case
