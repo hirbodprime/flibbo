@@ -84,7 +84,7 @@ class VoiceActorModel(models.Model):
     styles = models.JSONField(default=list)
 
     def __str__(self):
-        return f"{self.name} - {self.locale} - {self.language}"
+        return f"{self.name} - {self.locale} - {self.voice_id}- {self.language}"
 
 class UserAIStudioLimit(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
