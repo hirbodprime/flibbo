@@ -135,12 +135,12 @@ class GetVoicesView(APIView):
 
         # Retrieve LanguageAndDialectRelation object or return 404
         obj_relation = get_object_or_404(LanguageAndDialectRelation, language=obj)
-
+        print(obj_relation.language._id, obj_relation.dialect._id)
         # Get voices data
-        voice_data = get_voices(obj.id, obj_relation.dialect.id, gender)
+        voice_data = get_voices(obj_relation.language._id, obj_relation.dialect._id, gender)
         return Response(voice_data)
 
-        
+
 class GetDialectsView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):

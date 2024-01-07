@@ -30,6 +30,7 @@ class LanguageAndDialectRelation(models.Model):
     dialect = models.ForeignKey(Dialect, on_delete=models.CASCADE)
     def __str__(self):
         return f'{self.language} {self.dialect}'
+        
 class ToolsOptionsModel(models.Model):
     CHOICES = (
         ('talk', 'Talk'),

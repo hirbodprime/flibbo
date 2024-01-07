@@ -55,9 +55,6 @@ def get_voices(language_id, dialect_id, gender):
         "languageId": language_id,
         "dialectId": dialect_id
     }
-    headers = {
-        # Your headers here (like Authorization, Content-Type, etc.)
-    }
     response = requests.post(url, headers=headers, data=json.dumps(payload))
 
     if response.status_code == 200:
@@ -72,7 +69,6 @@ def get_voices(language_id, dialect_id, gender):
     else:
         error_data = response.json()
         return {"success": False, "error": error_data}
-        
 from .models import Dialect, Language
 import re
 
