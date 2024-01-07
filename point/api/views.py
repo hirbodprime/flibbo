@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.db.models import Count, Q
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,8 +17,7 @@ from point.models import WithDrawalRequestModel, RefMoneyModel, UserWalletModel,
 
 
 User = get_user_model()
-dev_url = "dev.flxdevpanel.com"
-app_url = "app.flxdevpanel.com"
+
 
 
 class GoldUsersListAPIView(APIView):
@@ -93,7 +93,7 @@ class UserAggregatedDataView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        profile_image_url = f"https://{dev_url}{user.profile_image.url}" if user.profile_image else None
+        profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
         
         user_wallet = UserWalletModel.objects.filter(user=user).first()
         user_wallet_data = UserWalletSerializer(user_wallet).data if user_wallet else None
@@ -116,7 +116,7 @@ class UserAggregatedDataView(APIView):
         # Function to get first 3 users' profile images
         def get_first_three_users_images(users_qs):
             return [
-                f"https://{dev_url}{user.profile_image.url}" if user.profile_image else None
+                f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
                 for user in users_qs.all()[:3]
             ]
 
@@ -152,7 +152,7 @@ class UserAggregatedDataView(APIView):
 
             # Add the username and profile image to each item
             item['username'] = ref_user_instance.username
-            item['profile_image'] = f"https://{dev_url}{ref_user_instance.profile_image.url}" if ref_user_instance.profile_image else None
+            item['profile_image'] = f"{settings.SITE_DOMAIN}{ref_user_instance.profile_image.url}" if ref_user_instance.profile_image else None
 
             enriched_ref_money_data.append(item)
         return Response({

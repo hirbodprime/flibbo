@@ -3,9 +3,7 @@
 from rest_framework import serializers
 from chat_openai.models import OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 from django.conf import settings
-MAIN_DOMAIN = 'app.flxdevpanel.com'
-LOCAL_DOMAIN = '127.0.0.1:8000'
-SAHAND_DOMAIN = '192.168.3.90:8000'
+
 
 class TalkVoiceActorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -171,8 +169,7 @@ class AudioInteractionSerializer(serializers.ModelSerializer):
         model = OpenAIAudioInteraction
         fields = '__all__'
     def get_user_audio_prompt(self, obj):
-        site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-        return f"https://{site_domain}/media/{obj.user_audio_prompt}"
+        return f"{settings.SITE_DOMAIN}/media/{obj.user_audio_prompt}"
 
 class ImageInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()

@@ -1,14 +1,15 @@
 from rest_framework import serializers
 from point.models import WithDrawalRequestModel, RefMoneyModel, PointWalletModel, UserWalletModel, ReferralCodeModel
 from django.contrib.auth import get_user_model
+from django.conf import settings
 User = get_user_model()
-dev_url = "dev.flxdevpanel.com"
-app_url = "app.flxdevpanel.com"
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
     def get_profile_image(self,obj):
         if obj.profile_image:
-            return f"https://{dev_url}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         return
     class Meta:
         model = User

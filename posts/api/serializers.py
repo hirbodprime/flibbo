@@ -77,7 +77,6 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
     def get_likes(self, obj):
         request_user = self.context['request'].user
 
-        site_domain = "app.flxdevpanel.com"
         block_obj,created = BlockModel.objects.get_or_create(user=request_user)
         users_blocked_by_current_user = block_obj.blocked_users.all()
 
@@ -99,7 +98,6 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
 
     def get_comments(self, obj):
         request_user = self.context['request'].user
-        site_domain = "app.flxdevpanel.com"
         block_obj,created = BlockModel.objects.get_or_create(user=request_user)
         users_blocked_by_current_user = block_obj.blocked_users.all()
 
@@ -200,7 +198,7 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
         # Check if the object has a 'photo' field
         if obj.video:
             # Get the full URL for the photo by prepending the domain
-            site_domain_stream = "http://app.flxdevpanel.com/posts/api/stream-video/"  # Replace this with your actual website domain
+            site_domain_stream = f"{settings.SITE_DOMAIN}/posts/api/stream-video/"  # Replace this with your actual website domain
             return f"{site_domain_stream}{obj.id}"
             # return request.build_absolute_uri(obj.video.url)
         else:
@@ -272,7 +270,6 @@ class UserSerializer(serializers.ModelSerializer):
         return status
 
     def get_profile_image(self, obj):
-        site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
         profile_image_url = f"{settings.SITE_DOMAIN}{obj.profile_image.url}" if obj.profile_image else None
         return profile_image_url
     class Meta:
@@ -585,7 +582,7 @@ class PodcastPostSerializer(serializers.ModelSerializer):
     def get_share_post(self, obj):
         # You can generate the share link based on your project's URL structure
         request = self.context.get('request')
-        share_url = f"https://app.flxdevpanel.com/posts/api/tweet/get/{obj.id}/"
+        share_url = f"{settings.SITE_DOMAIN}/posts/api/tweet/get/{obj.id}/"
         return share_url
     class Meta:
         # total_likes = serializers.SerializerMethodField()
@@ -679,7 +676,6 @@ class CommentBaseSerializer(serializers.ModelSerializer):
     def get_profile_image_url(self, obj):
         if obj.user.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
             return f"{settings.SITE_DOMAIN}{obj.user.profile_image.url}"
         else:
             return None

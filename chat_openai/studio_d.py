@@ -80,7 +80,7 @@ def create_talk(text_input, image, fluent, expression, speed_rate, voice_id):
             return {"error": "Non-200 status code received without valid JSON error message"}
 
 
-# create_talk('something in the way is in my throut hahaha','https://app.flxdevpanel.com/media/test.jpg',True,'happy','0.5')
+# create_talk('something in the way is in my throut hahaha','https://some_url.com/media/test.jpg',True,'happy','0.5')
 
 def get_talk(talk_id):
     api_url = f"https://api.d-id.com/talks/{talk_id}"
@@ -294,7 +294,7 @@ def create_animation(image_url):
         print("Response:", response.text)
         return {"success":False,'error':response_data}  
 
-# create_animation("https://app.flxdevpanel.com/media/test.jpg")
+# create_animation("https://some_url.com/media/test.jpg")
 # talks 
 # get_talk("tlk_9RomgIQPudk9OBb9DrrnJ")
 # get_talk("tlk_4kSV4co4tFZVymfmKospR")
