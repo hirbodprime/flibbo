@@ -163,7 +163,7 @@ class StylesListView(APIView):
 class AIToolsListView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        user_limit = UserAIStudioLimit.objects.get(user=request.user)
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
         ai_tools = AIToolsModel.objects.all()
         serializer = AIToolsModelSerializer(ai_tools, many=True)
         return Response({'data': serializer.data,"limit":user_limit.limit})
