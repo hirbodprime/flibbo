@@ -25,8 +25,11 @@ def get_langunages():
 
     # Checking the response
     if response.status_code == 200:
-        print(response.json())
         response_data = response.json()
+        for item in response_data['data']:
+            if item['name'] == "Bangla/Bengali":
+                item['name'] = "Bengali"
+                break 
         return {"success":True,**response_data}
 
     else:
