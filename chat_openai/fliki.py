@@ -165,15 +165,16 @@ def get_status(video_id):
     response = requests.post(url, headers=headers, json=payload)
 
     # Checking the response
-    if response.status_code == 200:
-        response_data = response.json()
-        print(response.json())
-        return {"success":True,'data':response_data}
+    response_data = response.json()
+    if response_data['success'] == True:
+        if response.status_code == 200:
+            print(response.json())
+            return {"success":True,**response_data}
 
     else:
         error_data = response.json()
         return {"success":False,"error":error_data}
-# get_status("65881b4fc5d28dabf9141db9")
+    # get_status("65881b4fc5d28dabf9141db9")
 
 
 def generate_text_to_speech(content, voice_id):
