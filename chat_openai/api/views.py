@@ -6,7 +6,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 # rest imports
 from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView
@@ -42,6 +42,33 @@ client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
   organization=os.getenv("OPENAI_ORG_API_KEY")
 )
+class DeleteChatAPIView(APIView):
+
+
+    """
+    API View to delete a chat and its related interactions.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, chat_id):
+        with transaction.atomic():
+            # Retrieve the chat and check if the request user is the owner
+            chat = get_object_or_404(OpenAIChatID, chat_id=chat_id)
+
+            if chat.user != request.user:
+                # If the user is not the owner of the chat, deny the request
+                return Response({'error': 'You do not have permission to delete this chat.'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Delete related objects
+            OpenAIChatInteraction.objects.filter(chat=chat).delete()
+            OpenAIAudioInteraction.objects.filter(chat=chat).delete()
+            OpenAIImageInteraction.objects.filter(chat=chat).delete()
+            OpenAITextToSpeechInteraction.objects.filter(chat=chat).delete()
+
+            # Finally, delete the chat itself
+            chat.delete()
+
+        return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 class OpenAIChatIDCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
