@@ -69,6 +69,33 @@ class DeleteChatAPIView(APIView):
             chat.delete()
 
         return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        
+class ChatInteractionsView(APIView):
+    def get(self, request, chat_id=None):
+        try:
+            if not chat_id:
+                # Get the newest chat_id if not provided
+                latest_chat = OpenAIChatID.objects.latest('created_at')
+                chat_id = latest_chat.chat_id
+
+            chat = OpenAIChatID.objects.get(chat_id=chat_id)
+            chat_interactions = OpenAIChatInteraction.objects.filter(chat=chat)
+            audio_interactions = OpenAIAudioInteraction.objects.filter(chat=chat)
+            image_interactions = OpenAIImageInteraction.objects.filter(chat=chat)
+
+            chat_serializer = OpenAIChatInteractionSerializer(chat_interactions, many=True)
+            audio_serializer = OpenAIAudioInteractionSerializer(audio_interactions, many=True)
+            image_serializer = OpenAIImageInteractionSerializer(image_interactions, many=True)
+
+            return Response({
+                'chat_id': chat_id,
+                'chat_interactions': chat_serializer.data,
+                'audio_interactions': audio_serializer.data,
+                'image_interactions': image_serializer.data
+            })
+        except OpenAIChatID.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 class OpenAIChatIDCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (DeleteChatAPIView,TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
+from .views import (ChatInteractionsView,DeleteChatAPIView,TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
     OpenAIChatInteractionView,OpenAIAudioInteractionView,GetPresenterDriversView,CreateAnimationView,
     OpenAIImageInteractionView,InteractionListView,DeleteUserHistory, CategoriesListAPIView,OpenAIChatInteractionViewe,OpenAICategoryListAPIView
     ,CreateVideoFlikiView,GetStatusVideoView,VoiceActorListView,CreateTextToSpeechView,TalkImagesListAPIView,OpenAIChatIDCreateView,OpenAIChatIDHistoryView
@@ -37,6 +37,8 @@ urlpatterns = [
 
     
     path('history/',InteractionListView.as_view()),
+    path('history/single/<str:chat_id>/', ChatInteractionsView.as_view(), name='chat_interactions'),
+    path('history/single/', ChatInteractionsView.as_view(), name='chat_interactions'),
     path('chat/delete/<str:chat_id>/', DeleteChatAPIView.as_view(), name='delete_chat_api'),
 
     path('chat2/',OpenAIChatInteractionViewe.as_view()),
