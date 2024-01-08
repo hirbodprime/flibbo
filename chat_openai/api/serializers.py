@@ -140,11 +140,13 @@ class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
 
 class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
-    def get_chat(self,obj):
-        if obj.chat:
-            return obj.chat.chat_id
-        else:
-            return
+    def get_chat(self, obj):
+        try:
+            return obj.chat.chat_id if obj.chat else None
+        except AttributeError:
+            # Handle cases where 'obj' does not have a 'chat' attribute
+            return None
+
     class Meta:
         model = OpenAIImageInteraction
         fields = ('id', 'user', 'chat', 'user_text_prompt_image','gpt_response1','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
