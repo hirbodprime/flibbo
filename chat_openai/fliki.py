@@ -30,6 +30,8 @@ def get_langunages():
             if item['name'] == "Bangla/Bengali":
                 item['name'] = "Bengali"
                 break 
+        response_data['data'] = [item for item in response_data['data'] if item['name'] != "Zulu"]
+
         return {"success":True,**response_data}
 
     else:
