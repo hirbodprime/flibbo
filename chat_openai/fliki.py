@@ -31,7 +31,7 @@ def get_langunages():
                 item['name'] = "Bengali"
                 break 
         # List of names to be removed
-        names_to_remove = ["Zulu", "Filipino", "Hebrew","Marathi"]
+        names_to_remove = ["Zulu", "Filipino", "Hebrew","Marathi","Slovenian"]
 
         # Update response_data['data'] by filtering out items with names in names_to_remove
         response_data['data'] = [item for item in response_data['data'] if item['name'] not in names_to_remove]
