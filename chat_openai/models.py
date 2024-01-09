@@ -16,6 +16,10 @@ class SuggestPromptsModel(models.Model):
     prompt = models.TextField()
     def __str__(self):
         return self.prompt
+class SuggestPromptsImageModel(models.Model):
+    prompt = models.TextField()
+    def __str__(self):
+        return self.prompt
 
 class Dialect(models.Model):
     _id = models.CharField(max_length=50, unique=True,null=True,blank=True)

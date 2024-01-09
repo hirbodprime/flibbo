@@ -1,7 +1,7 @@
 # my_app/serializers.py
 
 from rest_framework import serializers
-from chat_openai.models import SuggestPromptsModel,OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
+from chat_openai.models import SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 from django.conf import settings
 
 
@@ -203,4 +203,10 @@ class OpenAITextToSpeechInteractionSerializer(serializers.ModelSerializer):
 class SuggestPromptsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SuggestPromptsModel
+        fields = ['prompt']
+
+
+class SuggestPromptsImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SuggestPromptsImageModel
         fields = ['prompt']

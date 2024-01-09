@@ -20,8 +20,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from .history_serializers import * 
-from chat_openai.models import SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
-from .serializers import (TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
+from chat_openai.models import SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from .serializers import (SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
@@ -88,6 +88,18 @@ def get_random_prompts(request):
     }
     return Response(response_data)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_random_image_prompts(request):
+    prompts_count = SuggestPromptsImageModel.objects.count()
+    random_indices = random.sample(range(prompts_count), min(3, prompts_count))
+    random_prompts = [SuggestPromptsImageModel.objects.all()[idx] for idx in random_indices]
+    serializer = SuggestPromptsImageSerializer(random_prompts, many=True)
+    response_data = {
+        'prompts':serializer.data
+    }
+    return Response(response_data)
 class DeleteChatAPIView(APIView):
 
 
