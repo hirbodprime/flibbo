@@ -7,6 +7,8 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.http import JsonResponse
+from django.db.models import Q
 
 # rest imports
 from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView
@@ -16,10 +18,11 @@ from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-
-from chat_openai.models import OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from rest_framework.decorators import api_view, permission_classes
+from .history_serializers import * 
+from chat_openai.models import SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
 from .serializers import (TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
-OpenAIImageInteractionSerializer,ChatInteractionSerializer,
+OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
 from chat_openai.studio_d import create_talk,get_animation,get_talk,create_animation,get_presenters,get_presenter_drivers,create_clip,get_clip
@@ -34,14 +37,57 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from chat_openai.chat_id import generate_chat_id
 import logging
+import random
 
 load_dotenv()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
   organization=os.getenv("OPENAI_ORG_API_KEY")
 )
+
+
+
+class UserAllResponsesView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        talk_responses = TalkResponse.objects.filter(user=user).order_by('-created_at')
+        clip_responses = ClipResponse.objects.filter(user=user).order_by('-created_at')
+        animation_responses = AnimationResponse.objects.filter(user=user).order_by('-created_at')
+        text_to_image_responses = TextToImageResponse.objects.filter(user=user).order_by('-created_at')
+        text_to_speech_responses = TextToSpeechResponse.objects.filter(user=user).order_by('-created_at')
+        fliki_video_responses = FlikiVideoModel.objects.filter(user=user).order_by('-created_at')
+
+        talk_serializer = TalkResponseSerializer(talk_responses, many=True)
+        clip_serializer = ClipResponseSerializer(clip_responses, many=True)
+        animation_serializer = AnimationResponseSerializer(animation_responses, many=True)
+        text_to_image_serializer = TextToImageResponseSerializer(text_to_image_responses, many=True)
+        text_to_speech_serializer = TextToSpeechResponseSerializer(text_to_speech_responses, many=True)
+        fliki_video_serializer = FlikiVideoModelSerializer(fliki_video_responses, many=True)
+
+        combined_data = (talk_serializer.data + clip_serializer.data + 
+                         animation_serializer.data + text_to_image_serializer.data +
+                         text_to_speech_serializer.data + fliki_video_serializer.data)
+
+        # Sort combined data by 'created_at' in descending order
+
+        return Response(combined_data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_random_prompts(request):
+    prompts_count = SuggestPromptsModel.objects.count()
+    random_indices = random.sample(range(prompts_count), min(3, prompts_count))
+    random_prompts = [SuggestPromptsModel.objects.all()[idx] for idx in random_indices]
+    serializer = SuggestPromptsSerializer(random_prompts, many=True)
+    response_data = {
+        'prompts':serializer.data
+    }
+    return Response(response_data)
+
 class DeleteChatAPIView(APIView):
 
 
@@ -433,10 +479,10 @@ class CreateAnimationView(APIView):
                 return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
             image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
             image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
+            image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
             animation_response = create_animation(
                 image_url
             )
-
             # Check if the operation was successful
             if animation_response.get("success"):
                 # Save response data to model
@@ -489,6 +535,7 @@ class CreateClipView(APIView):
                 # Save response data to model
                 response_data = clip_response["data"]
                 ClipResponse.objects.create(
+                    user_prompt=request.data['text_input'],
                     clip_id=response_data["id"],
                     created_at=datetime.fromisoformat(response_data["created_at"]),
                     object_type=response_data["object"],
@@ -517,7 +564,7 @@ class CreateTalkView(APIView):
                 try:
                     image = TalkImages.objects.get(id=image_id)
                     image_url = settings.SITE_DOMAIN + image.big_image.url
-                    logger.info("Image URL from ID: %s", image_url)
+                    # logger.info("Image URL from ID: %s", image_url)
                 except TalkImages.DoesNotExist:
                     return Response({"error": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
             else:
@@ -526,9 +573,9 @@ class CreateTalkView(APIView):
                     return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
                 image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
                 image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
-                logger.info("Image upload URL: %s", image_url)
+                # logger.info("Image upload URL: %s", image_url)
             # # Temporary image URL for testing
-            # image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
+            image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
 
             # Validate other required fields
             required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
@@ -554,6 +601,8 @@ class CreateTalkView(APIView):
                 # Save response data to model
                 response_data = talk_response["data"]
                 TalkResponse.objects.create(
+                    user_prompt=request.data['text_input'],
+                    image_link=image_url,
                     talk_id=response_data["id"],
                     created_at=datetime.fromisoformat(response_data["created_at"]),
                     created_by=response_data["created_by"],

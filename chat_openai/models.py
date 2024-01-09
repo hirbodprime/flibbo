@@ -1,6 +1,8 @@
 # my_app/models.py
 from django.contrib.auth import get_user_model
 from django.db import models
+from .extract_cover_images import extract_and_save_cover
+
 User = get_user_model()
 
 expression_choice = (
@@ -10,6 +12,10 @@ expression_choice = (
     ('suprise','suprise'),
     )
 # voice_id, aspectratio, bg_music
+class SuggestPromptsModel(models.Model):
+    prompt = models.TextField()
+    def __str__(self):
+        return self.prompt
 
 class Dialect(models.Model):
     _id = models.CharField(max_length=50, unique=True,null=True,blank=True)
@@ -156,6 +162,8 @@ class TalkImages(models.Model):
 
 class TalkResponse(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    user_prompt = models.TextField(null=True,blank=True)
+    image_link = models.TextField(null=True,blank=True)
     talk_id = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=100)
@@ -164,9 +172,12 @@ class TalkResponse(models.Model):
     def __str__(self):
         return self.talk_id
 
+
+
 class ClipResponse(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     clip_id = models.CharField(max_length=100)
+    user_prompt = models.TextField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     object_type = models.CharField(max_length=100)
     status = models.CharField(max_length=50)
@@ -177,6 +188,8 @@ class ClipResponse(models.Model):
 class AnimationResponse(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     animation_id = models.CharField(max_length=100)
+    animation_name = models.TextField(null=True,blank=True)
+    animation_number = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     object_type = models.CharField(max_length=100)
     created_by = models.CharField(max_length=100)
@@ -185,7 +198,18 @@ class AnimationResponse(models.Model):
 
     def __str__(self):
         return self.animation_id   
+    def save(self, *args, **kwargs):
+        # Check if the instance is new
+        if not self.pk:
+            last = AnimationResponse.objects.all().order_by('animation_number').last()
+            if last:
+                # Increment the animation number from the last instance
+                self.animation_number = last.animation_number + 1
 
+        # Update animation_name with the new animation_number
+        self.animation_name = f"animation_export_{self.animation_number}"
+
+        super(AnimationResponse, self).save(*args, **kwargs)
 
 class CategoriesModel(models.Model):
     name = models.CharField(max_length=255,null=True,blank=True)

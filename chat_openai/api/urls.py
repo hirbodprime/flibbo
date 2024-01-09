@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (ChatInteractionsView,DeleteChatAPIView,TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
+from .views import (UserAllResponsesView,get_random_prompts,ChatInteractionsView,DeleteChatAPIView,TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
     OpenAIChatInteractionView,OpenAIAudioInteractionView,GetPresenterDriversView,CreateAnimationView,
     OpenAIImageInteractionView,InteractionListView,DeleteUserHistory, CategoriesListAPIView,OpenAIChatInteractionViewe,OpenAICategoryListAPIView
     ,CreateVideoFlikiView,GetStatusVideoView,VoiceActorListView,CreateTextToSpeechView,TalkImagesListAPIView,OpenAIChatIDCreateView,OpenAIChatIDHistoryView
@@ -36,10 +36,12 @@ urlpatterns = [
     path('delete-history/', DeleteUserHistory.as_view({'post': 'delete_history'}), name='delete-history'),
 
     
+    path('ai-studio/history/', UserAllResponsesView.as_view(), name='user_all_responses'),
     path('history/',InteractionListView.as_view()),
     path('history/single/<str:chat_id>/', ChatInteractionsView.as_view(), name='chat_interactions'),
     path('history/single/', ChatInteractionsView.as_view(), name='chat_interactions'),
     path('chat/delete/<str:chat_id>/', DeleteChatAPIView.as_view(), name='delete_chat_api'),
+    path('random-prompts/', get_random_prompts, name='random-prompts'),
 
     path('chat2/',OpenAIChatInteractionViewe.as_view()),
     path('chat/',OpenAIChatInteractionView.as_view()),
