@@ -127,7 +127,7 @@ class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
             return
     class Meta:
         model = OpenAIChatInteraction
-        fields = ('id', 'user', 'chat', 'user_text_prompt', 'gpt_response', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_prompt', 'gpt_response', 'created_at')
         read_only_fields = ('user', 'chat', 'created_at', 'gpt_response')
 
 class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
