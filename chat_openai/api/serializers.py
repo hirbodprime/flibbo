@@ -115,6 +115,11 @@ class OpenAIChatCategoriesSerializer(serializers.ModelSerializer):
 
 class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
+    user_prompt = serializers.SerializerMethodField()
+    def get_user_prompt(self,obj):
+        if obj.user_text_prompt:
+            return obj.user_text_prompt
+        return
     def get_chat(self,obj):
         if obj.chat:
             return obj.chat.chat_id
@@ -127,8 +132,8 @@ class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
 
 class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
-    user_audio_prompt = serializers.SerializerMethodField()
-    def get_user_audio_prompt(self,obj):
+    user_prompt = serializers.SerializerMethodField()
+    def get_user_prompt(self,obj):
         if obj.user_audio_prompt:
             return f"{settings.SITE_DOMAIN}{obj.user_audio_prompt.url}"
         return
@@ -138,12 +143,18 @@ class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
         return
     class Meta:
         model = OpenAIAudioInteraction
-        fields = ('id', 'user', 'chat', 'user_audio_prompt','gpt_response', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_prompt','gpt_response', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response')
 
 
 class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
+    gpt_response = serializers.SerializerMethodField()
+    def get_gpt_response(self, obj):
+        if obj.gpt_response1:
+            return obj.gpt_response1
+        return
+
     def get_chat(self, obj):
         try:
             return obj.chat.chat_id if obj.chat else None
@@ -153,7 +164,7 @@ class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpenAIImageInteraction
-        fields = ('id', 'user', 'chat', 'user_text_prompt_image','gpt_response1','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_text_prompt_image','gpt_response','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response1','gpt_response2','gpt_response3','gpt_response4')
     
     
