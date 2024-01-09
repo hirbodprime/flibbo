@@ -733,9 +733,9 @@ class OpenAIChatInteractionView(CreateAPIView):
         
         gpt_response = completion.choices[0].message.content
         try:
-            serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+            serializer.save(user=self.request.user, user_text_prompt=user_prompt,gpt_response=gpt_response, chat=chat_instance)
         except:
-            serializer.save(user=self.request.user, gpt_response=gpt_response)
+            serializer.save(user=self.request.user, gpt_response=gpt_response, user_text_prompt=user_prompt)
 
 # class OpenAIChatInteractionView(CreateAPIView):
 #     queryset = OpenAIChatInteraction.objects.all()

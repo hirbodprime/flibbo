@@ -117,6 +117,7 @@ class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
     user_prompt = serializers.SerializerMethodField()
     def get_user_prompt(self,obj):
+        print(obj)
         if obj.user_text_prompt:
             return obj.user_text_prompt
         return
