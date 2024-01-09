@@ -685,11 +685,12 @@ class OpenAIChatInteractionView(CreateAPIView):
             try:
                 chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
             except OpenAIChatID.DoesNotExist:
+                pass
                 # If chat_id does not exist, raise a ValidationError
-                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
-        else:
-            # If no chat_id is provided, raise a ValidationError
-            raise ValidationError({'chat_id': ['Chat ID is required.']})
+        #         raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        # else:
+        #     # If no chat_id is provided, raise a ValidationError
+        #     raise ValidationError({'chat_id': ['Chat ID is required.']})
         
 
         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
@@ -715,8 +716,10 @@ class OpenAIChatInteractionView(CreateAPIView):
         )
         
         gpt_response = completion.choices[0].message.content
-        
-        serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+        try:
+            serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+        except:
+            serializer.save(user=self.request.user, gpt_response=gpt_response)
 
 # class OpenAIChatInteractionView(CreateAPIView):
 #     queryset = OpenAIChatInteraction.objects.all()
@@ -773,11 +776,12 @@ class OpenAIAudioInteractionView(CreateAPIView):
             try:
                 chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
             except OpenAIChatID.DoesNotExist:
+                pass
                 # If chat_id does not exist, raise a ValidationError
-                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
-        else:
-            # If no chat_id is provided, raise a ValidationError
-            raise ValidationError({'chat_id': ['Chat ID is required.']})
+        #         raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        # else:
+        #     # If no chat_id is provided, raise a ValidationError
+        #     raise ValidationError({'chat_id': ['Chat ID is required.']})
 
         mime_type, _ = mimetypes.guess_type(file_name)
         print("Original MIME Type:", mime_type)
@@ -798,8 +802,10 @@ class OpenAIAudioInteractionView(CreateAPIView):
                     response_format="text"
                 )
                 gpt_response = transcript_response
-
-            serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+            try:
+                serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+            except:
+                serializer.save(user=self.request.user, gpt_response=gpt_response)
 
         finally:
             os.remove(temp_file_path)
@@ -826,11 +832,12 @@ class OpenAITextToSpeechInteractionView(CreateAPIView):
             try:
                 chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
             except OpenAIChatID.DoesNotExist:
+                pass
                 # If chat_id does not exist, raise a ValidationError
-                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
-        else:
-            # If no chat_id is provided, raise a ValidationError
-            raise ValidationError({'chat_id': ['Chat ID is required.']})
+        #         raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        # else:
+        #     # If no chat_id is provided, raise a ValidationError
+        #     raise ValidationError({'chat_id': ['Chat ID is required.']})
 
         try:
             # Convert the user prompt to speech
@@ -845,8 +852,11 @@ class OpenAITextToSpeechInteractionView(CreateAPIView):
                 audio_file.write(response)
 
             # Save the model instance with the user prompt
-            serializer.save(user=self.request.user, user_text_prompt=user_prompt, chat=chat_instance)
-            
+            try:
+                serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+            except:
+                serializer.save(user=self.request.user, gpt_response=gpt_response)
+                
         except Exception as e:
             # Handle exceptions (logging, custom error messages, etc.)
             print(f"An error occurred: {e}")
@@ -868,11 +878,12 @@ class OpenAIImageInteractionView(CreateAPIView):
             try:
                 chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
             except OpenAIChatID.DoesNotExist:
+                pass
                 # If chat_id does not exist, raise a ValidationError
-                raise ValidationError({'chat_id': ['Chat ID does not exist.']})
-        else:
-            # If no chat_id is provided, raise a ValidationError
-            raise ValidationError({'chat_id': ['Chat ID is required.']})
+        #         raise ValidationError({'chat_id': ['Chat ID does not exist.']})
+        # else:
+        #     # If no chat_id is provided, raise a ValidationError
+        #     raise ValidationError({'chat_id': ['Chat ID is required.']})
 
         try:
             n_cout = int(n_cout_str)
@@ -892,7 +903,11 @@ class OpenAIImageInteractionView(CreateAPIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Dynamically build the save dictionary
-        save_dict = {'user': self.request.user,'chat':chat_instance}
+        try:
+            save_dict = {'user': self.request.user,'chat':chat_instance}
+        except:
+            save_dict = {'user': self.request.user}
+
         for i in range(1):
             # Access each image URL in the response
             image_url = response.data[i].url
