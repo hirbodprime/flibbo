@@ -130,7 +130,7 @@ class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
     user_audio_prompt = serializers.SerializerMethodField()
     def get_user_audio_prompt(self,obj):
         if obj.user_audio_prompt:
-            return f"{settings.SITE_DOMAIN}{obj.user_audio_prompt}"
+            return f"{settings.SITE_DOMAIN}{obj.user_audio_prompt.url}"
         return
     def get_chat(self,obj):
         if obj.chat:
