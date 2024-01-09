@@ -150,6 +150,11 @@ class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
 class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
     gpt_response = serializers.SerializerMethodField()
+    user_prompt = serializers.SerializerMethodField()
+    def get_user_prompt(self,obj):
+        if obj.user_text_prompt_image:
+            return obj.user_text_prompt_image
+        return
     def get_gpt_response(self, obj):
         if obj.gpt_response1:
             return obj.gpt_response1
