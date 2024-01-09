@@ -722,7 +722,7 @@ class OpenAIChatInteractionView(CreateAPIView):
             ]
         else:
             messages = [
-                {"role": "system", "content": f"You are a helpful assistant. Please provide a detailed response."},
+                {"role": "system", "content": f"You are a helpful assistant."},
                 *chat_history_messages,
                 {"role": "user", "content": user_prompt}
             ]
