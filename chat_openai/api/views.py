@@ -100,15 +100,14 @@ def get_random_image_prompts(request):
         'prompts':serializer.data
     }
     return Response(response_data)
+    
 class DeleteChatAPIView(APIView):
-
-
     """
-    API View to delete a chat and its related interactions.
+    API View to delete a chat and its related interactions using POST method.
     """
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request, chat_id):
+    def post(self, request, chat_id):
         with transaction.atomic():
             # Retrieve the chat and check if the request user is the owner
             chat = get_object_or_404(OpenAIChatID, chat_id=chat_id)
@@ -126,8 +125,8 @@ class DeleteChatAPIView(APIView):
             # Finally, delete the chat itself
             chat.delete()
 
-        return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-        
+            return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
 class ChatInteractionsView(APIView):
     permission_classes = [IsAuthenticated]
 
