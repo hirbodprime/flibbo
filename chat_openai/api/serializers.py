@@ -127,11 +127,15 @@ class OpenAIChatInteractionSerializer(serializers.ModelSerializer):
 
 class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
     chat = serializers.SerializerMethodField()
+    user_audio_prompt = serializers.SerializerMethodField()
+    def get_user_audio_prompt(self,obj):
+        if obj.user_audio_prompt:
+            return f"{settings.SITE_DOMAIN}{obj.user_audio_prompt}"
+        return
     def get_chat(self,obj):
         if obj.chat:
             return obj.chat.chat_id
-        else:
-            return
+        return
     class Meta:
         model = OpenAIAudioInteraction
         fields = ('id', 'user', 'chat', 'user_audio_prompt','gpt_response', 'created_at')
