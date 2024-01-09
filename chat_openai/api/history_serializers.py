@@ -4,32 +4,37 @@ from chat_openai.models import TalkResponse, ClipResponse, AnimationResponse, Te
 class TalkResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = TalkResponse
-        fields = ['user_prompt']
+        fields = ['user_prompt','talk_id']
 
 class ClipResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClipResponse
-        fields = ['user_prompt']
+        fields = ['user_prompt','clip_id']
 
 class AnimationResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnimationResponse
-        fields = ['animation_name']  # Assuming this is the field you need
+        fields = ['animation_name','animation_id']  # Assuming this is the field you need
 
 class TextToImageResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextToImageResponse
-        fields = ['text_input']
+        fields = ['text_input','image_link']
 
 class TextToSpeechResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextToSpeechResponse
-        fields = ['text_input']
+        fields = ['text_input','audio_link']
 
 class FlikiVideoModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlikiVideoModel
-        fields = ['text_input']
+        fields = ['text_input','video_id']
+
+
+
+
+
 
 
 
