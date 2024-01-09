@@ -169,7 +169,7 @@ class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpenAIImageInteraction
-        fields = ('id', 'user', 'chat', 'user_text_prompt_image','gpt_response','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
+        fields = ('id', 'user', 'chat', 'user_prompt','gpt_response','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response1','gpt_response2','gpt_response3','gpt_response4')
     
     
