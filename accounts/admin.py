@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser,OldUsername,SavedByUser,ReportUser,AccessToken,BlockModel,ChangeUsernameModel
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils.html import format_html  # Import format_html
+
 admin.site.register(ChangeUsernameModel)
 class CustomUserAdmin(BaseUserAdmin):
     list_display = ('id', 'join_date','email', 'username', 'full_name', 'is_active', 'is_staff','followers_count','followings_count')

@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from point.permissions import HasValidWallet
 from .serializers import UserSerializer,WithDrawalRequestGetSerializer, WithDrawalRequestSerializer, UserWalletCreateSerializer, UserWalletSerializer, ReferralCodeSerializer, PointWalletSerializer, RefMoneySerializer
-from point.models import WithDrawalRequestModel, RefMoneyModel, UserWalletModel, ReferralCodeModel, PointWalletModel, GoldUsersListModel
+from point.models import NormalUsersListModel,WithDrawalRequestModel, RefMoneyModel, UserWalletModel, ReferralCodeModel, PointWalletModel, GoldUsersListModel
 
 
 User = get_user_model()
@@ -38,6 +38,38 @@ class GoldUsersListAPIView(APIView):
 
         # Get queryset based on level
         users_qs = getattr(gold_users_list, f'level_{level}').all()
+
+        # Filter by username if provided
+        if username:
+            users_qs = users_qs.filter(Q(username__icontains=username))
+
+        # Apply sorting based on sort_by parameter
+        if sort_by == 'ascending':
+            users_qs = users_qs.order_by('join_date')
+        elif sort_by == 'descending':
+            users_qs = users_qs.order_by('-join_date')
+
+        serializer = UserSerializer(users_qs, many=True)
+        response_data = {
+            'users': serializer.data
+        }
+        return Response(response_data)
+class NormalUsersListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            normal_users = NormalUsersListModel.objects.get(user=request.user)
+        except NormalUsersListModel.DoesNotExist:
+            return Response({'error': 'Normal users list not found'}, status=404)
+
+        # Extract sort_by and username parameters from URL
+        sort_by = request.query_params.get('sort_by', '')
+        username = request.query_params.get('username', '')
+
+        # Get queryset based on level
+        users_qs = normal_users.users
 
         # Filter by username if provided
         if username:
@@ -112,6 +144,7 @@ class UserAggregatedDataView(APIView):
         ref_money_data = RefMoneySerializer(ref_money, many=True).data
 
         gold_user_record = GoldUsersListModel.objects.filter(user=user).first()
+        is_gold = GoldUsersListModel.objects.filter(user=user).exists()
 
         # Function to get first 3 users' profile images
         def get_first_three_users_images(users_qs):
@@ -119,11 +152,24 @@ class UserAggregatedDataView(APIView):
                 f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
                 for user in users_qs.all()[:3]
             ]
-
+        normal_users_data = None
+        
+        def get_normal_users_data(user):
+            normal_user_record = NormalUsersListModel.objects.filter(user=user).first()
+            if normal_user_record:
+                normal_users = normal_user_record.users.all()[:3]
+                return [
+                    {
+                        'profile_image': f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None,
+                        'join_date': user.date_joined,
+                        'username': user.username
+                    }
+                    for user in normal_users
+                ]
+            return []
         # Initialize counts and images
         level_1_count = level_2_count = level_3_count = 0
         level_1_images = level_2_images = level_3_images = []
-
         if gold_user_record:
             # Fetch counts
             level_1_count = gold_user_record.level_1.count()
@@ -135,15 +181,20 @@ class UserAggregatedDataView(APIView):
             level_2_images = get_first_three_users_images(gold_user_record.level_2)
             level_3_images = get_first_three_users_images(gold_user_record.level_3)
 
-        gold_data = {
-            'gold_users_level_1_count': level_1_count,
-            'gold_users_level_1_images': level_1_images,
-            'gold_users_level_2_count': level_2_count,
-            'gold_users_level_2_images': level_2_images,
-            'gold_users_level_3_count': level_3_count,
-            'gold_users_level_3_images': level_3_images
-        }
+        gold_data = {}
+        if is_gold:
 
+            gold_data = {
+                'gold_users_level_1_count': level_1_count,
+                'gold_users_level_1_images': level_1_images,
+                'gold_users_level_2_count': level_2_count,
+                'gold_users_level_2_images': level_2_images,
+                'gold_users_level_3_count': level_3_count,
+                'gold_users_level_3_images': level_3_images
+            }
+        elif not is_gold:
+            normal_users_data = get_normal_users_data(user)
+        
         enriched_ref_money_data = []
 
         for item in ref_money_data:
@@ -156,6 +207,8 @@ class UserAggregatedDataView(APIView):
 
             enriched_ref_money_data.append(item)
         return Response({
+            'normal_users_data':normal_users_data,
+            'is_gold':is_gold,
             'points': points_data[0]['balance'] if points_data else 0.0,
             'referral_code': referral_codes_data[0]['ref_code'] if referral_codes_data else None,
             'user_wallet': wallet,
