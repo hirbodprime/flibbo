@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (get_random_image_prompts,UserAllResponsesView,get_random_prompts,ChatInteractionsView,DeleteChatAPIView,TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
+from .views import (get_random_image_prompts,UserAllResponsesView,get_random_prompts,ChatInteractionsView,delete_chat,TalkVoiceActorListAPIView,GetVoicesView,GetDialectsView,GetLanguagesView,CreateTextToImageView,StylesListView,AIToolsListView,CreateTalkView,GetTalkView,GetPresentersView,CreateClipView,GetClipView,GetAnimationView,
     OpenAIChatInteractionView,OpenAIAudioInteractionView,GetPresenterDriversView,CreateAnimationView,
     OpenAIImageInteractionView,InteractionListView,DeleteUserHistory, CategoriesListAPIView,OpenAIChatInteractionViewe,OpenAICategoryListAPIView
     ,CreateVideoFlikiView,GetStatusVideoView,VoiceActorListView,CreateTextToSpeechView,TalkImagesListAPIView,OpenAIChatIDCreateView,OpenAIChatIDHistoryView
@@ -40,7 +40,7 @@ urlpatterns = [
     path('history/',InteractionListView.as_view()),
     path('history/single/<str:chat_id>/', ChatInteractionsView.as_view(), name='chat_interactions'),
     path('history/single/', ChatInteractionsView.as_view(), name='chat_interactions'),
-    path('chat/delete/<str:chat_id>/', DeleteChatAPIView.as_view(), name='delete_chat_api'),
+    path('chat/delete/<str:chat_id>/', delete_chat, name='delete_chat_api'),
     path('text-prompts/', get_random_prompts, name='random-prompts'),
     path('image-prompts/', get_random_image_prompts, name='random-prompts'),
 
