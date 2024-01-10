@@ -107,24 +107,23 @@ def delete_chat(request, chat_id):
     """
     Function API View to delete a chat and its related interactions using GET method.
     """
-    with transaction.atomic():
-        # Retrieve the chat and check if the request user is the owner
-        chat = get_object_or_404(OpenAIChatID, chat_id=chat_id)
+    # Retrieve the chat and check if the request user is the owner
+    chat = get_object_or_404(OpenAIChatID, chat_id=chat_id)
 
-        if chat.user != request.user:
-            # If the user is not the owner of the chat, deny the request
-            return Response({'error': 'You do not have permission to delete this chat.'}, status=status.HTTP_403_FORBIDDEN)
+    if chat.user != request.user:
+        # If the user is not the owner of the chat, deny the request
+        return Response({'error': 'You do not have permission to delete this chat.'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Delete related objects
-        OpenAIChatInteraction.objects.filter(chat=chat).delete()
-        OpenAIAudioInteraction.objects.filter(chat=chat).delete()
-        OpenAIImageInteraction.objects.filter(chat=chat).delete()
-        OpenAITextToSpeechInteraction.objects.filter(chat=chat).delete()
+    # Delete related objects
+    OpenAIChatInteraction.objects.filter(chat=chat).delete()
+    OpenAIAudioInteraction.objects.filter(chat=chat).delete()
+    OpenAIImageInteraction.objects.filter(chat=chat).delete()
+    OpenAITextToSpeechInteraction.objects.filter(chat=chat).delete()
 
-        # Finally, delete the chat itself
-        chat.delete()
+    # Finally, delete the chat itself
+    chat.delete()
 
-        return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ChatInteractionsView(APIView):
