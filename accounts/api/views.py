@@ -830,6 +830,8 @@ class SignupConfirmationView(gn.CreateAPIView):
                 'country':user.country,
             }
             # Instead of directly accessing the key, use the .get() method
+            from point.models import PointWalletModel
+            PointWalletModel.objects.create(user=user)
             referral_code = request.data.get('referral_code', None)
             if referral_code:
                 try:
