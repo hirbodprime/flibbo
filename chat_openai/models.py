@@ -105,6 +105,7 @@ class UserAIStudioLimit(models.Model):
 
 class StyleListModel(models.Model):
     name = models.CharField(max_length=256,null=True,blank=True)
+    name2 = models.CharField(max_length=256,null=True,blank=True)
     image = models.FileField(upload_to='ai/styles/',null=True,blank=True)
     description = models.TextField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

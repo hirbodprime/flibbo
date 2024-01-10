@@ -450,7 +450,7 @@ class CreateTextToImageView(APIView):
                     )
             text_to_image = generate_text_to_image(
                 request.data['text_input'],
-                style_obj_id.name,
+                style_obj_id.name2,
             )
 
             # Check if the operation was successful
