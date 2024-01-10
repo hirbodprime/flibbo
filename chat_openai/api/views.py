@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 
 # rest imports
-from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView
+from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -101,13 +101,14 @@ def get_random_image_prompts(request):
     }
     return Response(response_data)
     
-class DeleteChatAPIView(APIView):
+class DeleteChatAPIView(DestroyAPIView):
     """
-    API View to delete a chat and its related interactions using POST method.
+    API View to delete a chat and its related interactions using DELETE method.
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, chat_id):
+    def destroy(self, request, *args, **kwargs):
+        chat_id = kwargs.get('chat_id')
         with transaction.atomic():
             # Retrieve the chat and check if the request user is the owner
             chat = get_object_or_404(OpenAIChatID, chat_id=chat_id)
@@ -126,6 +127,11 @@ class DeleteChatAPIView(APIView):
             chat.delete()
 
             return Response({'message': 'Chat and related interactions deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+    def get_queryset(self):
+        # Override this method if you need to provide a queryset
+        pass
+
 
 class ChatInteractionsView(APIView):
     permission_classes = [IsAuthenticated]
