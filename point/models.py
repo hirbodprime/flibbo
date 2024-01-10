@@ -48,6 +48,13 @@ class WithDrawalRequestModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20,choices=transaction_status,default="Pending")
     status_failed = models.TextField(null=True,blank=True)
+    def save(self, *args, **kwargs):
+        # Check if the instance is being updated to status "Success"
+        if self.pk and self.status == "Success":
+            wallet, created = PointWalletModel.objects.get_or_create(user=self.user)
+            wallet.balance -= self.balance
+            wallet.save()
+        super(WithDrawalRequestModel, self).save(*args, **kwargs)
 
 class RefMoneyModel(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
