@@ -40,7 +40,7 @@ urlpatterns = [
     path('history/',InteractionListView.as_view()),
     path('history/single/<str:chat_id>/', ChatInteractionsView.as_view(), name='chat_interactions'),
     path('history/single/', ChatInteractionsView.as_view(), name='chat_interactions'),
-    path('chat/delete/<str:chat_id>/', delete_chat, name='delete_chat_api'),
+    path('delete/chat/<str:chat_id>/', delete_chat, name='delete_chat_api'),
     path('text-prompts/', get_random_prompts, name='random-prompts'),
     path('image-prompts/', get_random_image_prompts, name='random-prompts'),
 
