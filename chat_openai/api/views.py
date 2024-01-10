@@ -1,13 +1,11 @@
 # django imports
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest , HttpResponse
 from django.db.models import Q
 
 # rest imports
@@ -817,9 +815,9 @@ class OpenAIAudioInteractionView(CreateAPIView):
                 )
                 gpt_response = transcript_response
             try:
-                serializer.save(user=self.request.user, gpt_response=gpt_response, chat=chat_instance)
+                serializer.save(user=self.request.user, gpt_response=gpt_response, user_audio_prompt=audio_file, chat=chat_instance)
             except:
-                serializer.save(user=self.request.user, gpt_response=gpt_response)
+                serializer.save(user=self.request.user, gpt_response=gpt_response, user_audio_prompt=audio_file)
 
         finally:
             os.remove(temp_file_path)
@@ -918,9 +916,9 @@ class OpenAIImageInteractionView(CreateAPIView):
 
         # Dynamically build the save dictionary
         try:
-            save_dict = {'user': self.request.user,'chat':chat_instance}
+            save_dict = {'user': self.request.user,'chat':chat_instance, 'user_text_prompt_image':image_text}
         except:
-            save_dict = {'user': self.request.user}
+            save_dict = {'user': self.request.user, 'user_text_prompt_image':image_text}
 
         for i in range(1):
             # Access each image URL in the response

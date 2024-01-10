@@ -138,10 +138,12 @@ class OpenAIAudioInteractionSerializer(serializers.ModelSerializer):
         if obj.user_audio_prompt:
             return f"{settings.SITE_DOMAIN}{obj.user_audio_prompt.url}"
         return
-    def get_chat(self,obj):
-        if obj.chat:
-            return obj.chat.chat_id
-        return
+    def get_chat(self, obj):
+        try:
+            return obj.chat.chat_id if obj.chat else None
+        except AttributeError:
+            # Handle cases where 'obj' does not have a 'chat' attribute
+            return None
     class Meta:
         model = OpenAIAudioInteraction
         fields = ('id', 'user', 'chat', 'user_prompt','gpt_response', 'created_at')
