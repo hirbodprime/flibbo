@@ -101,13 +101,13 @@ def get_random_image_prompts(request):
     }
     return Response(response_data)
     
-class DeleteChatAPIView(DestroyAPIView):
+class DeleteChatAPIView(GenericAPIView):
     """
-    API View to delete a chat and its related interactions using DELETE method.
+    API View to delete a chat and its related interactions using GET method.
     """
     permission_classes = [IsAuthenticated]
 
-    def destroy(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         chat_id = kwargs.get('chat_id')
         with transaction.atomic():
             # Retrieve the chat and check if the request user is the owner
