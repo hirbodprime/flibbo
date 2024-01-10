@@ -101,7 +101,7 @@ def get_random_image_prompts(request):
     }
     return Response(response_data)
     
-@api_view(['GET'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_chat(request, chat_id):
     """
