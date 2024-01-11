@@ -714,19 +714,19 @@ class OpenAIChatInteractionView(CreateAPIView):
         chat_history_messages = [
             {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
         ]
-        if response_type != "detailed":
-            assistant_type = OpenAIChatCategories.objects.get(id=response_type)
-            messages = [
-                {"role": "system", "content": f"You are a helpful assistant. Please provide a {assistant_type.admin_description} response."},
-                *chat_history_messages,
-                {"role": "user", "content": user_prompt}
-            ]
-        else:
-            messages = [
-                {"role": "system", "content": f"You are a helpful assistant."},
-                *chat_history_messages,
-                {"role": "user", "content": user_prompt}
-            ]
+        # if response_type != "detailed":
+        #     assistant_type = OpenAIChatCategories.objects.get(id=response_type)
+        #     messages = [
+        #         {"role": "system", "content": f"You are a helpful assistant. Please provide a {assistant_type.admin_description} response."},
+        #         *chat_history_messages,
+        #         {"role": "user", "content": user_prompt}
+        #     ]
+        # else:
+        messages = [
+            {"role": "system", "content": f"You are a helpful assistant."},
+            *chat_history_messages,
+            {"role": "user", "content": user_prompt}
+        ]
         completion = client.chat.completions.create(
             model="gpt-4-1106-preview",
             messages=messages
