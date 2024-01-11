@@ -491,7 +491,7 @@ class CreateAnimationView(APIView):
                 return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
             image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
             image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
-            image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
+            # image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
             animation_response = create_animation(
                 image_url
             )
@@ -526,7 +526,7 @@ class CreateClipView(APIView):
         # Validate other required fields
         user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
         if user_limit.limit > 0:
-            required_fields = ['text_input', 'presenter_id', 'driver_id', 'bg_color']
+            required_fields = ['text_input', 'presenter_id', 'driver_id', 'bg_color','subtitle', 'voice_id', 'provider_id', 'speed_rate']
             for field in required_fields:
                 if field not in request.data or not request.data[field]:
                     return Response(
@@ -534,12 +534,15 @@ class CreateClipView(APIView):
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-            # Call create_talk with validated data and image URL
             clip_response = create_clip(
                 request.data['text_input'],
                 request.data['presenter_id'],
                 request.data['driver_id'],
-                request.data['bg_color']
+                request.data['bg_color'],
+                request.data['subtitle'],
+                request.data['voice_id'],
+                request.data['provider_id'],
+                request.data['speed_rate'],
             )
 
             # Check if the operation was successful
@@ -590,7 +593,7 @@ class CreateTalkView(APIView):
             image_url = "https://dev.flxdevpanel.com/media/talk-images/big/Rectangle.png"
 
             # Validate other required fields
-            required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id']
+            required_fields = ['text_input', 'fluent', 'expression', 'speed_rate', 'voice_id', 'provider_id', 'subtitle']
             for field in required_fields:
                 if field not in request.data or not request.data[field]:
                     return Response(
@@ -606,6 +609,8 @@ class CreateTalkView(APIView):
                 request.data['expression'],
                 request.data['speed_rate'],
                 request.data['voice_id'],
+                request.data['subtitle'],
+                request.data['provider_id'],
             )
 
             # Check if the operation was successful

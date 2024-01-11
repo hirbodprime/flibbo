@@ -27,16 +27,16 @@ headers = {
 
 import requests
 import json
-
-def create_talk(text_input, image, fluent, expression, speed_rate, voice_id):
+# lets get subtitle and provider 
+def create_talk(text_input, image, fluent, expression, speed_rate, voice_id, subtitle, provider):
     url = "https://api.d-id.com/talks"
 
     payload = {
         "script": {
             "type": "text",
-            "subtitles": False,
+            "subtitles": subtitle,
             "provider": {
-                "type": "microsoft",
+                "type": provider,
                 "voice_id": voice_id,
                 "voice_config": {"rate": speed_rate}
             },
@@ -117,14 +117,21 @@ def get_talks():
 
 
 # clips --------------------------------------------------
+# lets get subtitle and , voice id and provuder and speed rate
 
-def create_clip(text_input,presenter_id,driver_id,bg_color):
+def create_clip(text_input,presenter_id,driver_id,bg_color,subtitle, voice_id, provider_id, speed_rate):
     api_url = "https://api.d-id.com/clips"
     # Data to be sent in the API request
     data = {
         "script": {
             "type": "text",
-            "input": text_input
+            "input": text_input,
+            "subtitles": subtitle,
+            "provider": {
+                "type": provider_id,
+                "voice_id": voice_id,
+                "voice_config": { "rate": speed_rate }
+            },
         },
         "presenter_id": presenter_id,
         "driver_id": driver_id,
@@ -132,6 +139,8 @@ def create_clip(text_input,presenter_id,driver_id,bg_color):
         "color": bg_color
         }
     }
+
+    
 
     # Making a POST request to the API
     response = requests.post(api_url,headers=headers, json=data)
