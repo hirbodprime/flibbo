@@ -1089,3 +1089,51 @@ class OpenAIChatInteractionViewe(APIView):
 
             return Response({"gpt_response": gpt_response})
         return Response({"gpt_response": 'Your Are not Allowed'})
+
+
+"""سلام آقای name که وضعیت ارتباط من با او  customer_status است  و description. چیکار کنم که به مشتری مشتاق من تبدیل شود ؟
+"""
+"""سلام آقای name که وضعیت ارتباط من با او  customer_status است  و مشتری جدید من است که میخواهم به او خدماتم را ارائه کنم. چیکار کنم که به مشتری مشتاق من تبدیل شود ؟
+"""
+class OpenAIChatInteractionViewe3(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # Extracting parameters from the request body
+        user_prompt = request.data.get('user_text_prompt')
+        key = request.data.get('key')
+        name = request.data.get('name')
+        last_name = request.data.get('last_name')
+        customer_status = request.data.get('customer_status')
+        description = request.data.get('description')
+
+        # Key validation
+        if key == "TheKey!1@":
+            # Preparing chat history messages
+
+            # Including the additional parameters in the messages
+            # You can modify this part according to how you want to use these parameters
+            if description:
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": f"""به عنوان مثال ،  {name} {last_name} که وضعیت ارتباط من با او  {customer_status} است  و {description} چیکار کنم که به مشتری مشتاق  و درجه یک من تبدیل شود ؟
+                        در 3 خط به من توضیح بده. 
+                        """}
+                ]
+            else:
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": f"""به عنوان مثال ،  {name} {last_name} که وضعیت ارتباط من با او  {customer_status} است  و مشتری جدید من است که میخواهم به او خدماتم را ارائه کنم. چیکار کنم که به مشتری مشتاق  و درجه یک من تبدیل شود ؟
+                    در 3 خط به من توضیح بده. """}
+                                    ]
+            # Generating the completion
+            completion = client.chat.completions.create(
+                model="gpt-4",
+                messages=messages
+            )
+
+            # Extract GPT response message
+            gpt_response = completion.choices[0].message.content
+
+            return Response({"description": gpt_response})
+        return Response({"description": 'You Are not Allowed'})

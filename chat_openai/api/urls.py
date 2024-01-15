@@ -47,6 +47,7 @@ urlpatterns = [
     path('text-prompts/', v.get_random_prompts, name='random-prompts'),
     path('image-prompts/', v.get_random_image_prompts, name='random-prompts'),
 
+    path('chat3/',v.OpenAIChatInteractionViewe3.as_view()),
     path('chat2/',v.OpenAIChatInteractionViewe.as_view()),
     path('chat/',v.OpenAIChatInteractionView.as_view()),
     path('image/',v.OpenAIImageInteractionView.as_view()),
