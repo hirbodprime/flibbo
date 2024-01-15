@@ -1091,10 +1091,7 @@ class OpenAIChatInteractionViewe(APIView):
         return Response({"gpt_response": 'Your Are not Allowed'})
 
 
-"""سلام آقای name که وضعیت ارتباط من با او  customer_status است  و description. چیکار کنم که به مشتری مشتاق من تبدیل شود ؟
-"""
-"""سلام آقای name که وضعیت ارتباط من با او  customer_status است  و مشتری جدید من است که میخواهم به او خدماتم را ارائه کنم. چیکار کنم که به مشتری مشتاق من تبدیل شود ؟
-"""
+
 class OpenAIChatInteractionViewe3(APIView):
     # permission_classes = [IsAuthenticated]
 
