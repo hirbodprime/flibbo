@@ -11,14 +11,14 @@ from django.db.models import Q
 # rest imports
 from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from rest_framework.response import Response    
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from .history_serializers import * 
-from chat_openai.models import SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from chat_openai.models import HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
 from .serializers import (SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
@@ -36,7 +36,7 @@ from openai import OpenAI
 from chat_openai.chat_id import generate_chat_id
 import logging
 import random
-
+from chat_openai.heygen import create_video_heygen,list_avatars, list_voices, get_video, add_caption, get_caption
 load_dotenv()
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
@@ -44,6 +44,101 @@ client = OpenAI(
   api_key=os.getenv("OPENAI_API_KEY"),
   organization=os.getenv("OPENAI_ORG_API_KEY")
 )
+
+
+
+
+# heygen -----------------------------------------
+class HeyGenCreateVideoCaptionView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, video_id):
+        get_video_res = add_caption(video_id)
+        return Response(get_video_res)
+
+class HeyGenGetVideoCaptionView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, video_id):
+        get_video_res = get_caption(video_id)
+        return Response(get_video_res)
+
+
+class HeyGenGetVideoView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, video_id):
+        get_video_res = get_video(video_id)
+        return Response(get_video_res)
+
+class HeyGenGetVoicesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        voice_list = list_voices()
+        return Response(voice_list)
+
+class HeyGenGetAvatarsView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        avatars_list = list_avatars()
+        return Response(avatars_list)
+class HeyGenCreateVideoView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit > 0:
+            # image = request.FILES.get('image')
+            # if not image:
+            #     return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+            # image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
+            # image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
+
+            # Validate other required fields
+            required_fields = ["bg_color","ratio","avatar_id","avatar_style","caption","input_text","voice_id","talking_photo_style"]
+            for field in required_fields:
+                if field not in request.data or not request.data[field]:
+                    return Response(
+                        {"error": f"'{field}' field is required and cannot be empty."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # Call create_talk with validated data and image URL
+            heygen_video_response = create_video_heygen(
+                request.data['bg_color'],
+                # image_url,
+                request.data['ratio'],
+                request.data['avatar_id'],
+                request.data['avatar_style'],
+                request.data['caption'],
+                request.data['input_text'],
+                request.data['voice_id'],
+                request.data['talking_photo_style'],
+            )
+            
+            print(heygen_video_response)
+            if heygen_video_response["data"]["video_id"]:
+                # Save response data to model
+                response_data = heygen_video_response["data"]
+                HeyGenCreateVideoModel.objects.create(
+                    user = request.user,
+                    video_id = response_data['video_id'],
+                    background = request.data['bg_color'],
+                    ratio = request.data['ratio'],
+                    avatar_id = request.data['avatar_id'],
+                    avatar_style = request.data['avatar_style'],
+                    caption =  request.data['caption'],
+                    input_text = request.data['input_text'],
+                    voice_id = request.data['voice_id'],
+                    # input_audio = request.data[''],
+                    talking_photo_style = request.data['talking_photo_style'],
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Video created successfully","data":response_data})
+
+            # Handle error case
+            return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error":"You are out of Energy"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 

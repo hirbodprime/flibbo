@@ -295,3 +295,22 @@ class OpenAITextToSpeechInteraction(models.Model):
     def __str__(self):
         return self.gpt_response[:50]
 
+
+photo_style = (
+    ('normal','normal'),
+    ('circle','circle')
+    )
+
+class HeyGenCreateVideoModel(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    background = models.CharField(max_length=255)
+    ratio = models.CharField(max_length=255)
+    avatar_id = models.CharField(max_length=255)
+    avatar_style = models.CharField(max_length=255)
+    caption = models.TextField()
+    input_text = models.TextField(null=True,blank=True)
+    video_id = models.TextField()
+    voice_id = models.CharField(max_length=255)
+    input_audio = models.FileField(upload_to="heygen/audios/", null=True,blank=True)
+    talking_photo_style = models.CharField(max_length=255,choices=photo_style)
+

@@ -1,67 +1,79 @@
 import requests
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
-api_key = 'YmI3MGMzMjY5ZDNjNGFkMWI2NjhiMGFkMTlhYWMzNTgtMTcwMjcxNDczMg=='
+api_key = os.getenv("HEYGEN_API_KEY")
 
-def create_video():
-    # Request headers
-    url = 'https://api.heygen.com/v1/video.generate'
-    headers = {
+headers = {
         'X-Api-Key': api_key,
         'Content-Type': 'application/json'
-    }
+}
+
+def create_video_heygen(bg_color,ratio,avatar_id,avatar_style,caption,input_text,voice_id,talking_photo_style):
+    # Request headers
+    url = 'https://api.heygen.com/v1/video.generate'
+    
 
     # Request data
     data = {
-        "background": "#ffffff",
+        "background": bg_color,
+        "ratio": ratio,
+        "test": False,
+        "version": "v1alpha",
         "clips": [
             {
-                "avatar_id": "Zoey-inTshirt-20220816",
-                "avatar_style": "normal",
-                "input_text": "hello there i am zoey and i am using a new voice",
-                "offset": {
-                    "x": 0,
-                    "y": 0
-                },
+                "avatar_id": avatar_id,
+                "avatar_style": avatar_style,
+                "caption": caption,
+                "input_text": input_text,
                 "scale": 1,
-                "voice_id": "ffdbe4de35d34391830da243f2b82e13"
+                "voice_id": voice_id,
+                # "input_audio": "https://surreal-public.s3.us-east-2.amazonaws.com/text_to_speech/bmRnpHd9dyz8sE4ER2hDj4.wav",
+                "talking_photo_style": talking_photo_style
             }
         ],
-        "ratio": "16:9",
-        "test": True,
-        "version": "v1alpha"
     }
-
     # Make the POST request
     response = requests.post(url, json=data, headers=headers)
 
     # Check if the request was successful
-    if response.status_code == 200:
-        # The request was successful
-        print("Request successful. Response data:", response.json())
+    if response.status_code == 201:
+        response_data = response.json()
+        print("Request successful.")
+        print("Response data:", response.json())
+        return {"success":True,**response_data}
+
     else:
-        # The request failed
-        print("Request failed. Status code:", response.status_code)
+        response_data = response.json()
+        print("Request failed.")
+        print("Status code:", response.status_code)
+        print("Response:", response.text)
+        return {"success":False,**response_data} 
 
 
 def get_video(video_id):
 
     url = f"https://api.heygen.com/v1/video_status.get?video_id={video_id}"
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
 
-# get_video()
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
 
-def add_caption():
+
+
+
+def add_caption(video_id):
     url = "https://api.heygen.com/v1/video/caption.generate"
 
-    payload = { "video_id": "85fa1df2a0dd48f5908781df11a63c2f" }
+    payload = { "video_id": video_id }
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
@@ -70,10 +82,16 @@ def add_caption():
 
     response = requests.post(url, json=payload, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
 
-def get_caption():
-    url = "https://api.heygen.com/v1/video/caption.get?video_id=85fa1df2a0dd48f5908781df11a63c2f"
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
+
+def get_caption(video_id):
+    url = f"https://api.heygen.com/v1/video/caption.get?video_id={video_id}"
     headers = {
         "accept": "application/json",
         "x-api-key": api_key
@@ -81,7 +99,13 @@ def get_caption():
 
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
 
 
 def list_avatars():
@@ -89,71 +113,30 @@ def list_avatars():
     # url = "https://api.heygen.com/v1/avatar.list"
     url = "https://api.heygen.com/v2/avatars"
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
-
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data}
 
 
-# list_avatars()
 def list_voices():
 
     # url = "https://api.heygen.com/v1/voice.list"
     url = "https://api.heygen.com/v2/voices"
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
-
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
 
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data}
 
-def list_templates():
-    url = "https://api.heygen.com/v2/templates"
-
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
-
-    response = requests.get(url, headers=headers)
-
-    print(response.text)
-
-# create_video()
-# get_video('cbf38fa4fc9e49abb5dd8c678d6ce385')
-# list_avatars()
-def generate_from_template():
-
-    url = "https://api.heygen.com/v1/template.generate"
-
-    payload = {
-        "template_id": "02548b8c42da4f259d24af69e5d318d7",
-        "title": "video_title",
-        "video_id": "85fa1df2a0dd48f5908781df11a63c2f",
-        "test": False,
-        "variables": [
-        {
-            "properties": { "newKey": "New Value" },
-            "name": "name"
-        }
-    ]
-    }
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "x-api-key": api_key
-    }
-
-    response = requests.post(url, json=payload, headers=headers)
-
-    print(response.text)
-
-generate_from_template()
+    
