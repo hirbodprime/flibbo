@@ -11,7 +11,7 @@ headers = {
         'Content-Type': 'application/json'
 }
 
-def create_video_heygen(bg_color,ratio,avatar_id,avatar_style,caption,input_text,voice_id,talking_photo_style):
+def create_video_heygen(bg_color,ratio,avatar_id,input_text,voice_id):
     # Request headers
     url = 'https://api.heygen.com/v1/video.generate'
     
@@ -25,13 +25,13 @@ def create_video_heygen(bg_color,ratio,avatar_id,avatar_style,caption,input_text
         "clips": [
             {
                 "avatar_id": avatar_id,
-                "avatar_style": avatar_style,
-                "caption": caption,
+                "avatar_style": "normal",
+                "caption": False,
                 "input_text": input_text,
                 "scale": 1,
                 "voice_id": voice_id,
                 # "input_audio": "https://surreal-public.s3.us-east-2.amazonaws.com/text_to_speech/bmRnpHd9dyz8sE4ER2hDj4.wav",
-                "talking_photo_style": talking_photo_style
+                "talking_photo_style": "normal"
             }
         ],
     }

@@ -91,7 +91,7 @@ class HeyGenCreateVideoView(APIView):
             # image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
 
             # Validate other required fields
-            required_fields = ["bg_color","ratio","avatar_id","avatar_style","caption","input_text","voice_id","talking_photo_style"]
+            required_fields = ["bg_color","ratio","avatar_id","input_text","voice_id"]
             for field in required_fields:
                 if field not in request.data or not request.data[field]:
                     return Response(
@@ -105,11 +105,8 @@ class HeyGenCreateVideoView(APIView):
                 # image_url,
                 request.data['ratio'],
                 request.data['avatar_id'],
-                request.data['avatar_style'],
-                request.data['caption'],
                 request.data['input_text'],
                 request.data['voice_id'],
-                request.data['talking_photo_style'],
             )
             
             print(heygen_video_response)
@@ -122,12 +119,9 @@ class HeyGenCreateVideoView(APIView):
                     background = request.data['bg_color'],
                     ratio = request.data['ratio'],
                     avatar_id = request.data['avatar_id'],
-                    avatar_style = request.data['avatar_style'],
-                    caption =  request.data['caption'],
                     input_text = request.data['input_text'],
                     voice_id = request.data['voice_id'],
                     # input_audio = request.data[''],
-                    talking_photo_style = request.data['talking_photo_style'],
                 )
                 user_limit.limit -= 1
                 user_limit.save()
