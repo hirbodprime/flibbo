@@ -95,7 +95,7 @@ class HeyGenCreateVideoView(APIView):
             for field in required_fields:
                 if field not in request.data or not request.data[field]:
                     return Response(
-                        {"error": f"'{field}' field is required and cannot be empty."},
+                        {"error": f"{field} field is required and cannot be empty."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
@@ -110,23 +110,25 @@ class HeyGenCreateVideoView(APIView):
             )
             
             print(heygen_video_response)
-            if heygen_video_response["data"]["video_id"]:
-                # Save response data to model
-                response_data = heygen_video_response["data"]
-                HeyGenCreateVideoModel.objects.create(
-                    user = request.user,
-                    video_id = response_data['video_id'],
-                    background = request.data['bg_color'],
-                    ratio = request.data['ratio'],
-                    avatar_id = request.data['avatar_id'],
-                    input_text = request.data['input_text'],
-                    voice_id = request.data['voice_id'],
-                    # input_audio = request.data[''],
-                )
-                user_limit.limit -= 1
-                user_limit.save()
-                return Response({"message": f"Video created successfully","data":response_data})
-
+            try:
+                if heygen_video_response["data"]["video_id"]:
+                    # Save response data to model
+                    response_data = heygen_video_response["data"]
+                    HeyGenCreateVideoModel.objects.create(
+                        user = request.user,
+                        video_id = response_data['video_id'],
+                        background = request.data['bg_color'],
+                        ratio = request.data['ratio'],
+                        avatar_id = request.data['avatar_id'],
+                        input_text = request.data['input_text'],
+                        voice_id = request.data['voice_id'],
+                    )
+                    user_limit.limit -= 1
+                    user_limit.save()
+                    return Response({"message": f"Video created successfully","data":response_data})
+            except: 
+                
+                return Response({"message": f"Video Failed To create {heygen_video_response}"})
             # Handle error case
             return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
