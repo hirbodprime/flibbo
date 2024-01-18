@@ -159,14 +159,28 @@ def get_langunages_translate():
         return {"success":False,**response_data} 
 
 
+import random
+import string
+
+def generate_random_title(language, length=10):
+    # Create a sequence of letters and digits
+    chars = string.ascii_letters + string.digits
+
+    # Generate a random string of specified length
+    random_string = ''.join(random.choice(chars) for _ in range(length))
+
+    # Combine the language and the random string
+    title = f"{language}_{random_string}"
+    return title
 
 def create_video_translate(video_url,output_language):
     url = "https://api.heygen.com/v2/video_translate"
+    title = generate_random_title(output_language)
 
     payload = {
         "video_url": video_url,
         "output_language": output_language,
-        "title": "srgssgrrgssgr",
+        "title": title,
         "translate_audio_only": False,
         "speaker_num": 32
     }
