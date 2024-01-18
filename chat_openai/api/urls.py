@@ -7,6 +7,7 @@ urlpatterns = [
     path('heygen/video/caption/create/<str:video_id>/', v.HeyGenCreateVideoCaptionView.as_view(), name='create-caption-video-heygen'),
     path('heygen/video/get/<str:video_id>/', v.HeyGenGetVideoView.as_view(), name='voices-list-heygen'),
     path('heygen/video/create/', v.HeyGenCreateVideoView.as_view(), name='create-video-heygen'),
+    path('heygen/video/translate/get/<str:video_id>/', v.HeyGenGetVideoTranslateStatusView.as_view(), name='create-video-translate-heygen'),
     path('heygen/video/translate/create/', v.HeyGenCreateVideoTranslateView.as_view(), name='create-video-translate-heygen'),
     path('heygen/translate/languages/list/', v.HeyGenGetLanguagesListTranslateView.as_view(), name='traslate-languages-list-heygen'),
     path('heygen/avatars/list/', v.HeyGenGetAvatarsView.as_view(), name='avatars-list-heygen'),

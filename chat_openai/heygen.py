@@ -164,8 +164,8 @@ def create_video_translate(video_url,output_language):
     url = "https://api.heygen.com/v2/video_translate"
 
     payload = {
-        "video_url": "wgrsfsrs",
-        "output_language": "sgrrggsg",
+        "video_url": video_url,
+        "output_language": output_language,
         "title": "srgssgrrgssgr",
         "translate_audio_only": False,
         "speaker_num": 32
@@ -185,3 +185,23 @@ def create_video_translate(video_url,output_language):
     else:
         response_data = response.json()
         return {"success":False,**response_data} 
+
+
+    
+
+def get_video_translate(video_id):
+
+    url = f"https://api.heygen.com/v2/video_translate/{video_id}"
+
+
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
+

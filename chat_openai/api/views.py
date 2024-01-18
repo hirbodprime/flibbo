@@ -36,7 +36,7 @@ from openai import OpenAI
 from chat_openai.chat_id import generate_chat_id
 import logging
 import random
-from chat_openai.heygen import create_video_heygen,list_avatars, list_voices, get_video, add_caption, get_caption, get_langunages_translate
+from chat_openai.heygen import create_video_heygen,list_avatars, list_voices, get_video, add_caption, get_caption, get_langunages_translate, create_video_translate,get_video_translate
 load_dotenv()
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
@@ -49,6 +49,11 @@ client = OpenAI(
 
 
 # heygen -----------------------------------------
+class HeyGenGetVideoTranslateStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request,video_id):
+        status_data = get_video_translate(video_id)
+        return Response(status_data)
 class HeyGenCreateVideoCaptionView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, video_id):
