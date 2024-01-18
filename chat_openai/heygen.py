@@ -11,30 +11,36 @@ headers = {
         'Content-Type': 'application/json'
 }
 
-def create_video_heygen(bg_color,ratio,avatar_id,input_text,voice_id):
+def create_video_heygen(bg_color,ratio,avatar_id,input_text,audio_input,voice_id):
     # Request headers
     url = 'https://api.heygen.com/v1/video.generate'
     
 
     # Request data
+    clip = {
+        "avatar_id": avatar_id,
+        "avatar_style": "normal",
+        "caption": False,
+        "scale": 1,
+        "voice_id": voice_id,
+        "talking_photo_style": "normal"
+    }
+
+    # Conditionally add input_text or input_audio
+    if input_text:
+        clip["input_text"] = input_text
+    elif audio_input:
+        clip["input_audio"] = audio_input
+
+    # Prepare request data
     data = {
         "background": bg_color,
         "ratio": ratio,
         "test": False,
         "version": "v1alpha",
-        "clips": [
-            {
-                "avatar_id": avatar_id,
-                "avatar_style": "normal",
-                "caption": False,
-                "input_text": input_text,
-                "scale": 1,
-                "voice_id": voice_id,
-                # "input_audio": "https://surreal-public.s3.us-east-2.amazonaws.com/text_to_speech/bmRnpHd9dyz8sE4ER2hDj4.wav",
-                "talking_photo_style": "normal"
-            }
-        ],
+        "clips": [clip]
     }
+
     # Make the POST request
     response = requests.post(url, json=data, headers=headers)
 
@@ -43,14 +49,14 @@ def create_video_heygen(bg_color,ratio,avatar_id,input_text,voice_id):
         response_data = response.json()
         print("Request successful.")
         print("Response data:", response.json())
-        return {"success":True,**response_data}
-
+        return {"success": True, **response_data}
     else:
         response_data = response.json()
         print("Request failed.")
         print("Status code:", response.status_code)
         print("Response:", response.text)
-        return {"success":False,**response_data} 
+        return {"success": False, **response_data}
+
 
 
 def get_video(video_id):
@@ -59,7 +65,7 @@ def get_video(video_id):
 
     response = requests.get(url, headers=headers)
 
-    if response.status_code == 201:
+    if response.status_code == 200:
         response_data = response.json()
         return {"success":True,**response_data}
 
@@ -99,7 +105,7 @@ def get_caption(video_id):
 
     response = requests.get(url, headers=headers)
 
-    if response.status_code == 201:
+    if response.status_code == 200:
         response_data = response.json()
         return {"success":True,**response_data}
 
@@ -115,7 +121,7 @@ def list_avatars():
 
     response = requests.get(url, headers=headers)
 
-    if response.status_code == 201:
+    if response.status_code == 200:
         response_data = response.json()
         return {"success":True,**response_data}
 
@@ -131,7 +137,7 @@ def list_voices():
 
     response = requests.get(url, headers=headers)
 
-    if response.status_code == 201:
+    if response.status_code == 200:
         response_data = response.json()
         return {"success":True,**response_data}
 
@@ -139,4 +145,43 @@ def list_voices():
         response_data = response.json()
         return {"success":False,**response_data}
 
-    
+def get_langunages_translate():
+    url = "https://api.heygen.com/v2/video_translate/target_languages"
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
+
+
+
+def create_video_translate(video_url,output_language):
+    url = "https://api.heygen.com/v2/video_translate"
+
+    payload = {
+        "video_url": "wgrsfsrs",
+        "output_language": "sgrrggsg",
+        "title": "srgssgrrgssgr",
+        "translate_audio_only": False,
+        "speaker_num": 32
+    }
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "x-api-key": api_key
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 

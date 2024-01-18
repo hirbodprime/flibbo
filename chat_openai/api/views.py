@@ -36,7 +36,7 @@ from openai import OpenAI
 from chat_openai.chat_id import generate_chat_id
 import logging
 import random
-from chat_openai.heygen import create_video_heygen,list_avatars, list_voices, get_video, add_caption, get_caption
+from chat_openai.heygen import create_video_heygen,list_avatars, list_voices, get_video, add_caption, get_caption, get_langunages_translate
 load_dotenv()
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
@@ -79,62 +79,121 @@ class HeyGenGetAvatarsView(APIView):
     def get(self, request):
         avatars_list = list_avatars()
         return Response(avatars_list)
+class HeyGenGetLanguagesListTranslateView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        languages_list = get_langunages_translate()
+        return Response(languages_list)
+# create_video_translate
+
+
+
+class HeyGenCreateVideoTranslateView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        user_limit, created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit <= 0:
+            return Response({"error": "You are out of Energy"}, status=status.HTTP_400_BAD_REQUEST)
+
+        video = request.FILES.get('video')
+        if not video:
+            return Response({"error": "video file is required."}, status=status.HTTP_400_BAD_REQUEST)
+        video_path = default_storage.save('uploads/' + video.name, ContentFile(video.read()))
+        video_url = settings.SITE_DOMAIN + settings.MEDIA_URL + video_path
+
+        required_fields = ["video", "output_language"]
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response({"error": f"{field} field is required and cannot be empty."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        # Call create_talk with validated data and image URL
+        heygen_video_response = create_video_translate(
+            video_url,
+            request.data['output_language'],
+            )
+            
+        try:
+            if heygen_video_response["data"]["video_translate_id"]:
+                # Save response data to model
+                response_data = heygen_video_response["data"]
+                HeyGenCreateVideoModel.objects.create(
+                    user = request.user,
+                    video_id=response_data['video_translate_id'],
+                    voice_id=request.data['output_language'],
+
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Video created successfully","data":response_data})
+        except: 
+            
+            return Response({"message": f"Video Failed To create {heygen_video_response}"})
+        # Handle error case
+        return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 class HeyGenCreateVideoView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
-        user_limit,created = UserAIStudioLimit.objects.get_or_create(user=request.user)
-        if user_limit.limit > 0:
-            # image = request.FILES.get('image')
-            # if not image:
-            #     return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
-            # image_path = default_storage.save('uploads/' + image.name, ContentFile(image.read()))
-            # image_url = settings.SITE_DOMAIN + settings.MEDIA_URL + image_path
+        user_limit, created = UserAIStudioLimit.objects.get_or_create(user=request.user)
+        if user_limit.limit <= 0:
+            return Response({"error": "You are out of Energy"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Validate other required fields
-            required_fields = ["bg_color","ratio","avatar_id","input_text","voice_id"]
-            for field in required_fields:
-                if field not in request.data or not request.data[field]:
-                    return Response(
-                        {"error": f"{field} field is required and cannot be empty."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+        audio = request.FILES.get('input_audio', None)
+        input_text = request.data.get('input_text', '')
 
-            # Call create_talk with validated data and image URL
-            heygen_video_response = create_video_heygen(
-                request.data['bg_color'],
-                # image_url,
-                request.data['ratio'],
-                request.data['avatar_id'],
-                request.data['input_text'],
-                request.data['voice_id'],
-            )
+        if bool(audio) == bool(input_text):  # Checks if either both are provided or both are missing
+            return Response({"error": "Either 'input_audio' or 'input_text' is required, but not both."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if audio:
+            audio_path = default_storage.save('uploads/' + audio.name, ContentFile(audio.read()))
+            audio_url = settings.SITE_DOMAIN + settings.MEDIA_URL + audio_path
+
+        required_fields = ["bg_color", "ratio", "avatar_id", "voice_id"]
+        for field in required_fields:
+            if field not in request.data or not request.data[field]:
+                return Response({"error": f"{field} field is required and cannot be empty."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        # Call create_talk with validated data and image URL
+        heygen_video_response = create_video_heygen(
+            request.data['bg_color'],
+            request.data['ratio'],
+            request.data['avatar_id'],
+            input_text if input_text else None,
+            audio_url if audio else None,
+            request.data['voice_id'],
+        )
             
-            print(heygen_video_response)
-            try:
-                if heygen_video_response["data"]["video_id"]:
-                    # Save response data to model
-                    response_data = heygen_video_response["data"]
-                    HeyGenCreateVideoModel.objects.create(
-                        user = request.user,
-                        video_id = response_data['video_id'],
-                        background = request.data['bg_color'],
-                        ratio = request.data['ratio'],
-                        avatar_id = request.data['avatar_id'],
-                        input_text = request.data['input_text'],
-                        voice_id = request.data['voice_id'],
-                    )
-                    user_limit.limit -= 1
-                    user_limit.save()
-                    return Response({"message": f"Video created successfully","data":response_data})
-            except: 
-                
-                return Response({"message": f"Video Failed To create {heygen_video_response}"})
-            # Handle error case
-            return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"error":"You are out of Energy"},
-                        status=status.HTTP_400_BAD_REQUEST)
+        print(heygen_video_response)
+        try:
+            if heygen_video_response["data"]["video_id"]:
+                # Save response data to model
+                response_data = heygen_video_response["data"]
+                HeyGenCreateVideoModel.objects.create(
+                    user = request.user,
+                    video_id = response_data['video_id'],
+                    background = request.data['bg_color'],
+                    ratio = request.data['ratio'],
+                    avatar_id = request.data['avatar_id'],
+                    input_text=input_text if input_text else None,
+                    input_audio=audio_url if audio else None,
+                    voice_id = request.data['voice_id'],
+                )
+                user_limit.limit -= 1
+                user_limit.save()
+                return Response({"message": f"Video created successfully","data":response_data})
+        except: 
+            
+            return Response({"message": f"Video Failed To create {heygen_video_response}"})
+        # Handle error case
+        return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
@@ -1110,14 +1169,14 @@ class OpenAIChatInteractionViewe3(APIView):
                 messages = [
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": f"""به عنوان مثال ،  {name} {last_name} که وضعیت ارتباط من با او  {customer_status} است  و {description} چیکار کنم که به مشتری مشتاق  و درجه یک من تبدیل شود ؟
-                        در 3 خط به من توضیح بده. 
+                        در 3 خط به من توضیح بده و اسم و فامیلی که بهت گفتم رو داخل متن حتما قرار بده. 
                         """}
                 ]
             else:
                 messages = [
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": f"""به عنوان مثال ،  {name} {last_name} که وضعیت ارتباط من با او  {customer_status} است  و مشتری جدید من است که میخواهم به او خدماتم را ارائه کنم. چیکار کنم که به مشتری مشتاق  و درجه یک من تبدیل شود ؟
-                    در 3 خط به من توضیح بده. """}
+                    در 3 خط به من توضیح بده. و اسم و فامیلی که بهت گفتم رو داخل متن حتما قرار بده """}
                                     ]
             # Generating the completion
             completion = client.chat.completions.create(

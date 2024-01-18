@@ -314,3 +314,8 @@ class HeyGenCreateVideoModel(models.Model):
     input_audio = models.FileField(upload_to="heygen/audios/", null=True,blank=True)
     talking_photo_style = models.CharField(max_length=255,choices=photo_style,null=True,blank=True)
 
+class HeyGenCreateVideoTranslateModel(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    video_id = models.TextField()
+    voice_id = models.CharField(max_length=255)
+
