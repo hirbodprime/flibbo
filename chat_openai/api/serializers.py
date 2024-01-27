@@ -1,9 +1,16 @@
 # my_app/serializers.py
 
 from rest_framework import serializers
-from chat_openai.models import SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
+from chat_openai.models import HeyGenTalkingPhotoIDModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 from django.conf import settings
 
+class HeyGenTalkingPhotoImageUploadSerializer(serializers.Serializer):
+    image = serializers.ImageField(use_url=True)
+
+class HeyGenTalkingPhotoIDModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HeyGenTalkingPhotoIDModel
+        fields = ['image_url', 'image_id']
 
 class TalkVoiceActorSerializer(serializers.ModelSerializer):
     class Meta:

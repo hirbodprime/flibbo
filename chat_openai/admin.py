@@ -71,4 +71,10 @@ admin.site.register(models.OpenAIAudioInteraction,OpenAIAudioAdmin)
 admin.site.register(models.OpenAIImageInteraction,OpenAIImageAdmin)
 admin.site.register(models.AIToolsModel)
 
+admin.site.register(models.HeyGenCreateVideoModel)
+admin.site.register(models.HeyGenCreateVideoTranslateModel)
+admin.site.register(models.HeyGenTalkingPhotoIDModel)
+
+
+
 

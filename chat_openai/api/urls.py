@@ -12,6 +12,8 @@ urlpatterns = [
     path('heygen/translate/languages/list/', v.HeyGenGetLanguagesListTranslateView.as_view(), name='traslate-languages-list-heygen'),
     path('heygen/avatars/list/', v.HeyGenGetAvatarsView.as_view(), name='avatars-list-heygen'),
     path('heygen/voices/list/', v.HeyGenGetVoicesView.as_view(), name='voices-list-heygen'),
+    path('heygen/talking-photo/upload/', v.HeyGenTalkingImageUploadView.as_view(), name='heygen-talking-photo-image-upload'),
+    path('heygen/talking-photo/list/', v.HeyGenListTalkingPhotoAPIView.as_view(), name='heygen-talking-photo-list'),
 
     path('studio/presenter/driver/get/<str:presenter_id>/', v.GetPresenterDriversView.as_view(), name='get_presenter_drivers'),
     path('studio/presenters/get/<int:limit>/', v.GetPresentersView.as_view(), name='get_presenters'),

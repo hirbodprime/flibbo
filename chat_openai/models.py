@@ -305,7 +305,8 @@ class HeyGenCreateVideoModel(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     background = models.CharField(max_length=255)
     ratio = models.CharField(max_length=255)
-    avatar_id = models.CharField(max_length=255)
+    avatar_id = models.CharField(max_length=255,null=True,blank=True)
+    talking_photo_id = models.CharField(max_length=255,null=True,blank=True)
     avatar_style = models.CharField(max_length=255,null=True,blank=True)
     caption = models.TextField(null=True,blank=True)
     input_text = models.TextField(null=True,blank=True)
@@ -319,3 +320,7 @@ class HeyGenCreateVideoTranslateModel(models.Model):
     video_id = models.TextField()
     voice_id = models.CharField(max_length=255)
 
+class HeyGenTalkingPhotoIDModel(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    image_url = models.TextField()
+    image_id = models.TextField()

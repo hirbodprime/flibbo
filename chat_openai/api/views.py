@@ -18,8 +18,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from .history_serializers import * 
-from chat_openai.models import HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
-from .serializers import (SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
+from chat_openai.models import HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from .serializers import (HeyGenTalkingPhotoIDModelSerializer,HeyGenTalkingPhotoImageUploadSerializer,SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
@@ -137,7 +137,52 @@ class HeyGenCreateVideoTranslateView(APIView):
         # Handle error case
         return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class HeyGenListTalkingPhotoAPIView(ListAPIView):
+    serializer_class = HeyGenTalkingPhotoIDModelSerializer
 
+    def get_queryset(self):
+        # Get the current user
+        user = self.request.user
+        # Return the queryset that contains HeyGenTalkingPhotoIDModel objects for this user
+        return HeyGenTalkingPhotoIDModel.objects.filter(user=user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"data": serializer.data})
+
+class HeyGenTalkingImageUploadView(APIView):
+    def post(self, request, *args, **kwargs):
+        import requests
+        from chat_openai.heygen import api_key
+        serializer = HeyGenTalkingPhotoImageUploadSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            image_file = serializer.validated_data['image']
+
+            # Send image to heygen.com
+            try:
+                with image_file.open('rb') as f:
+                    resp = requests.post(
+                        "https://upload.heygen.com/v1/talking_photo",
+                        data=f,
+                        headers={"Content-Type": "image/jpeg", "x-api-key": api_key}
+                    )
+                resp.raise_for_status()
+                response_data = resp.json()
+                # Save response in database
+                HeyGenTalkingPhotoIDModel.objects.create(
+                    user=request.user,
+                    image_url=response_data['data']['talking_photo_url'],
+                    image_id=response_data['data']['talking_photo_id']
+                )
+
+                return Response(response_data, status=status.HTTP_201_CREATED)
+            
+            except requests.RequestException as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class HeyGenCreateVideoView(APIView):
@@ -146,6 +191,12 @@ class HeyGenCreateVideoView(APIView):
         user_limit, created = UserAIStudioLimit.objects.get_or_create(user=request.user)
         if user_limit.limit <= 0:
             return Response({"error": "You are out of Energy"}, status=status.HTTP_400_BAD_REQUEST)
+        talking_photo_id = request.data.get('talking_photo_id', None)
+        avatar_id = request.data.get('avatar_id', None)
+
+        if not (talking_photo_id or avatar_id):
+            return Response({"error": "Either 'talking_photo_id' or 'avatar_id' is required."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         audio = request.FILES.get('input_audio', None)
         input_text = request.data.get('input_text', '')
@@ -158,7 +209,7 @@ class HeyGenCreateVideoView(APIView):
             audio_path = default_storage.save('uploads/' + audio.name, ContentFile(audio.read()))
             audio_url = settings.SITE_DOMAIN + settings.MEDIA_URL + audio_path
 
-        required_fields = ["bg_color", "ratio", "avatar_id", "voice_id"]
+        required_fields = ["bg_color", "ratio", "voice_id"]
         for field in required_fields:
             if field not in request.data or not request.data[field]:
                 return Response({"error": f"{field} field is required and cannot be empty."},
@@ -168,37 +219,38 @@ class HeyGenCreateVideoView(APIView):
         heygen_video_response = create_video_heygen(
             request.data['bg_color'],
             request.data['ratio'],
-            request.data['avatar_id'],
+            avatar_id if avatar_id else None,
             input_text if input_text else None,
             audio_url if audio else None,
             request.data['voice_id'],
+            talking_photo_id if talking_photo_id else None
         )
-            
         print(heygen_video_response)
         try:
             if heygen_video_response["data"]["video_id"]:
+                print("here")
                 # Save response data to model
                 response_data = heygen_video_response["data"]
                 HeyGenCreateVideoModel.objects.create(
-                    user = request.user,
-                    video_id = response_data['video_id'],
-                    background = request.data['bg_color'],
-                    ratio = request.data['ratio'],
-                    avatar_id = request.data['avatar_id'],
+                    user=request.user,
+                    video_id=response_data['video_id'],
+                    background=request.data['bg_color'],
+                    ratio=request.data['ratio'],
+                    avatar_id=avatar_id,
+                    talking_photo_id=talking_photo_id,
                     input_text=input_text if input_text else None,
                     input_audio=audio_url if audio else None,
-                    voice_id = request.data['voice_id'],
+                    voice_id=request.data['voice_id'],
                 )
                 user_limit.limit -= 1
                 user_limit.save()
-                return Response({"message": f"Video created successfully","data":response_data})
-        except: 
-            
+                return Response({"message": "Video created successfully", "data": response_data})
+        except:
             return Response({"message": f"Video Failed To create {heygen_video_response}"})
+
         # Handle error case
         return Response({"error": heygen_video_response.get("error", "Failed to create Video")},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

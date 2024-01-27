@@ -7,7 +7,7 @@ urlpatterns = [
     path('stream-video/<int:post_id>/', serve_video, name='stream-video'),
     # path('home/', include(router.urls)),
     path('followings-posts/', custom_views.FollowerPostsViewSet.as_view(), name='user-followers-posts'),
-    path('favorite-categories/', custom_views.CategoryPostsViewSet.as_view(), name='user-favorite-categories-posts'),
+    path('favorite-categories/', custom_views.CategoryPostsViewSet.as_view(), name='user-favorite-categories-posts'), # home api
     path('tweet-post-sizes/<int:tweet_post_id>/', custom_views.get_photo_sizes, name='get_photo_sizes'),
     # tweet urls
     path('tweet/likes/list/<int:post_id>/', custom_views.TweetPostLikedListApiView.as_view(), name='tweet-post-like-list'),

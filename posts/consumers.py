@@ -1,18 +1,71 @@
-from channels.db import database_sync_to_async
-from django.contrib.auth import get_user_model
-from .models import TweetPostModel
+import json
+import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
 
-class LikeConsumer(AsyncWebsocketConsumer):
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.db.models import Q, Count
+
+from accounts.models import BlockModel 
+from category.models import UserFavoriteCategories
+from .models import TweetPostModel, TweetCommentModel
+from posts.api.serializers import TweetPostConsumerSerializer, TweetCommentWebSocketSerializer
+
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.backends import TokenBackend
+
+logger = logging.getLogger(__name__)
+
+import json
+from datetime import datetime
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+
+
+    
+
+
+class HomeConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_group_name = 'like_updates'
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.accept()
+        try:
+            user = await self.authenticate(self.scope['query_string'])
+            logger.info(f"User {user} connected to HomeConsumer.")
+            if user:
+                self.scope['user'] = user
+                self.room_group_name = 'home'
 
+                # Join room group
+                await self.channel_layer.group_add(
+                    self.room_group_name,
+                    self.channel_name
+                )
+
+                # Accept connection
+                await self.accept()
+
+                # Fetch and send posts after successful connection
+                posts = await self.get_category_posts(user)
+                await self.send(text_data=json.dumps({
+                    'type': 'initial_posts',
+                    'posts': posts
+                }, cls=CustomJSONEncoder))
+
+            else:
+                # Close connection if user is not authenticated
+                await self.close()
+        except Exception as e:
+            logger.error(f"Error in connect method: {str(e)}")
+            raise
     async def disconnect(self, close_code):
+        # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
@@ -20,44 +73,223 @@ class LikeConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        tweet_id = data['tweet_id']
-        user_id = data['user_id']
-        print(tweet_id,user_id)
-        # Process the like action
-        liked = await self.update_like(tweet_id, user_id)
+        user = self.scope['user']
+        
+        if data['action'] == 'like_post':
+            post_id = data['post_id']
+            liked_count = await self.like_post(post_id, user)
+            await self.send(text_data=json.dumps({
+                'type': 'like_post',
+                'post_id': post_id,
+                'liked_count': liked_count
+            }))
+        elif data['action'] == 'get_comments':
+            tweet_id = data['post_id']
+            comments = await self.get_comments(tweet_id, user)
+            await self.send(text_data=json.dumps({
+                'type': 'comments',
+                'comments': comments
+            }))
+        elif data['action'] == 'like_comment':
+            comment_id = data['comment_id']
+            like_result = await self.like_comment(comment_id, user)
+            await self.send(text_data=json.dumps({
+                'type': 'like_comment',
+                'comment_id': comment_id,
+                'like_result': like_result
+            }))
+        elif data['action'] == 'create_comment':
+            comment_data = await self.create_comment(data, user)
+            await self.send(text_data=json.dumps({
+                'type': 'new_comment',
+                'comment': comment_data
+            }, cls=CustomJSONEncoder))
 
-        # Broadcast the updated like count
-        if liked is not None:
+            # Broadcast new comment to the group
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
-                    'type': 'like_update',
-                    'tweet_id': tweet_id,
-                    'updated_like_count': liked,
+                    'type': 'broadcast_new_comment',
+                    'comment': comment_data
                 }
             )
-
-    async def like_update(self, event):
-        tweet_id = event['tweet_id']
-        updated_like_count = event['updated_like_count']
-        
-        # Send the updated like count to WebSocket
+    async def broadcast_new_comment(self, event):
+        # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'tweet_id': tweet_id,
-            'updated_like_count': updated_like_count,
-        }))
+            'type': 'new_comment',
+            'comment': event['comment']
+        }, cls=CustomJSONEncoder))
 
     @database_sync_to_async
-    def update_like(self, tweet_id, user_id):
+    def create_comment(self, data, user):
+        post_id = data.get('post_id')
+        text = data.get('text')
+
         try:
-            tweet = TweetPostModel.objects.get(id=tweet_id)
-            user = get_user_model().objects.get(id=user_id)
-            if user in tweet.likes.all():
-                print("i am here")
-                tweet.likes.remove(user)
-            else:
-                print("i am here2")
-                tweet.likes.add(user)
-            return tweet.likes.count()
+            post = TweetPostModel.objects.get(id=post_id)
+            comment_data = {
+                'post_id': post_id,  # Pass the post_id
+                'user': user,  # Assuming the serializer needs the user object
+                'text': text,
+            }
+
+
+            serializer_context = {
+                'request': user
+            }
+
+            serializer = TweetCommentWebSocketSerializer(data=comment_data, context=serializer_context)
+            if serializer.is_valid(raise_exception=True):
+                comment = serializer.save()
+                return serializer.data
         except TweetPostModel.DoesNotExist:
+            raise serializers.ValidationError("The specified post does not exist")
+
+        return {}
+
+
+
+    @database_sync_to_async
+    def get_comments(self, post_id, user):
+        # Your logic to fetch comments
+        block_obj, created = BlockModel.objects.get_or_create(user=user)
+        users_blocked_by_current_user = block_obj.blocked_users.all()
+
+        users_who_blocked_current_user, created = BlockModel.objects.get_or_create(user=user)
+        blocked_by_users_obj = users_who_blocked_current_user.blocked_by.all()
+
+        blocked_users_combined = users_blocked_by_current_user | blocked_by_users_obj
+
+        comments = TweetCommentModel.objects.exclude(user__in=blocked_users_combined).filter(post=post_id).annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')
+
+        # Serialize the comments
+        serializer_context = {
+        'request': user
+        }
+
+        comment_data = [TweetCommentWebSocketSerializer(comment,context=serializer_context ).data for comment in comments]
+        return comment_data           
+    @database_sync_to_async
+    def get_category_posts(self, user):
+        block_obj, created = BlockModel.objects.get_or_create(user=user)
+        
+        # Get IDs of users blocked by the current user
+        users_blocked_by_current_user_ids = block_obj.blocked_users.values_list('id', flat=True)
+        
+        # Get IDs of users who have blocked the current user
+        users_who_blocked_current_user_ids = BlockModel.objects.filter(blocked_by=user).values_list('user_id', flat=True)
+        
+        # Combine the lists of IDs
+        blocked_users_combined_ids = set(users_blocked_by_current_user_ids).union(set(users_who_blocked_current_user_ids))
+
+        # Fetch user's favorite categories and filter tweets accordingly
+        user_categorymodel_obj = UserFavoriteCategories.objects.get(user=user)
+        categories = user_categorymodel_obj.favorite_categories.all()
+        logger.info(f"categories {categories}")
+
+        serializer_context = {
+        'request': user
+        }
+
+        tweets = TweetPostModel.objects.exclude(user_id__in=blocked_users_combined_ids).filter(
+            category__in=categories, hide=False
+        ).order_by('-created_date')[:10]  # Simplified pagination for demo purposes
+
+        # Pass the custom context when instantiating the serializer
+        tweet_data = [TweetPostConsumerSerializer(tweet, context=serializer_context).data for tweet in tweets]
+        return tweet_data
+
+    
+    @database_sync_to_async
+    def authenticate(self, query_string):
+        # Extract token from query string and authenticate user
+        token = dict(x.split('=') for x in query_string.decode().split("&")).get("token", None)
+        if not token:
             return None
+        try:
+            # Decode token
+            decoded_data = TokenBackend(algorithm='HS256').decode(token, verify=False)
+            # Get user from token
+            user = get_user_model().objects.get(id=decoded_data['user_id'])
+            return user
+        except (InvalidToken, TokenError, get_user_model().DoesNotExist) as e:
+            logger.error(f'Error in WebSocket token authentication: {e}')
+            return None
+    
+    @database_sync_to_async
+    def like_post_logic(self, post_id, user):
+        try:
+            tweet = TweetPostModel.objects.get(id=post_id)
+            if user in tweet.likes.all():
+                tweet.likes.remove(user)
+                action = 'unliked'
+            else:
+                tweet.likes.add(user)
+                action = 'liked'
+            tweet.save()
+            return {'count': tweet.likes.count(), 'action': action}
+        except TweetPostModel.DoesNotExist:
+            return {'count': 0, 'action': 'error'}
+
+    async def like_post(self, post_id, user):
+        # existing logic to like a post
+        liked_count = await self.like_post_logic(post_id, user)
+        # Broadcast the update to the group
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'broadcast_like_post',
+                'post_id': post_id,
+                'liked_count': liked_count
+            }
+        )
+    
+    async def broadcast_like_post(self, event):
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'like_post',
+            'post_id': event['post_id'],
+            'liked_count': event['liked_count']
+        }))
+    @database_sync_to_async
+    def like_comment_logic(self, comment_id, user):
+        try:
+            comment = TweetCommentModel.objects.get(id=comment_id)
+            if user in comment.likes.all():
+                comment.likes.remove(user)
+                action = 'unliked'
+            else:
+                comment.likes.add(user)
+                action = 'liked'
+            comment.save()
+            return {'count': comment.likes.count(), 'action': action}
+        except TweetCommentModel.DoesNotExist:
+            return {'count': 0, 'action': 'error'}
+    async def like_comment(self, comment_id, user):
+        # existing logic to like a comment
+        like_result = await self.like_comment_logic(comment_id, user)
+        # Broadcast the update to the group
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'broadcast_like_comment',
+                'comment_id': comment_id,
+                'like_result': like_result
+            }
+        )
+
+    async def broadcast_like_comment(self, event):
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'like_comment',
+            'comment_id':   ['comment_id'],
+            'like_result': event['like_result']
+        }))
+
+
+
+
+
+
+
+

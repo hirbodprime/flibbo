@@ -149,8 +149,8 @@ class BasePostModel(models.Model):
         self.total_comments -= 1
         self.save()
     
-    # def total_likes(self):
-    #     return self.likes.count()
+    def total_likes(self):
+        return self.likes.count()
 
     # def total_saves(self):
     #     return self.saved_by_users.count()

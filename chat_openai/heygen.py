@@ -10,29 +10,32 @@ headers = {
         'X-Api-Key': api_key,
         'Content-Type': 'application/json'
 }
-
-def create_video_heygen(bg_color,ratio,avatar_id,input_text,audio_input,voice_id):
-    # Request headers
+def create_video_heygen(bg_color, ratio, avatar_id, input_text, audio_input, voice_id, talking_photo_id):
+    # API endpoint URL
     url = 'https://api.heygen.com/v1/video.generate'
-    
 
-    # Request data
+    # Construct the clip data
     clip = {
-        "avatar_id": avatar_id,
-        "avatar_style": "normal",
         "caption": False,
         "scale": 1,
         "voice_id": voice_id,
+        "avatar_style": "normal",
         "talking_photo_style": "normal"
     }
 
-    # Conditionally add input_text or input_audio
+    # Add either avatar_id or talking_photo_id
+    if avatar_id:
+        clip["avatar_id"] = avatar_id
+    elif talking_photo_id:
+        clip["talking_photo_id"] = talking_photo_id
+
+    # Add input_text or input_audio
     if input_text:
         clip["input_text"] = input_text
     elif audio_input:
         clip["input_audio"] = audio_input
 
-    # Prepare request data
+    # Prepare the complete data payload
     data = {
         "background": bg_color,
         "ratio": ratio,
@@ -41,21 +44,20 @@ def create_video_heygen(bg_color,ratio,avatar_id,input_text,audio_input,voice_id
         "clips": [clip]
     }
 
-    # Make the POST request
-    response = requests.post(url, json=data, headers=headers)
+    try:
+        # Make the POST request
+        response = requests.post(url, json=data, headers=headers)
 
-    # Check if the request was successful
-    if response.status_code == 201:
-        response_data = response.json()
-        print("Request successful.")
-        print("Response data:", response.json())
-        return {"success": True, **response_data}
-    else:
-        response_data = response.json()
-        print("Request failed.")
-        print("Status code:", response.status_code)
-        print("Response:", response.text)
-        return {"success": False, **response_data}
+        # Process response
+        if response.status_code == 200:
+            response_data = response.json()
+            return {"success": True, **response_data}
+        else:
+            return {"success": False, "error": response.text, "status_code": response.status_code}
+
+    except requests.RequestException as e:
+        # Handle any exceptions during the request
+        return {"success": False, "error": str(e)}
 
 
 

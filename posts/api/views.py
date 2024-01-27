@@ -149,6 +149,9 @@ class FollowerPostsViewSet(APIView):
 #         }
         
 #         return Response(response_data, status=status.HTTP_200_OK)
+
+
+
 class CategoryPostsViewSet(APIView):
     def get(self, request):
         paginator = CustomPagination()
