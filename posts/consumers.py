@@ -11,6 +11,7 @@ from accounts.models import BlockModel
 from category.models import UserFavoriteCategories
 from .models import TweetPostModel, TweetCommentModel
 from posts.api.serializers import TweetPostConsumerSerializer, TweetCommentWebSocketSerializer
+from following_system.models import FollowModel
 
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
@@ -18,7 +19,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.backends import TokenBackend
 
 logger = logging.getLogger(__name__)
-
+User = get_user_model()
 import json
 from datetime import datetime
 
@@ -113,6 +114,83 @@ class HomeConsumer(AsyncWebsocketConsumer):
                     'comment': comment_data
                 }
             )
+        elif data['action'] == 'follow_user':
+            user_to_follow_id = data['user_id']
+            follow_result = await self.follow_user(user_to_follow_id, user)
+            await self.send(text_data=json.dumps({
+                'type': 'follow_user',
+                'user_id': user_to_follow_id,
+                'follow_result': follow_result
+            }))
+
+        elif data['action'] == 'unfollow_user':
+            user_to_unfollow_id = data['user_id']
+            unfollow_result = await self.unfollow_user(user_to_unfollow_id, user)
+            await self.send(text_data=json.dumps({
+                'type': 'unfollow_user',
+                'user_id': user_to_unfollow_id,
+                'unfollow_result': unfollow_result
+            }))
+
+    @database_sync_to_async
+    def follow_user(self, user_to_follow_id, user):
+        try:
+            # Get the user to follow
+            user_to_follow = User.objects.get(id=user_to_follow_id)
+            follow_instance, created = FollowModel.objects.get_or_create(user=user)
+            if follow_instance.is_user_following(user_to_follow):
+                return {'success': False, 'message': 'Already following this user'}
+            follow_instance.follow(user_to_follow)
+            # Broadcast the follow event to the group
+            self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_follow_user',
+                    'follower_id': user.id,
+                    'followed_id': user_to_follow_id
+                }
+            )
+            return {'success': True, 'message': 'Successfully followed the user'}
+        except User.DoesNotExist:
+            return {'success': False, 'message': 'User to follow does not exist'}
+
+    @database_sync_to_async
+    def unfollow_user(self, user_to_unfollow_id, user):
+        try:
+            user_to_unfollow = User.objects.get(id=user_to_unfollow_id)
+            follow_instance = FollowModel.objects.get(user=user)
+            if not follow_instance.is_user_following(user_to_unfollow):
+                return {'success': False, 'message': 'Not following this user'}
+            follow_instance.unfollow(user_to_unfollow)
+            # Broadcast the unfollow event to the group
+            self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_unfollow_user',
+                    'unfollower_id': user.id,
+                    'unfollowed_id': user_to_unfollow_id
+                }
+            )
+            return {'success': True, 'message': 'Successfully unfollowed the user'}
+        except User.DoesNotExist:
+            return {'success': False, 'message': 'User to unfollow does not exist'}
+        except FollowModel.DoesNotExist:
+            return {'success': False, 'message': 'Follow relationship does not exist'}
+
+    async def broadcast_follow_user(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'follow_user',
+            'follower_id': event['follower_id'],
+            'followed_id': event['followed_id']
+        }))
+
+    async def broadcast_unfollow_user(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'unfollow_user',
+            'unfollower_id': event['unfollower_id'],
+            'unfollowed_id': event['unfollowed_id']
+        }))
+
     async def broadcast_new_comment(self, event):
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
