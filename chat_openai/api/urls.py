@@ -54,6 +54,7 @@ urlpatterns = [
 
     path('chat3/',v.OpenAIChatInteractionViewe3.as_view()),
     path('chat2/',v.OpenAIChatInteractionViewe.as_view()),
+    path('chat-edit/',v.OpenAIImageEditInteractionView.as_view()),
     path('chat/',v.OpenAIChatInteractionView.as_view()),
     path('image/',v.OpenAIImageInteractionView.as_view()),
     path('audio/',v.OpenAIAudioInteractionView.as_view()),

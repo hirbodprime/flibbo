@@ -273,7 +273,7 @@ class OpenAIAudioInteraction(models.Model):
 class OpenAIImageInteraction(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     chat = models.ForeignKey(OpenAIChatID, on_delete=models.CASCADE,null=True, blank=True)  # Link to OpenAIChatID
-    user_text_prompt_image = models.TextField(max_length=1000)
+    user_text_prompt_image = models.TextField(max_length=1000,null=True,blank=True)
     n_cout = models.IntegerField(default=1)
     gpt_response1 = models.TextField(max_length=1000,null=True,blank=True)
     gpt_response2 = models.TextField(max_length=1000,null=True,blank=True)
@@ -284,7 +284,18 @@ class OpenAIImageInteraction(models.Model):
     def __str__(self):
         return self.gpt_response1[:50]
 
+class OpenAIImageEditInteraction(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    chat = models.ForeignKey(OpenAIChatID, on_delete=models.CASCADE,null=True, blank=True)  # Link to OpenAIChatID
+    n_cout = models.IntegerField(default=1)
+    gpt_response1 = models.TextField(max_length=1000,null=True,blank=True)
+    gpt_response2 = models.TextField(max_length=1000,null=True,blank=True)
+    gpt_response3 = models.TextField(max_length=1000,null=True,blank=True)
+    gpt_response4 = models.TextField(max_length=1000,null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.gpt_response1[:50]
 class OpenAITextToSpeechInteraction(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     user_text_prompt = models.TextField()

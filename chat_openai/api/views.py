@@ -18,8 +18,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from .history_serializers import * 
-from chat_openai.models import HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
-from .serializers import (HeyGenTalkingPhotoIDModelSerializer,HeyGenTalkingPhotoImageUploadSerializer,SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
+from chat_openai.models import OpenAIImageEditInteraction,HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from .serializers import (OpenAIImageEditInteractionSerializer,HeyGenTalkingPhotoIDModelSerializer,HeyGenTalkingPhotoImageUploadSerializer,SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
@@ -1140,6 +1140,65 @@ class OpenAIImageInteractionView(CreateAPIView):
         serializer.save(**save_dict)
 
 
+class OpenAIImageEditInteractionView(CreateAPIView):
+    queryset = OpenAIImageEditInteraction.objects.all()
+    serializer_class = OpenAIImageEditInteractionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        image = self.request.FILES.get('image')
+        if not image:
+            return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Save the uploaded image
+        image_path = self.save_uploaded_file(image)
+        if image_path is None:
+            return Response({'error': 'Error saving image'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        n_cout_str = self.request.data.get('n_cout', '4')
+        chat_id = self.request.data.get('chat_id')
+        chat_instance = None
+
+        if chat_id:
+            try:
+                chat_instance = OpenAIChatID.objects.get(chat_id=chat_id)
+            except OpenAIChatID.DoesNotExist:
+                return Response({'error': 'Chat ID not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            n_cout = int(n_cout_str)
+        except ValueError:
+            return Response({'error': 'Invalid value for n_cout'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = client.images.create_variation(
+                image=open(image_path, "rb"),
+                n=n_cout,
+                size="1024x1024"
+            )
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        save_dict = {'user': self.request.user}
+        if chat_instance:
+            save_dict['chat'] = chat_instance
+
+        for i in range(n_cout):
+            image_url = response.data[i].url
+            save_dict[f'gpt_response{i + 1}'] = image_url
+
+        serializer.save(**save_dict)
+
+    def save_uploaded_file(self, uploaded_file):
+        try:
+            file_path = os.path.join(settings.MEDIA_ROOT, uploaded_file.name)
+            with open(file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+            return file_path
+        except Exception as e:
+            print(f"Error saving file: {e}")
+            return None
 
 
 class InteractionListView(APIView):
@@ -1246,3 +1305,5 @@ class OpenAIChatInteractionViewe3(APIView):
 
             return Response({"description": gpt_response})
         return Response({"description": 'You Are not Allowed'})
+
+

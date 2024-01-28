@@ -1,7 +1,7 @@
 # my_app/serializers.py
 
 from rest_framework import serializers
-from chat_openai.models import HeyGenTalkingPhotoIDModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
+from chat_openai.models import OpenAIImageEditInteraction,HeyGenTalkingPhotoIDModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,ToolsOptionsModel,VoiceActorModel,StyleListModel,OpenAIChatInteraction,AIToolsModel,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAIChatCategories
 from django.conf import settings
 
 class HeyGenTalkingPhotoImageUploadSerializer(serializers.Serializer):
@@ -182,7 +182,30 @@ class OpenAIImageInteractionSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'chat', 'user_prompt','gpt_response','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
         read_only_fields = ('user', 'created_at', 'gpt_response1','gpt_response2','gpt_response3','gpt_response4')
     
-    
+class OpenAIImageEditInteractionSerializer(serializers.ModelSerializer):
+    chat = serializers.SerializerMethodField()
+    # gpt_response = serializers.SerializerMethodField()
+    def get_user_prompt(self,obj):
+        if obj.user_text_prompt_image:
+            return obj.user_text_prompt_image
+        return
+    # def get_gpt_response(self, obj):
+    #     if obj.gpt_response1:
+    #         return obj.gpt_response1
+    #     return
+
+    def get_chat(self, obj):
+        try:
+            return obj.chat.chat_id if obj.chat else None
+        except AttributeError:
+            # Handle cases where 'obj' does not have a 'chat' attribute
+            return None
+
+    class Meta:
+        model = OpenAIImageEditInteraction
+        fields = ('id', 'user', 'chat','gpt_response1','gpt_response2','gpt_response3','gpt_response4','n_cout', 'created_at')
+        read_only_fields = ('user', 'created_at', 'gpt_response1','gpt_response2','gpt_response3','gpt_response4')
+        
 
 class ChatInteractionSerializer(serializers.ModelSerializer):
     class Meta:
