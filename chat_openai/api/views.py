@@ -935,7 +935,7 @@ class OpenAIChatInteractionView(CreateAPIView):
             {"role": "user", "content": user_prompt}
         ]
         completion = client.chat.completions.create(
-            model="gpt-4-1106-preview",
+            model="gpt-3.5-turbo-1106",
             messages=messages
         )
         
@@ -1251,7 +1251,7 @@ class OpenAIChatInteractionViewe(APIView):
 
 
             completion = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo-1106",
                 messages=messages
             )
 
@@ -1296,7 +1296,7 @@ class OpenAIChatInteractionViewe3(APIView):
                                     ]
             # Generating the completion
             completion = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo-1106",
                 messages=messages
             )
 
