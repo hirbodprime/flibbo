@@ -66,11 +66,12 @@ class HomeConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error in connect method: {str(e)}")
             raise
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        # Check if room_group_name is set before trying to discard the group
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
