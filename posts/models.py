@@ -86,7 +86,6 @@ class BasePostModel(models.Model):
     height = models.CharField(blank=True, null=True)
     cover = models.ImageField(upload_to=upload_image_post, blank=True, null=True,max_length=2000)
     class Meta:
-        # verbose_name_plural = "Posts"
         abstract = True
 
     def __str__(self):

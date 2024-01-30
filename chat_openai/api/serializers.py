@@ -99,7 +99,7 @@ class AIToolsModelSerializer(serializers.ModelSerializer):
         return 
     class Meta:
         model = AIToolsModel
-        fields = ['tools_type','name', 'options','short_description', 'bg_image','icon_image','description', 'created_at']
+        fields = ['tools_type','premium','name', 'options','short_description', 'bg_image','icon_image','description', 'created_at']
 
 
 

@@ -141,6 +141,8 @@ enum_choices = (
         ('Text-to-Image', 'Text-to-Image'),
         ('Text-to-Speech', 'Text-to-Speech'),
         ('Create-Video', 'Create-Video'),
+        ('Magic-Avatar', 'Magic-Avatar'),
+        ('Translate', 'Translate'),
     )
 
 class AIToolsModel(models.Model):
@@ -150,6 +152,7 @@ class AIToolsModel(models.Model):
     bg_image = models.FileField(upload_to='ai/',null=True,blank=True)
     icon_image = models.FileField(upload_to='ai/',null=True,blank=True)
     short_description = models.TextField(null=True,blank=True)
+    premium = models.BooleanField(default=False)
     description = models.TextField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
