@@ -9,6 +9,7 @@ from activity.models import Activity
 from .serializers import ActivitySerializer
 from following_system.models import RequestToFollow 
 from following_system.api.serializers import RequestToFollowListSerializer
+from django.conf import settings
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
