@@ -722,15 +722,19 @@ class TweetPostSerializer(serializers.ModelSerializer):
             return None
 
     def get_photo(self, obj):
-        # Get the current request object
-        request = self.context.get('request')
+        request = self.context.get('request', None)
 
-        # Check if the object has a 'photo' field
         if obj.photo:
-            # Get the full URL for the photo by prepending the domain
-            return f"{settings.SITE_DOMAIN}{obj.photo.url}"
+            # Check if request object is available
+            if request:
+                return request.build_absolute_uri(obj.photo.url)
+            else:
+                # Handle the case where request object is not available
+                # You might need to use a different method to construct the full URL
+                return f"{settings.SITE_DOMAIN}{obj.photo.url}"
         else:
             return None
+
 
     def get_user_username(self, obj):
         return obj.user.username 
