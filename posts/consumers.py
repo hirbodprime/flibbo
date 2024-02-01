@@ -54,11 +54,11 @@ class HomeConsumer(AsyncWebsocketConsumer):
                 await self.accept()
 
                 # Fetch and send posts after successful connection
-                posts = await self.get_category_posts(user)
-                await self.send(text_data=json.dumps({
-                    'type': 'initial_posts',
-                    'posts': posts
-                }, cls=CustomJSONEncoder))
+                # posts = await self.get_category_posts(user)
+                # await self.send(text_data=json.dumps({
+                #     'type': 'initial_posts',
+                #     'posts': posts
+                # }, cls=CustomJSONEncoder))
 
             else:
                 # Close connection if user is not authenticated
