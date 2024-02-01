@@ -12,6 +12,7 @@ from category.models import UserFavoriteCategories
 from .models import TweetPostModel, TweetCommentModel
 from posts.api.serializers import TweetPostConsumerSerializer, TweetCommentWebSocketSerializer
 from following_system.models import FollowModel
+from activity.models import Activity
 
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
@@ -212,7 +213,7 @@ class HomeConsumer(AsyncWebsocketConsumer):
                 'text': text,
             }
 
-
+            Activity.objects.create(user=user, tweet=post, activity_type=Activity.COMMENT)
             serializer_context = {
                 'request': user
             }
@@ -300,6 +301,7 @@ class HomeConsumer(AsyncWebsocketConsumer):
         try:
             tweet = TweetPostModel.objects.get(id=post_id)
             if user in tweet.likes.all():
+                Activity.objects.create(user=user, tweet=tweet, activity_type=Activity.LIKE)
                 tweet.likes.remove(user)
                 action = 'unliked'
             else:
@@ -335,6 +337,7 @@ class HomeConsumer(AsyncWebsocketConsumer):
         try:
             comment = TweetCommentModel.objects.get(id=comment_id)
             if user in comment.likes.all():
+                # Activity.objects.create(user=user, tweet_comment=comment, activity_type=Activity.COMMENT)
                 comment.likes.remove(user)
                 action = 'unliked'
             else:

@@ -211,7 +211,7 @@ class GoogleLogin(SocialLoginView): # if you want to use Implicit Grant, use thi
             refresh_token = str(refresh)
             # Add additional data to the response\
             user = request.user
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_data = {
                 'id': user.id,
                 'username': user.username,
@@ -259,7 +259,6 @@ class AppleLogin(SocialLoginView):
             # Add additional data to the response\
             user = request.user
             profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
-            # profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
             user_data = {
                 'id': user.id,
                 'username': user.username,
@@ -441,7 +440,6 @@ class CheckLoginStatusAPIView(APIView):
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
-            # Build the profile image URL using request.build_absolute_uri
             
                 profile_image_url = f"{settings.SITE_DOMAIN}/{user.profile_image.url}" if user.profile_image else None
                 user_token = AccessToken.objects.get(user=user)
@@ -753,8 +751,7 @@ class UserLoginView(gn.CreateAPIView):
             domain = current_site.domain
             user_token = AccessToken.objects.get(user=user)
 
-            # Build the profile image URL using request.build_absolute_uri
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_data = {
                 
                 'id': user.id,
@@ -806,8 +803,7 @@ class SignupConfirmationView(gn.CreateAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            # Build the profile image URL using request.build_absolute_uri
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_token = AccessToken.objects.get(user=user)
 
             user_data = {
@@ -871,8 +867,7 @@ class ProfileApiView(gn.RetrieveAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            # Build the profile image URL using request.build_absolute_uri
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             # print(profile_image_url)
             
             user_token = AccessToken.objects.get(user=user)
@@ -937,7 +932,6 @@ class SavedPostsApiView(gn.RetrieveAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            # Build the profile image URL using request.build_absolute_uri
             
             profile_image_url = f"{settings.SITE_DOMAIN}/{user.profile_image.url}" if user.profile_image else None
             saved_posts = SavedByUser.objects.filter(user=user)

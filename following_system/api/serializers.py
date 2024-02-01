@@ -94,7 +94,7 @@ class FollowersModelListSerializer(serializers.ModelSerializer):
         for user_obj in followers_users:
             usere = CustomUser.objects.get(email=user_obj)
 
-            profile_image_url = request.build_absolute_uri(user_obj.profile_image.url) if user_obj.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user_obj.profile_image.url}" if user_obj.profile_image else None
             is_followed = obj.is_user_following(user_obj)
             status = None
             try:
@@ -131,7 +131,7 @@ class FollowingModelListSerializer(serializers.ModelSerializer):
         data = []
         for user_obj in following_users:
             usere = CustomUser.objects.get(email=user_obj)
-            profile_image_url = request.build_absolute_uri(user_obj.profile_image.url) if user_obj.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user_obj.profile_image.url}" if user_obj.profile_image else None
             is_followed = obj.is_user_following(user_obj)
             status = None
             try:
