@@ -311,6 +311,8 @@ class ReportPostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"message": "You have already reported this post"})
 
         return data
+
+        
 class TweetPostConsumerSerializer(serializers.ModelSerializer):
     # location = CustomCountryField()
 

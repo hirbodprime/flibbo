@@ -155,7 +155,7 @@ class BasePostModel(models.Model):
     #     return self.saved_by_users.count()
     
     def increment_total_likes(self):
-        self.total_likes += 1
+        # self.total_likes += 1
         self.save()
         
     def increment_like_users(self,user):
