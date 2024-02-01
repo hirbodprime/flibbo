@@ -200,7 +200,6 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
             # Get the full URL for the photo by prepending the domain
             site_domain_stream = f"{settings.SITE_DOMAIN}/posts/api/stream-video/"  # Replace this with your actual website domain
             return f"{site_domain_stream}{obj.id}"
-            # return request.build_absolute_uri(obj.video.url)
         else:
             return None
 
@@ -211,7 +210,7 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
         # Check if the object has a 'photo' field
         if obj.photo:
             # Get the full URL for the photo by prepending the domain
-            return request.build_absolute_uri(obj.photo.url)
+            return f"{settings.SITE_DOMAIN}{obj.photo.url}"
         else:
             return None
 
@@ -221,7 +220,7 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
     def get_profile_image_url(self, obj):
         if obj.user.profile_image:
             request = self.context.get('request')
-            return request.build_absolute_uri(obj.user.profile_image.url)
+            return f"{settings.SITE_DOMAIN}{obj.user.profile_image.url}"
         else:
             return None
     # def get_share_post(self, obj):
