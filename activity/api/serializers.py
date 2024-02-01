@@ -2,6 +2,7 @@ from rest_framework import serializers
 from activity.models import Activity
 from django.core.exceptions import ObjectDoesNotExist
 from following_system.models import FollowModel, RequestToFollow
+from django.conf import settings
 
 
 class ActivitySerializer(serializers.ModelSerializer):
