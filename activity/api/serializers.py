@@ -2,6 +2,8 @@ from rest_framework import serializers
 from activity.models import Activity
 from django.core.exceptions import ObjectDoesNotExist
 from following_system.models import FollowModel, RequestToFollow
+
+
 class ActivitySerializer(serializers.ModelSerializer):
     profile_image_url  = serializers.SerializerMethodField()
     user_username = serializers.SerializerMethodField()
@@ -46,7 +48,7 @@ class ActivitySerializer(serializers.ModelSerializer):
     def get_profile_image_url(self, obj):
         if obj.user.profile_image:
             request = self.context.get('request')
-            return request.build_absolute_uri(obj.user.profile_image.url)
+            return f"{settings.SITE_DOMAIN}{obj.user.profile_image.url}"
         else:
             return None
     class Meta:
