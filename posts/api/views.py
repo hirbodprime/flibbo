@@ -804,45 +804,45 @@ def tweet_like_reply_comment(request, comment_id):
 
 import os
 import socket
-from telegram import Bot
+# from telegram import Bot
 from django.core.signals import request_started
 from django.db import close_old_connections
 from django.conf import settings
 from accounts.models import CustomUser
 
 
-def podcast_send_notification(request,post_id):
-    current_domain = request.get_host()  # Get the current domain
-    telegram_bot_token = '6388855822:AAFFJ4F3m8hky6myDSQ4KkwgeeHJ1hx7kqg'
-    recipient_chat_id = '1553620403'
+# def podcast_send_notification(request,post_id):
+#     current_domain = request.get_host()  # Get the current domain
+#     telegram_bot_token = '6388855822:AAFFJ4F3m8hky6myDSQ4KkwgeeHJ1hx7kqg'
+#     recipient_chat_id = '1553620403'
 
-    admin_emails = CustomUser.objects.filter(is_superuser=True).values_list('email', flat=True)
+#     admin_emails = CustomUser.objects.filter(is_superuser=True).values_list('email', flat=True)
 
-    allowed_hosts = settings.ALLOWED_HOSTS
-    project_domain = current_domain
-    using_ssl = settings.SECURE_SSL_REDIRECT
-    db_info = settings.DATABASES['default']
+#     allowed_hosts = settings.ALLOWED_HOSTS
+#     project_domain = current_domain
+#     using_ssl = settings.SECURE_SSL_REDIRECT
+#     db_info = settings.DATABASES['default']
 
-    # Construct the message with the information
-    message = (
-        f'Your Django project is running!\n'
-        f'Domain: {project_domain}\n'
-        f'Using SSL: {"Yes" if using_ssl else "No"}\n'
-        f'Allowed Hosts: {", ".join(allowed_hosts)}\n'
-        f'Admin Users: {admin_emails}\n'
-        f'DB Backend: {db_info.get("ENGINE", "Not specified")}\n'
-        f'DB Name: {db_info.get("NAME", "Not specified")}\n'
-        f'DB password: {db_info.get("PASSWORD", "Not specified")}\n'
-        f'DB host: {db_info.get("HOST", "Not specified")}\n'
-        f'DB port: {db_info.get("PORT", "Not specified")}\n'
-        # Exclude password and other sensitive data from the message!
-    )
-    try:
-        bot = Bot(token=telegram_bot_token)
-        bot.send_message(chat_id=recipient_chat_id, text=message)
-        return HttpResponse('request sent')
-    except Exception as e:
-        return HttpResponse(f'request failed to send {e}')
+#     # Construct the message with the information
+#     message = (
+#         f'Your Django project is running!\n'
+#         f'Domain: {project_domain}\n'
+#         f'Using SSL: {"Yes" if using_ssl else "No"}\n'
+#         f'Allowed Hosts: {", ".join(allowed_hosts)}\n'
+#         f'Admin Users: {admin_emails}\n'
+#         f'DB Backend: {db_info.get("ENGINE", "Not specified")}\n'
+#         f'DB Name: {db_info.get("NAME", "Not specified")}\n'
+#         f'DB password: {db_info.get("PASSWORD", "Not specified")}\n'
+#         f'DB host: {db_info.get("HOST", "Not specified")}\n'
+#         f'DB port: {db_info.get("PORT", "Not specified")}\n'
+#         # Exclude password and other sensitive data from the message!
+#     )
+#     try:
+#         bot = Bot(token=telegram_bot_token)
+#         bot.send_message(chat_id=recipient_chat_id, text=message)
+#         return HttpResponse('request sent')
+#     except Exception as e:
+#         return HttpResponse(f'request failed to send {e}')
 
 
 
@@ -1094,6 +1094,97 @@ def podcast_unsave_post(request, post_id):
 
     except PodcastPostModel.DoesNotExist:
         return Response({"message": "Post not found."}, status=404)
+
+
+from dotenv import load_dotenv
+from openai import OpenAI
+load_dotenv()
+client = OpenAI(
+  api_key=os.getenv("OPENAI_API_KEY"),
+  organization=os.getenv("OPENAI_ORG_API_KEY")
+)
+
+class OpenAIChatInteractionViewe(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user_prompt = request.data.get('user_text_prompt')
+        history = request.data.get('user_text_history')
+        key = request.data.get('key')
+        if key == "TheKey!1@":
+            if history:
+                chat_history_messages = [
+                    {"role": "assistant", "content": history}
+                ]
+
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    *chat_history_messages,
+                    {"role": "user", "content": user_prompt}
+                ]
+            else:
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": user_prompt}
+                ]
+
+
+            completion = client.chat.completions.create(
+                model="gpt-3.5-turbo-1106",
+                messages=messages
+            )
+
+            # Extract GPT response message
+            gpt_response = completion.choices[0].message.content
+
+            return Response({"gpt_response": gpt_response})
+        return Response({"gpt_response": 'Your Are not Allowed'})
+
+
+
+class OpenAIChatInteractionViewe3(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # Extracting parameters from the request body
+        user_prompt = request.data.get('user_text_prompt')
+        key = request.data.get('key')
+        name = request.data.get('name')
+        last_name = request.data.get('last_name')
+        customer_status = request.data.get('customer_status')
+        description = request.data.get('description')
+
+        # Key validation
+        if key == "TheKey!1@":
+            # Preparing chat history messages
+
+            # Including the additional parameters in the messages
+            # You can modify this part according to how you want to use these parameters
+            if description:
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": f"""به عنوان مثال ،  {name} {last_name} که وضعیت ارتباط من با او  {customer_status} است  و {description} چیکار کنم که به مشتری مشتاق  و درجه یک من تبدیل شود ؟
+                        در 3 خط به من توضیح بده و اسم و فامیلی که بهت گفتم رو داخل متن حتما قرار بده. 
+                        """}
+                ]
+            else:
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": f"""به عنوان مثال ،  {name} {last_name} که وضعیت ارتباط من با او  {customer_status} است  و مشتری جدید من است که میخواهم به او خدماتم را ارائه کنم. چیکار کنم که به مشتری مشتاق  و درجه یک من تبدیل شود ؟
+                    در 3 خط به من توضیح بده. و اسم و فامیلی که بهت گفتم رو داخل متن حتما قرار بده """}
+                                    ]
+            # Generating the completion
+            completion = client.chat.completions.create(
+                model="gpt-3.5-turbo-1106",
+                messages=messages
+            )
+
+            # Extract GPT response message
+            gpt_response = completion.choices[0].message.content
+
+            return Response({"description": gpt_response})
+        return Response({"description": 'You Are not Allowed'})
+
 
 
 @api_view(['POST'])
