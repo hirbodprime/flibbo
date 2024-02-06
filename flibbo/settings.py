@@ -16,7 +16,7 @@ DEBUG = os.getenv("DEBUG")
 # # Set the 'SECURE_SSL_REDIRECT' setting to True to force HTTPS
 # SECURE_SSL_REDIRECT = True
 # ALLOWED_HOSTS = ["192.168.3.73"]
-ALLOWED_HOSTS = ['192.168.3.90','www.dev.flxdevpanel.com','dev.flxdevpanel.com',"127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
+ALLOWED_HOSTS = ['104.194.156.61','192.168.3.90','www.dev.flxdevpanel.com','dev.flxdevpanel.com',"127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
 
 AUTHENTICATION_BACKENDS = [
     'accounts.custom_authentication.UsernameBackend',  # Replace 'your_app_name' with the actual name of your app
