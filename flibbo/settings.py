@@ -290,21 +290,25 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # web socket config
-import ast  
 ASGI_APPLICATION = 'flibbo_app.routing.application'
-redis_host = os.getenv("REDIS_HOST")
+host = os.getenv('HOST', 'local')  # Default to 'local' if not set
 
-parsed_redis_host = ast.literal_eval(os.getenv("REDIS_HOST", redis_host))
+# Determine the Redis hosts based on the environment
+if host == "dev":
+    redis_hosts = [('127.0.0.1', 6379)]
+elif host == "local":
+    redis_hosts = [('127.0.0.1', 32768)]
 
+
+# Configure Channels
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": parsed_redis_host,
+            'hosts': redis_hosts,
         },
     },
 }
-
 
 
 host = os.getenv("HOST")
