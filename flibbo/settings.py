@@ -16,7 +16,7 @@ DEBUG = os.getenv("DEBUG")
 # # Set the 'SECURE_SSL_REDIRECT' setting to True to force HTTPS
 # SECURE_SSL_REDIRECT = True
 # ALLOWED_HOSTS = ["192.168.3.73"]
-ALLOWED_HOSTS = ['104.194.156.61','192.168.3.90','www.dev.flxdevpanel.com','dev.flxdevpanel.com',"127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
+ALLOWED_HOSTS = ['104.194.156.61','192.168.3.108','www.dev.flxdevpanel.com','dev.flxdevpanel.com',"127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
 
 AUTHENTICATION_BACKENDS = [
     'accounts.custom_authentication.UsernameBackend',  # Replace 'your_app_name' with the actual name of your app
@@ -291,13 +291,13 @@ SOCIALACCOUNT_PROVIDERS = {
 
 # web socket config
 ASGI_APPLICATION = 'flibbo_app.routing.application'
-
+redis_host = os.getenv("REDIS_HOST")
 # Configure Channels
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": os.getenv("REDIS_HOST"),
+            "hosts": [('127.0.0.1', 32768)],
         },
     },
 }
