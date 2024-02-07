@@ -175,8 +175,6 @@ class FollowModelCreateSerializer(serializers.ModelSerializer):
 
         # Get the instance of the user creating the follow
         user_creating_follow = self.context['request'].user
-        print("herer")
-        print("this:",user_creating_follow)
         user_creating_follow_user_obj = User.objects.get(email=user_creating_follow)
         user_creating_follow_followmodel,created = FollowModel.objects.get_or_create(user=user_creating_follow)
         # Check if the user is already following
