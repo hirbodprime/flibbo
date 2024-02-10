@@ -43,6 +43,9 @@ urlpatterns = [
     # path('tweet/comments/', custom_views.TweetCommentListView.as_view(), name='tweet-comment-list'),
     path('tweet/comments/<int:tweet_id>/', custom_views.TweetPostCommentListView.as_view(), name='tweet-comment-list-post'),
     path('tweet/comment/create/<int:id>/', custom_views.TweetCommentCreateView.as_view(), name='tweet-comment-create'),
+    path('tweet/pin-comment/<int:comment_id>/', custom_views.PinCommentView.as_view(), name='pin-comment'),
+    path('tweet/comment/hide/<int:comment_id>/', custom_views.HideCommentView.as_view(), name='hide-comment'),
+
     # path('tweet/reply-comments/', custom_views.TweetReplyCommentListView.as_view(), name='tweet-reply-comment-list'),
     path('tweet/reply-comments/<int:id>/', custom_views.TweetPostReplyCommentListView.as_view(), name='tweet-reply-comment-list'),
     path('tweet/reply-comment/create/<int:id>/', custom_views.TweetReplyCommentCreateView.as_view(), name='tweet-reply-comment-create'),

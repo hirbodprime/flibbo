@@ -960,12 +960,34 @@ class TweetCommentWebSocketSerializer(CommentBaseWebSocketSerializer):
         fields = CommentBaseWebSocketSerializer.Meta.fields + ['post_id']
 
 
-# serializers.py
+
+class RecursiveSerializer(serializers.Serializer):
+    def to_representation(self, value):
+        # Ensure the serializer calls itself for the representation of replies
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
 
 class TweetCommentSerializer(CommentBaseSerializer):
+    replies = RecursiveSerializer(many=True, read_only=True)
+    replies_count = serializers.SerializerMethodField()
+
     class Meta(CommentBaseSerializer.Meta):
         model = TweetCommentModel
-        
+        fields = CommentBaseSerializer.Meta.fields + ['replies', 'replies_count','pinned','pinned_at']
+
+    def get_replies_count(self, obj):
+        """
+        Recursively count all replies to this comment, including nested replies.
+        """
+        def count_replies(comment):
+            count = comment.replies.count()
+            for reply in comment.replies.all():
+                count += count_replies(reply)
+            return count
+
+        return count_replies(obj)
+
+
 class TweetReplyCommentSerializer(CommentBaseSerializer):
     class Meta(CommentBaseSerializer.Meta):
         model = TweetReplyCommentModel

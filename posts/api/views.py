@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.utils import timezone
 
 
 from notification.models import UserDeviceModel
@@ -632,10 +633,36 @@ class TweetPostCommentListView(ListAPIView):
     pagination_class = CustomPagination
     # permission_classes = [permissions.AllowAny]  # You can adjust permissions as needed
 
+
+
     def get_queryset(self):
-        tweet_id = self.kwargs['tweet_id']  # Assuming you have 'tweet_id' in your URL patterns
-        comments = TweetCommentModel.objects.filter(post=tweet_id).annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')
+        tweet_id = self.kwargs['tweet_id']
+        user = self.request.user
+        sort = self.request.query_params.get('sort', 'popular')  # Get sort parameter from query params
+
+        # Start with all comments for the post that don't have a parent comment
+        comments = TweetCommentModel.objects.filter(post=tweet_id, parent_comment__isnull=True)
+
+        # If the user is authenticated, exclude comments they've hidden
+        if user and user.is_authenticated:
+            comments = comments.exclude(hidden_by_users=user)
+
+        # Sort comments based on the provided sort parameter
+        if sort == 'popular':
+            comments = comments.annotate(like_count=Count('likes')).order_by('-like_count')
+        elif sort == 'newest':
+            comments = comments.order_by('-created_at')
+        elif sort == 'oldest':
+            comments = comments.order_by('created_at')
+        elif sort == 'pinned':
+            comments = comments.order_by('-pinned', '-pinned_at')
+        else:
+            raise ValidationError('Invalid sort parameter.')
+
         return comments
+
+
+
 
     def list(self, request, *args, **kwargs):
         try:
@@ -655,9 +682,56 @@ class TweetPostCommentListView(ListAPIView):
 
 from activity.models import Activity
 
-class TweetCommentCreateView(CreateAPIView):
+class PinCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, comment_id, *args, **kwargs):
+        comment = get_object_or_404(TweetCommentModel, id=comment_id)
+        post = get_object_or_404(TweetPostModel, id=comment.post.id)
+
+        # Check if the current user is the owner of the post
+        if request.user != post.user:
+            return Response({"error": "You are not authorized to pin this comment."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Toggle the pinned status and prepare the appropriate message
+        comment.pinned = not comment.pinned
+        message = "Comment pinned successfully." if comment.pinned else "Comment unpinned successfully."
+        
+        # Update pin time if pinning, reset if unpinning
+        if comment.pinned:
+            comment.pinned_at = timezone.now()
+        else:
+            comment.pinned_at = None
+        comment.save()
+
+        return Response({"message": message, "pinned": comment.pinned}, status=status.HTTP_200_OK)
+
+class HideCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(TweetCommentModel, id=comment_id)
+
+        # If the user has already hidden this comment, unhide it. Otherwise, hide it.
+        if request.user in comment.hidden_by_users.all():
+            comment.hidden_by_users.remove(request.user)
+            message = "Comment has been unhidden."
+        else:
+            comment.hidden_by_users.add(request.user)
+            message = "Comment has been hidden."
+
+        return Response({"message": message}, status=200)
+
+
+class TweetCommentCreateView(APIView):
     serializer_class = TweetCommentSerializer
-    queryset = TweetCommentModel.objects.none()
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return an instance of the serializer_class with the given arguments.
+        """
+        return self.serializer_class(*args, **kwargs)
 
     @method_decorator(cache_page(10))  # Cache the view for 10 seconds
     def post(self, request, *args, **kwargs):
@@ -666,35 +740,47 @@ class TweetCommentCreateView(CreateAPIView):
         if cache.get(user_key):
             raise serializers.ValidationError("You must wait 10 seconds between comments.")
 
-        post_id = self.kwargs.get('id')
-        
-        # Assuming you have a TweetPostModel with an 'id' field
+        post_id = kwargs.get('id')  # Ensure this is correctly capturing the 'id' from URL
+        parent_comment_id = request.data.get('parent_comment_id', None)
+
+        # Validate and get the post
         try:
             post = TweetPostModel.objects.get(id=post_id)
-            user_device = UserDeviceModel.objects.get(user=post.user)
-            if user_device.user_token:
-                token = [user_device.user_token]
-                fcm.sendPush("Comment", f"{request.user.username} Commented on your Post", token)
-            Activity.objects.create(user=request.user, tweet=post, activity_type=Activity.COMMENT)
-            post.increment_total_comments()
         except TweetPostModel.DoesNotExist:
             raise serializers.ValidationError("The specified post does not exist")
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # You can add additional validation here if needed
-        
-        # Save the comment
-        serializer.save(post=post)
+        # Validate and get the parent comment if present
+        parent_comment = None
+        if parent_comment_id:
+            try:
+                parent_comment = TweetCommentModel.objects.get(id=parent_comment_id, post=post)
+            except TweetCommentModel.DoesNotExist:
+                raise serializers.ValidationError("The specified parent comment does not exist")
 
-        # Set a cache key for the user to enforce the 10-second delay
+        # Notify the post owner about the new comment
+        try:
+            user_device = UserDeviceModel.objects.get(user=post.user)
+            if user_device.user_token:
+                token = [user_device.user_token]
+                sendPush("Comment", f"{request.user.username} commented on your post.", token)
+        except UserDeviceModel.DoesNotExist:
+            pass  # Handle the case where the post owner doesn't have a device registered
+
+        # Record the activity
+        Activity.objects.create(user=request.user, tweet=post, activity_type=Activity.COMMENT)
+
+        # Assuming an 'increment_total_comments' method exists on TweetPostModel
+        post.increment_total_comments()
+
+        # Prepare and save the comment
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user, post=post, parent_comment=parent_comment)
+
+        # Enforce the 10-second delay for comments
         cache.set(user_key, True, 10)
 
         return Response(serializer.data)
-
-
-
 
 
 

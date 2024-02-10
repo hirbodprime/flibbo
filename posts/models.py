@@ -298,33 +298,68 @@ class PodcastPostModel(BasePostModel):
         return reverse('podcast_detail', args=[str(self.id)])
 
 
-
 class TweetCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    post = models.ForeignKey(TweetPostModel, on_delete=models.CASCADE)
-    likes = models.ManyToManyField(User, blank=True,related_name='tweet_likes')
+    pinned = models.BooleanField(default=False, help_text="Indicates if the comment is pinned.")
+    pinned_at = models.DateTimeField(null=True, blank=True, help_text="The time at which the comment was pinned.")
+    post = models.ForeignKey(TweetPostModel, on_delete=models.CASCADE, related_name='comments')
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    likes = models.ManyToManyField(User, blank=True, related_name='tweet_comment_likes')
+    reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')
     total_likes = models.PositiveIntegerField(default=0)
-    reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')  # New field
+    hidden_by_users = models.ManyToManyField(User, related_name='hidden_comments', blank=True)
 
     def __str__(self):
         return f"Comment by {self.user.username} on {self.id}"
 
-
     def increment_total_likes(self):
         self.total_likes += 1
         self.save()
-        
-    def increment_like_users(self,user):
-        self.likes.add(user)
 
-    def dicrement_total_likes(self):
-        self.total_likes -= 1
-        self.save()
-        
-    def dicrement_like_users(self,user):
+    def increment_like_users(self, user):
+        self.likes.add(user)
+        self.increment_total_likes()  # Ensure total_likes is incremented when a user is added
+
+    def decrement_total_likes(self):
+        if self.total_likes > 0:
+            self.total_likes -= 1
+            self.save()
+
+    def decrement_like_users(self, user):
         self.likes.remove(user)
+        self.decrement_total_likes()  # Ensure total_likes is decremented when a user is removed
+
+    def total_likes(self):
+        return self.likes.count()
+
+# class TweetCommentModel(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     text = models.TextField()
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     post = models.ForeignKey(TweetPostModel, on_delete=models.CASCADE)
+#     likes = models.ManyToManyField(User, blank=True,related_name='tweet_likes')
+#     total_likes = models.PositiveIntegerField(default=0)
+#     reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')  # New field
+
+#     def __str__(self):
+#         return f"Comment by {self.user.username} on {self.id}"
+
+
+#     def increment_total_likes(self):
+#         self.total_likes += 1
+#         self.save()
+        
+#     def increment_like_users(self,user):
+#         self.likes.add(user)
+
+#     def dicrement_total_likes(self):
+#         self.total_likes -= 1
+#         self.save()
+        
+#     def dicrement_like_users(self,user):
+#         self.likes.remove(user)
         
 class TweetReplyCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
