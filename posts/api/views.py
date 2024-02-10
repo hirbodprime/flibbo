@@ -660,10 +660,6 @@ class TweetPostCommentListView(ListAPIView):
             raise ValidationError('Invalid sort parameter.')
 
         return comments
-
-
-
-
     def list(self, request, *args, **kwargs):
         try:
             queryset = self.filter_queryset(self.get_queryset())

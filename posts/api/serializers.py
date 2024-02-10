@@ -970,10 +970,11 @@ class RecursiveSerializer(serializers.Serializer):
 class TweetCommentSerializer(CommentBaseSerializer):
     replies = RecursiveSerializer(many=True, read_only=True)
     replies_count = serializers.SerializerMethodField()
+    user_followed = serializers.SerializerMethodField()
 
     class Meta(CommentBaseSerializer.Meta):
         model = TweetCommentModel
-        fields = CommentBaseSerializer.Meta.fields + ['replies', 'replies_count','pinned','pinned_at']
+        fields = CommentBaseSerializer.Meta.fields + ['user_followed','replies', 'replies_count','pinned','pinned_at']
 
     def get_replies_count(self, obj):
         """
@@ -987,6 +988,17 @@ class TweetCommentSerializer(CommentBaseSerializer):
 
         return count_replies(obj)
 
+    def get_user_followed(self, obj):
+        request_user = self.context['request'].user
+        if request_user.is_authenticated:
+            # Assuming each user has one FollowModel instance associated with them
+            follow_model = FollowModel.objects.filter(user=request_user).first()
+            if follow_model:
+                if follow_model.is_following(obj.user) == False:
+                    return True
+                else:
+                    return False 
+        return False
 
 class TweetReplyCommentSerializer(CommentBaseSerializer):
     class Meta(CommentBaseSerializer.Meta):
