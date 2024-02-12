@@ -300,7 +300,7 @@ class PodcastPostModel(BasePostModel):
 
 class TweetCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    text = models.TextField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     pinned = models.BooleanField(default=False, help_text="Indicates if the comment is pinned.")
     pinned_at = models.DateTimeField(null=True, blank=True, help_text="The time at which the comment was pinned.")
@@ -310,7 +310,7 @@ class TweetCommentModel(models.Model):
     reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')
     total_likes = models.PositiveIntegerField(default=0)
     hidden_by_users = models.ManyToManyField(User, related_name='hidden_comments', blank=True)
-
+    voice = models.FileField(upload_to="posts/comments/voice/",null=True,blank=True)
     def __str__(self):
         return f"Comment by {self.user.username} on {self.id}"
 
@@ -334,32 +334,6 @@ class TweetCommentModel(models.Model):
     def total_likes(self):
         return self.likes.count()
 
-# class TweetCommentModel(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     text = models.TextField()
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     post = models.ForeignKey(TweetPostModel, on_delete=models.CASCADE)
-#     likes = models.ManyToManyField(User, blank=True,related_name='tweet_likes')
-#     total_likes = models.PositiveIntegerField(default=0)
-#     reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')  # New field
-
-#     def __str__(self):
-#         return f"Comment by {self.user.username} on {self.id}"
-
-
-#     def increment_total_likes(self):
-#         self.total_likes += 1
-#         self.save()
-        
-#     def increment_like_users(self,user):
-#         self.likes.add(user)
-
-#     def dicrement_total_likes(self):
-#         self.total_likes -= 1
-#         self.save()
-        
-#     def dicrement_like_users(self,user):
-#         self.likes.remove(user)
         
 class TweetReplyCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -872,15 +872,22 @@ class PodcastPostCreateSerializer(serializers.ModelSerializer):
 
 class CommentBaseSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
-    user_username = serializers.SerializerMethodField()
-    profile_image_url = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField() 
     user_liked = serializers.SerializerMethodField()
-
+    voice = serializers.SerializerMethodField()
+    request_status = serializers.SerializerMethodField()
+    private = serializers.SerializerMethodField()
+    user_followed = serializers.SerializerMethodField()
     class Meta:
         abstract = True
-        fields = ['id','text','user_id','user_username','profile_image_url','total_likes','created_at','full_name','user_liked']
-    
+        fields = ['id','request_status','private','user_followed','text','voice','user_id','username','profile_image','total_likes','created_at','full_name','user_liked']
+    def get_voice(self,obj):
+        if obj.voice:
+            return f"{settings.SITE_DOMAIN}{obj.voice.url}" 
+        return None
+
     def get_user_liked(self, obj):
         # Get the current request user
         request_user = self.context['request'].user
@@ -895,9 +902,9 @@ class CommentBaseSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.user.full_name
 
-    def get_user_username(self, obj):
+    def get_username(self, obj):
         return obj.user.username
-    def get_profile_image_url(self, obj):
+    def get_profile_image(self, obj):
         if obj.user.profile_image:
             request = self.context.get('request')
             return f"{settings.SITE_DOMAIN}{obj.user.profile_image.url}"
@@ -907,18 +914,59 @@ class CommentBaseSerializer(serializers.ModelSerializer):
         # Automatically set the user based on the request
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+    def get_request_status(self,obj):
+        request_user = self.context['request'].user
+        status = None
+        try:
+            request_follow_obj = RequestToFollow.objects.get(
+                requset_reciever=obj.user,  # The user who will receive the request
+                request_sender=request_user   # The user who sent the request
+            )
+        except RequestToFollow.DoesNotExist:
+            request_follow_obj = None
 
+        if not request_follow_obj is None:
+            status = request_follow_obj.status
+        return status
+
+    def get_private(self,obj):
+        return obj.user.private
+
+    def get_user_followed(self, obj):
+        request_user = self.context['request'].user
+        if request_user.is_authenticated:
+            # Assuming each user has one FollowModel instance associated with them
+            follow_model = FollowModel.objects.filter(user=request_user).first()
+            if follow_model:
+                if follow_model.is_following(obj.user) == False:
+                    return True
+                else:
+                    return False 
+        return False
+    def validate(self, attrs):
+        """
+        Check that either the voice or text is provided.
+        """
+        voice = attrs.get('voice')
+        text = attrs.get('text')
+
+        # Check if both voice and text are missing
+        if not voice and not text:
+            raise serializers.ValidationError("Either voice or text must be provided.")
+
+        # Continue with the default validation after custom checks
+        return super().validate(attrs)
 
 class CommentBaseWebSocketSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
-    user_username = serializers.SerializerMethodField()
-    profile_image_url = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField() 
     user_liked = serializers.SerializerMethodField()
 
     class Meta:
         abstract = True
-        fields = ['id','text','user_id','user_username','profile_image_url','total_likes','created_at','full_name','user_liked']
+        fields = ['id','text','user_id','username','profile_image','total_likes','created_at','full_name','user_liked']
     
     def get_user_liked(self, obj):
         # Get the current request user
@@ -934,9 +982,9 @@ class CommentBaseWebSocketSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.user.full_name
 
-    def get_user_username(self, obj):
+    def get_username(self, obj):
         return obj.user.username
-    def get_profile_image_url(self, obj):
+    def get_profile_image(self, obj):
         if obj.user.profile_image:
             request = self.context.get('request')
             return f"{settings.SITE_DOMAIN}{obj.user.profile_image.url}"
@@ -970,11 +1018,11 @@ class RecursiveSerializer(serializers.Serializer):
 class TweetCommentSerializer(CommentBaseSerializer):
     replies = RecursiveSerializer(many=True, read_only=True)
     replies_count = serializers.SerializerMethodField()
-    user_followed = serializers.SerializerMethodField()
+    voice = serializers.FileField(allow_null=True, required=False)  # Ensure this is defined if it's not inherited
 
     class Meta(CommentBaseSerializer.Meta):
         model = TweetCommentModel
-        fields = CommentBaseSerializer.Meta.fields + ['user_followed','replies', 'replies_count','pinned','pinned_at']
+        fields = CommentBaseSerializer.Meta.fields + ['replies', 'replies_count','pinned','pinned_at']
 
     def get_replies_count(self, obj):
         """
@@ -988,18 +1036,16 @@ class TweetCommentSerializer(CommentBaseSerializer):
 
         return count_replies(obj)
 
-    def get_user_followed(self, obj):
-        request_user = self.context['request'].user
-        if request_user.is_authenticated:
-            # Assuming each user has one FollowModel instance associated with them
-            follow_model = FollowModel.objects.filter(user=request_user).first()
-            if follow_model:
-                if follow_model.is_following(obj.user) == False:
-                    return True
-                else:
-                    return False 
-        return False
-
+    
+    def validate(self, data):
+        """
+        Check that either text or voice is provided.
+        """
+        if not data.get('text') and not data.get('voice'):
+            raise serializers.ValidationError("Either text or a voice note must be provided.")
+        if data.get('text') and data.get('voice'):
+            raise serializers.ValidationError("Cannot provide both text and a voice note.")
+        return data
 class TweetReplyCommentSerializer(CommentBaseSerializer):
     class Meta(CommentBaseSerializer.Meta):
         model = TweetReplyCommentModel

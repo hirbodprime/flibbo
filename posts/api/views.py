@@ -631,10 +631,7 @@ class TweetPostUpdateCommentUnLikesAPIView(APIView):
 class TweetPostCommentListView(ListAPIView):
     serializer_class = TweetCommentSerializer
     pagination_class = CustomPagination
-    # permission_classes = [permissions.AllowAny]  # You can adjust permissions as needed
-
-
-
+    permission_classes = [IsAuthenticated] 
     def get_queryset(self):
         tweet_id = self.kwargs['tweet_id']
         user = self.request.user
