@@ -186,6 +186,7 @@ class BasePostModel(models.Model):
 
 class TweetPostModel(BasePostModel):
     video = models.FileField(upload_to=upload_video_post, blank=True, null=True,max_length=2000)
+    voice = models.FileField(upload_to='posts/voice/', blank=True, null=True,max_length=2000)
     photo = models.ImageField(upload_to=upload_image_post, blank=True, null=True)
     likes = models.ManyToManyField(User, related_name='tweet_posts_liked', blank=True)
     viewed_by_users = models.ManyToManyField(User, related_name='viewed_posts_post', blank=True)
@@ -297,6 +298,8 @@ class PodcastPostModel(BasePostModel):
     def get_absolute_url(self):
         return reverse('podcast_detail', args=[str(self.id)])
 
+class BookModel(models.Model):
+    pass
 
 class TweetCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

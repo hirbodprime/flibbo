@@ -43,9 +43,10 @@ from posts.utils.view_calculate import (increment_views_count_book , increment_v
  dicrement_saves_count_podcasts,dicrement_likes_count_podcasts,
  increment_saves_count_podcasts,increment_likes_count_podcasts,
  increment_likes_count_tweet_comments,dicrement_likes_count_tweets_comments
- )
+)
 from explore.custom_pagination import CustomPagination
 from accounts.models import BlockModel
+from activity.models import Activity
 
 User = get_user_model()
 
@@ -554,8 +555,7 @@ def tweet_unlink_post(request, post_id):
 
 class TweetPostCommentListView(ListAPIView):
     serializer_class = TweetCommentSerializer
-    # permission_classes = [permissions.AllowAny]  # You can adjust permissions as needed
-    
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         block_obj,created = BlockModel.objects.get_or_create(user=self.request.user)
         users_blocked_by_current_user = block_obj.blocked_users.all()
@@ -581,7 +581,6 @@ class TweetPostCommentUpdateLikesAPIView(APIView):
         user = request.user
         if user.is_authenticated:
             comments_id = TweetCommentModel.objects.filter(id__in=id_list)
-
             # Check if the query returned any comments
             if not comments_id.exists():
                 return Response({'error': 'No comments found for the given IDs'}, status=status.HTTP_404_NOT_FOUND)
@@ -592,7 +591,6 @@ class TweetPostCommentUpdateLikesAPIView(APIView):
             except:
                 pass
             result = increment_likes_count_tweet_comments(comments_id, user)
-
             if result:
                 print('View count incremented successfully.')
             else:
@@ -636,14 +634,11 @@ class TweetPostCommentListView(ListAPIView):
         tweet_id = self.kwargs['tweet_id']
         user = self.request.user
         sort = self.request.query_params.get('sort', 'popular')  # Get sort parameter from query params
-
         # Start with all comments for the post that don't have a parent comment
         comments = TweetCommentModel.objects.filter(post=tweet_id, parent_comment__isnull=True)
-
         # If the user is authenticated, exclude comments they've hidden
         if user and user.is_authenticated:
             comments = comments.exclude(hidden_by_users=user)
-
         # Sort comments based on the provided sort parameter
         if sort == 'popular':
             comments = comments.annotate(like_count=Count('likes')).order_by('-like_count')
@@ -655,12 +650,10 @@ class TweetPostCommentListView(ListAPIView):
             comments = comments.order_by('-pinned', '-pinned_at')
         else:
             raise ValidationError('Invalid sort parameter.')
-
         return comments
     def list(self, request, *args, **kwargs):
         try:
             queryset = self.filter_queryset(self.get_queryset())
-
             # Applying pagination
             page = self.paginate_queryset(queryset)
             if page is not None:
@@ -669,11 +662,9 @@ class TweetPostCommentListView(ListAPIView):
 
             serializer = self.get_serializer(queryset, many=True, context={'request': request})
             return Response({'comments': serializer.data})
-            
         except Exception as e:
             return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-from activity.models import Activity
 
 class PinCommentView(APIView):
     permission_classes = [IsAuthenticated]
