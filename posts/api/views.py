@@ -755,7 +755,7 @@ class TweetCommentCreateView(APIView):
             user_device = UserDeviceModel.objects.get(user=post.user)
             if user_device.user_token:
                 token = [user_device.user_token]
-                sendPush("Comment", f"{request.user.username} commented on your post.", token)
+                fcm.sendPush("Comment", f"{request.user.username} commented on your post.", token)
         except UserDeviceModel.DoesNotExist:
             pass  # Handle the case where the post owner doesn't have a device registered
 
