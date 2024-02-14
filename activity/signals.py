@@ -14,6 +14,11 @@ def activity_post_save(sender, instance, created, **kwargs):
             print(newest_activity.followed_user)
             group_name = f"group_activity_updates_{newest_activity.followed_user.id}"
             message['reciever'] = newest_activity.followed_user,
+        # elif newest_activity.activity_type == "unfollow":
+        #     pass
+            # print(newest_activity.followed_user)
+            # group_name = f"group_activity_updates_{newest_activity.followed_user.id}"
+            # message['reciever'] = newest_activity.followed_user,
 
         elif newest_activity.activity_type == "like":
             print(newest_activity.activity_type)
@@ -34,18 +39,19 @@ def activity_post_save(sender, instance, created, **kwargs):
             group_name = f"group_activity_updates_{newest_activity.tweet.user.id}"
             message['related_post'] = newest_activity.tweet.id
             message['reciever'] = newest_activity.tweet.user.id,
-
-        message = {
-            'type': 'activity_update',
-            'activity_id': instance.id,
-            'activity_type': instance.activity_type,
-            'sender':instance.user.username,
-            
-            # Include other relevant activity info
-        }
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(group_name, message)
-
+        try:
+            message = {
+                'type': 'activity_update',
+                'activity_id': instance.id,
+                'activity_type': instance.activity_type,
+                'sender':instance.user.username,
+                
+                # Include other relevant activity info
+            }
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(group_name, message)
+        except:
+            pass
 
 
 
