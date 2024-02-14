@@ -57,8 +57,45 @@ def upload_video_post(instance, filename):
     return upload_video_post_handler.get_filename(instance, filename)
 
 
+# book 
+class Language(models.Model):
+    code = models.CharField(max_length=10)  # e.g., 'en', 'fr', 'es', 'de'
+    name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
 
+class Book(models.Model):
+    title = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.title
+
+class Page(models.Model):
+    book = models.ForeignKey(Book, related_name='pages', on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    page_number = models.IntegerField()
+    content = models.TextField()  # Or consider using a FileField for scanned pages
+
+    class Meta:
+        unique_together = ('book', 'page_number', 'language')
+
+    def __str__(self):
+        return f'{self.book.title} - Page {self.page_number} [{self.language.code}]'
+
+class UserBookProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    last_page_read = models.IntegerField()
+
+    class Meta:
+        unique_together = ('user', 'book', 'language')
+
+    def __str__(self):
+        return f'{self.user.username} - {self.book.title} - Page {self.last_page_read}'
+
+# book 
 class BasePostModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True, null=True)

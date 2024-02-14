@@ -256,6 +256,7 @@ class TweetPostUpdateViewsAPIView(APIView):
     def get(self, request, ids):
         id_list = ids.split(',')  # Split the string into a list of IDs
         user = request.user
+        print(user)
         if user.is_authenticated:
             tweets_list = TweetPostModel.objects.filter(id__in=id_list)
             try:
@@ -269,12 +270,17 @@ class TweetPostUpdateViewsAPIView(APIView):
 
             if result:
                 print('View count incremented successfully.')
+                return Response({'success':True,"success":"Views Added"}, status=status.HTTP_200_OK)
+
             else:
                 print('User already added to views for this post or post not found.')
+                return Response({'success':False,"error":"User already added to views for this post or post not found"}, status=status.HTTP_200_OK)
+
+            
         else:
             print('user not auth')
         # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
+            return Response({'success':False,"error":"Authorization needed"}, status=status.HTTP_200_OK)
 
 
 
