@@ -23,16 +23,13 @@ from notification.models import UserDeviceModel
 from notification import FCMManager  as fcm
 
 from posts.models import (
-    TweetPostModel, BookPostModel, PodcastPostModel,TweetCommentModel,
-    TweetReplyCommentModel, PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,BasePostModel, ReportPost
+    TweetPostModel,TweetCommentModel,
+    TweetReplyCommentModel,BasePostModel, ReportPost,Book, Page,Language,UserBookProgress
     )
 from .serializers import (
-    TweetPostSerializer,TweetPostCreateSerializer,
-    PodcastPostSerializer,BookPostSerializer,
-    BookPostCreateSerializer, PodcastPostCreateSerializer,
-    TweetCommentSerializer,TweetReplyCommentSerializer,PodcastCommentSerializer,
-    PodcastReplyCommentSerializer,BookCommentSerializer,BookReplyCommentSerializer,ReportPostSerializer,UserSerializer,TweetSignlePostSerializer
+    TweetPostSerializer,TweetPostCreateSerializer,PageSerializer,BookSerializer,
+    TweetCommentSerializer,TweetReplyCommentSerializer,
+    ReportPostSerializer,UserSerializer,TweetSignlePostSerializer
     )
 from category.models import UserFavoriteCategories
 from following_system.models import FollowModel
@@ -50,6 +47,65 @@ from activity.models import Activity
 
 User = get_user_model()
 
+class BookPagesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, book_id):
+        language_code = request.query_params.get('language', None)
+        page_number_query = request.query_params.get('page', None)
+
+        book = get_object_or_404(Book, id=book_id)
+
+        # Attempt to retrieve existing user progress for the book
+        user_progress, created = UserBookProgress.objects.get_or_create(
+            user=request.user, book=book,
+            defaults={'last_page_read': 1}  # Default to starting from the first page
+        )
+
+        # If a new language is specified and it's different from the current progress language
+        if language_code and user_progress.language.code != language_code:
+            new_language = get_object_or_404(Language, code=language_code)
+            user_progress.language = new_language
+            # Optionally reset progress if changing language
+            user_progress.last_page_read = 1
+            user_progress.save()
+
+        # If no specific language is provided, use the language from the user's progress
+        language = user_progress.language if not language_code else new_language
+
+        # Determine the page number to serve
+        page_number = user_progress.last_page_read if not page_number_query else int(page_number_query)
+
+        # Fetch the requested page
+        page = Page.objects.filter(book=book, language=language, page_number=page_number).first()
+        if not page:
+            return Response({"error": "Page does not exist in the selected language."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize and return the page data
+        serializer = PageSerializer(page)
+
+        # Update the user's progress only if a specific page number was provided
+        if page_number_query:
+            user_progress.last_page_read = page_number
+            user_progress.save()
+
+        return Response(serializer.data)
+
+
+class BookListView(ListAPIView):
+    serializer_class = BookSerializer
+
+    def get_queryset(self):
+        """
+        Optionally restricts the returned books to a given language,
+        by filtering against a `language` query parameter in the URL.
+        """
+        queryset = Book.objects.all()
+        language_code = self.request.query_params.get('language', None)
+        if language_code is not None:
+            # Filter books that have at least one page in the specified language.
+            queryset = queryset.filter(pages__language__code=language_code).distinct()
+        return queryset
 
 def get_photo_sizes(request, tweet_post_id):
     # Retrieve the TweetPostModel instance by ID
@@ -952,168 +1008,6 @@ class ShareTweetView(APIView):
 
 
 
-class PodcastPostUpdateViewsAPIView(APIView):
-    def get(self, request, ids):
-        id_list = ids.split(',')  # Split the string into a list of IDs
-        user = request.user
-        if user.is_authenticated:
-            podcasts_list = PodcastPostModel.objects.filter(id__in=id_list)
-            print(podcasts_list)
-            result = increment_views_count_podcasts(podcasts_list, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-        # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
-
-
-class PodcastPostUpdateSavesAPIView(APIView):
-    def get(self, request, ids):
-        id_list = ids.split(',')  # Split the string into a list of IDs
-        user = request.user
-        if user.is_authenticated:
-            podcasts_list = PodcastPostModel.objects.filter(id__in=id_list)
-            print(podcasts_list)
-            result = increment_saves_count_podcasts(podcasts_list, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-        # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
-
-class PodcastPostUpdateLikesAPIView(APIView):
-    def get(self, request, ids):
-        id_list = ids.split(',')  # Split the string into a list of IDs
-        user = request.user
-        if user.is_authenticated:
-            podcasts_list = PodcastPostModel.objects.filter(id__in=id_list)
-            print(podcasts_list)
-            result = increment_likes_count_podcasts(podcasts_list, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-        # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
-
-
-class PodcastPostUpdateUnSavesAPIView(APIView):
-    def get(self, request, ids):
-        id_list = ids.split(',')  # Split the string into a list of IDs
-        user = request.user
-        if user.is_authenticated:
-            podcasts_list = PodcastPostModel.objects.filter(id__in=id_list)
-            print(podcasts_list)
-            result = dicrement_saves_count_podcasts(podcasts_list, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-        # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
-
-class PodcastPostUpdateUnLikesAPIView(APIView):
-    def get(self, request, ids):
-        id_list = ids.split(',')  # Split the string into a list of IDs
-        user = request.user
-        if user.is_authenticated:
-            podcasts_list = PodcastPostModel.objects.filter(id__in=id_list)
-            print(podcasts_list)
-            result = dicrement_likes_count_podcasts(podcasts_list, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-        # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
-class PodcastPostUpdateViewsAPIView(APIView):
-    def get(self, request, ids):
-        id_list = ids.split(',')  # Split the string into a list of IDs
-        user = request.user
-        if user.is_authenticated:
-            podcasts_list = PodcastPostModel.objects.filter(id__in=id_list)
-            print(tweets_list)
-            result = increment_views_count_podcasts(podcasts_list, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-        # serializer = TweetPostSerializer(tweets_list, many=True)
-        return Response({'success':True}, status=status.HTTP_200_OK)
-
-class PodcastPostListAPIView(ListAPIView):
-    queryset = PodcastPostModel.objects.all()
-    serializer_class = PodcastPostSerializer
-
-
-class PodcastPostCreateAPIView(CreateAPIView):
-    queryset = PodcastPostModel.objects.all()
-    serializer_class = PodcastPostCreateSerializer
-
-        
-
-class PodcastPostRetrieveAPIView(RetrieveAPIView):
-    queryset = PodcastPostModel.objects.all()
-    serializer_class = PodcastPostSerializer
-
-    def get(self, request, *args, **kwargs):
-        post_id = kwargs.get('pk')  # Get the post_id from URL parameters
-        instance = self.get_object()
-        user = request.user
-
-        if user.is_authenticated:
-            # User is logged in, call your custom function to handle view count
-            result = increment_views_count_podcast(post_id, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-class PodcastPostUpdateAPIView(UpdateAPIView):
-    queryset = PodcastPostModel.objects.all()
-    serializer_class = PodcastPostSerializer
-
-class PodcastPostDestroyAPIView(DestroyAPIView):
-    queryset = PodcastPostModel.objects.all()
-    serializer_class = PodcastPostSerializer
-
-
 
 
 
@@ -1138,38 +1032,6 @@ def podcast_view_post_api(request, post_id):
     else:
         return Response({'error': 'Invalid request method.'}, status=405)
 
-
-
-
-
-
-@api_view(['POST'])
-def podcast_save_post(request, post_id):
-    user = request.user  
-    try:
-        post = PodcastPostModel.objects.get(id=post_id)
-        if user not in post.saved_by_users.all():
-            post.save_post(user)
-        else:
-            return Response({"message": "Post Already Saved."})
-        return Response({"message": "Post saved successfully."})
-    except PodcastTweetPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-@api_view(['POST'])
-def podcast_unsave_post(request, post_id):
-    user = request.user  
-    try:
-        post = PodcastPostModel.objects.get(id=post_id)
-        if user in post.saved_by_users.all():
-            post.unsave_post(user)
-            return Response({"message": "Post unsaved successfully."})
-        else:
-            return Response({"message": "Post not saved."})
-
-    except PodcastPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
 
 
 from dotenv import load_dotenv
@@ -1262,171 +1124,11 @@ class OpenAIChatInteractionViewe3(APIView):
         return Response({"description": 'You Are not Allowed'})
 
 
-
-@api_view(['POST'])
-def podcast_like_post(request, post_id):
-    user = request.user  
-    try:
-        post = PodcastPostModel.objects.get(id=post_id)
-        if user not in post.likes.all():
-            post.likes.add(user)
-            # post.save()
-            return Response({"message": "Post liked successfully."})
-        else:
-            return Response({"message": "Post Already Liked."},status=403)
-
-    except PodcastPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-@api_view(['POST'])
-def podcast_share_post(request, post_id):
-    user = request.user  
-    try:
-        post = PodcastPostModel.objects.get(id=post_id)
-        
-        post.share_post(user)
-        return Response({"message": "Post shared successfully."})
-    except PodcastPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-
-
-
-@api_view(['POST'])
-def podcast_unlink_post(request, post_id):
-    user = request.user
-    try:
-        post = PodcastPostModel.objects.get(id=post_id)
-        # Check if the user is associated with the post before removing
-        print(post.likes.all())
-        if user in post.likes.all():
-            post.likes.remove(user)
-            return Response({"message": "Post unlinked successfully."})
-        else:
-            return Response({"message": "User is not associated with this post."}, status=400)
-    except PodcastPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-
-
-
-
-class PodcastCommentListView(ListAPIView):
-    queryset = PodcastCommentModel.objects.all()
-    serializer_class = PodcastCommentSerializer
-
-
-
-
-
-
-
-
-class PodcastCommentCreateView(CreateAPIView):
-    serializer_class = PodcastCommentSerializer
-    queryset = PodcastCommentModel.objects.none()
-
-    @method_decorator(cache_page(10))  # Cache the view for 10 seconds
-    def post(self, request, *args, **kwargs):
-        # Check if the user has made a comment within the last 10 seconds
-        user_key = f"user_{request.user.id}_comment"
-        if cache.get(user_key):
-            raise serializers.ValidationError("You must wait 10 seconds between comments.")
-
-        post_id = self.kwargs.get('id')
-        
-        # Assuming you have a PodcastPostModel with an 'id' field
-        try:
-            post = PodcastPostModel.objects.get(id=post_id)
-            
-        except PodcastPostModel.DoesNotExist:
-            raise serializers.ValidationError("The specified post does not exist")
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # You can add additional validation here if needed
-        
-        # Save the comment
-        serializer.save(post=post)
-
-        # Set a cache key for the user to enforce the 10-second delay
-        cache.set(user_key, True, 10)
-
-        return Response(serializer.data)
-
-
-
-class PodcastReplyCommentCreateView(CreateAPIView):
-    serializer_class = PodcastReplyCommentSerializer
-    queryset =  PodcastCommentModel.objects.none()
-
-    @method_decorator(cache_page(10))  # Cache the view for 10 seconds
-    def post(self, request, *args, **kwargs):
-        # Check if the user has made a comment within the last 10 seconds
-        user_key = f"user_{request.user.id}_comment"
-        if cache.get(user_key):
-            raise serializers.ValidationError("You must wait 10 seconds between comments.")
-
-        parent_comment_id = self.kwargs.get('id')
-        
-        # Assuming you have a PodcastCommentModel with an 'id' field
-        try:
-            parent_comment = PodcastCommentModel.objects.get(id=parent_comment_id)
-            
-        except PodcastCommentModel.DoesNotExist:
-            raise serializers.ValidationError("The specified parent comment does not exist")
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # You can add additional validation here if needed
-        
-        # Save the reply comment with the parent comment as the reference
-        serializer.save(parent_comment=parent_comment)
-
-        # Set a cache key for the user to enforce the 10-second delay
-        cache.set(user_key, True, 10)
-
-        return Response(serializer.data)   
-
-
-
-
-
-
-
-class PodcastReplyCommentListView(ListAPIView):
-    queryset = PodcastReplyCommentModel.objects.all()
-    serializer_class = PodcastReplyCommentSerializer
-
-
-
-
-# from rest_framework.generics import GenericAPIView
-
 class DeleteTweetCommentView(DestroyAPIView):
     queryset = TweetCommentModel.objects.all()
     serializer_class = TweetCommentSerializer
     permission_classes = [IsAuthenticated]
 
-@api_view(['POST'])
-def podcast_like_comment(request, comment_id):
-    user = request.user  
-    try:
-        comment = TweetCommentModel.objects.get(id=comment_id)
-        if user not in comment.likes.all():
-            comment.likes.add(user)
-            # post.save()
-            return Response({"message": "comment liked successfully."})
-        else:
-            return Response({"message": "comment Already Liked."},status=403)
-
-    except TweetCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
 from django.apps import apps
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -1445,323 +1147,5 @@ def podcast_unlikes_update(request,post_id):
     else:
         return JsonResponse({'error': 'Unauthorized access.'}, status=401)
 
-@api_view(['POST'])
-def podcast_unlink_comment(request, comment_id):
-    user = request.user
-    try:
-        comment = PodcastCommentModel.objects.get(id=comment_id)
-        # Check if the user is associated with the post before removing
-        if user in comment.likes.all():
-            comment.likes.remove(user)
-            return Response({"message": "comment unlinked successfully."})
-        else:
-            return Response({"message": "User is not associated with this comment."}, status=400)
-    except PodcastCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
 
-@api_view(['POST'])
-def podcast_like_reply_comment(request, comment_id):
-    user = request.user  
-    try:
-        comment = PodcastReplyCommentModel.objects.get(id=comment_id)
-        if user not in comment.likes.all():
-            comment.likes.add(user)
-            # post.save()
-            return Response({"message": "comment liked successfully."})
-        else:
-            return Response({"message": "comment Already Liked."},status=403)
-
-    except PodcastReplyCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
-
-@api_view(['POST'])
-def podcast_unlink_reply_comment(request, comment_id):
-    user = request.user
-    try:
-        comment = PodcastReplyCommentModel.objects.get(id=comment_id)
-        # Check if the user is associated with the post before removing
-        if user in comment.likes.all():
-            comment.likes.remove(user)
-            return Response({"message": "comment unlinked successfully."})
-        else:
-            return Response({"message": "User is not associated with this comment."}, status=400)
-    except PodcastReplyCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
-
-class SharePodcastView(APIView):
-    def get(self, request, pk):
-        post = get_object_or_404(PodcastPostModel, pk=pk)
-        post.increment_total_shares()
-        post_url = request.build_absolute_uri(post.get_absolute_url())
-        return Response({'share_link': post_url})
-
-# book views from here ---------------------------------------------------------------------------------------------------------
-
-
-
-class BookPostListAPIView(ListAPIView):
-    queryset = BookPostModel.objects.all()
-    serializer_class = BookPostSerializer
-
-
-class BookPostCreateAPIView(CreateAPIView):
-    queryset = BookPostModel.objects.all()
-    serializer_class = BookPostCreateSerializer
-
-        
-
-class BookPostRetrieveAPIView(RetrieveAPIView):
-    queryset = BookPostModel.objects.all()
-    serializer_class = BookPostSerializer
-
-    def get(self, request, *args, **kwargs):
-        post_id = kwargs.get('pk')  # Get the post_id from URL parameters
-        instance = self.get_object()
-        user = request.user
-
-        if user.is_authenticated:
-            # User is logged in, call your custom function to handle view count
-            result = increment_views_count_book(post_id, user)
-
-            if result:
-                print('View count incremented successfully.')
-            else:
-                print('User already added to views for this post or post not found.')
-        else:
-            print('user not auth')
-
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-class BookPostUpdateAPIView(UpdateAPIView):
-    queryset = BookPostModel.objects.all()
-    serializer_class = BookPostSerializer
-
-class BookPostDestroyAPIView(DestroyAPIView):
-    queryset = BookPostModel.objects.all()
-    serializer_class = BookPostSerializer
-
-
-@api_view(['POST'])
-def book_save_post(request, post_id):
-    user = request.user  
-    try:
-        post = BookPostModel.objects.get(id=post_id)
-        if user not in post.saved_by_users.all():
-            post.save_post(user)
-        else:
-            return Response({"message": "Post Already Saved."})
-        return Response({"message": "Post saved successfully."})
-    except BookPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-@api_view(['POST'])
-def book_unsave_post(request, post_id):
-    user = request.user  
-    try:
-        post = BookPostModel.objects.get(id=post_id)
-        if user in post.saved_by_users.all():
-            post.unsave_post(user)
-            return Response({"message": "Post unsaved successfully."})
-        else:
-            return Response({"message": "Post not saved."})
-
-    except BookPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-@api_view(['POST'])
-def book_like_post(request, post_id):
-    user = request.user  
-    try:
-        post = BookPostModel.objects.get(id=post_id)
-        if user not in post.likes.all():
-            post.likes.add(user)
-            # post.save()
-            return Response({"message": "Post liked successfully."})
-        else:
-            return Response({"message": "Post Already Liked."},status=403)
-
-    except BookPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-@api_view(['POST'])
-def book_share_post(request, post_id):
-    user = request.user  
-    try:
-        post = BookPostModel.objects.get(id=post_id)
-        
-        post.share_post(user)
-        return Response({"message": "Post shared successfully."})
-    except BookPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-
-
-
-@api_view(['POST'])
-def book_unlink_post(request, post_id):
-    user = request.user
-    try:
-        post = BookPostModel.objects.get(id=post_id)
-        # Check if the user is associated with the post before removing
-        print(post.likes.all())
-        if user in post.likes.all():
-            post.likes.remove(user)
-            return Response({"message": "Post unlinked successfully."})
-        else:
-            return Response({"message": "User is not associated with this post."}, status=400)
-    except BookPostModel.DoesNotExist:
-        return Response({"message": "Post not found."}, status=404)
-
-
-class ShareBookView(APIView):
-    def get(self, request, pk):
-        post = get_object_or_404(BookPostModel, pk=pk)
-        post.increment_total_shares()
-        post_url = request.build_absolute_uri(post.get_absolute_url())
-        return Response({'share_link': post_url})
-
-class BookCommentListView(ListAPIView):
-    queryset = BookCommentModel.objects.all()
-    serializer_class = BookCommentSerializer
-
-
-
-class BookCommentCreateView(CreateAPIView):
-    serializer_class = BookCommentSerializer
-    queryset = BookCommentModel.objects.none()
-
-    @method_decorator(cache_page(10))  # Cache the view for 10 seconds
-    def post(self, request, *args, **kwargs):
-        # Check if the user has made a comment within the last 10 seconds
-        user_key = f"user_{request.user.id}_comment"
-        if cache.get(user_key):
-            raise serializers.ValidationError("You must wait 10 seconds between comments.")
-
-        post_id = self.kwargs.get('id')
-        
-        # Assuming you have a BookPostModel with an 'id' field
-        try:
-            post = BookPostModel.objects.get(id=post_id)
-            
-        except BookPostModel.DoesNotExist:
-            raise serializers.ValidationError("The specified post does not exist")
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # You can add additional validation here if needed
-        
-        # Save the comment
-        serializer.save(post=post)
-
-        # Set a cache key for the user to enforce the 10-second delay
-        cache.set(user_key, True, 10)
-
-        return Response(serializer.data)
-
-
-class BookReplyCommentListView(ListAPIView):
-    queryset = BookReplyCommentModel.objects.all()
-    serializer_class = BookReplyCommentSerializer
-
-
-
-class BookReplyCommentCreateView(CreateAPIView):
-    serializer_class = BookReplyCommentSerializer
-    queryset =  BookReplyCommentModel.objects.none()
-
-    @method_decorator(cache_page(10))  # Cache the view for 10 seconds
-    def post(self, request, *args, **kwargs):
-        # Check if the user has made a comment within the last 10 seconds
-        user_key = f"user_{request.user.id}_comment"
-        if cache.get(user_key):
-            raise serializers.ValidationError("You must wait 10 seconds between comments.")
-
-        parent_comment_id = self.kwargs.get('id')
-        
-        # Assuming you have a BookCommentModel with an 'id' field
-        try:
-            parent_comment = BookCommentModel.objects.get(id=parent_comment_id)
-            
-        except BookCommentModel.DoesNotExist:
-            raise serializers.ValidationError("The specified parent comment does not exist")
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # You can add additional validation here if needed
-        
-        # Save the reply comment with the parent comment as the reference
-        serializer.save(parent_comment=parent_comment)
-
-        # Set a cache key for the user to enforce the 10-second delay
-        cache.set(user_key, True, 10)
-
-        return Response(serializer.data)   
-
-
-@api_view(['POST'])
-def book_like_comment(request, comment_id):
-    user = request.user  
-    try:
-        comment = BookCommentModel.objects.get(id=comment_id)
-        if user not in comment.likes.all():
-            comment.likes.add(user)
-            # post.save()
-            return Response({"message": "comment liked successfully."})
-        else:
-            return Response({"message": "comment Already Liked."},status=403)
-
-    except BookCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
-
-@api_view(['POST'])
-def book_unlink_comment(request, comment_id):
-    user = request.user
-    try:
-        comment = BookCommentModel.objects.get(id=comment_id)
-        # Check if the user is associated with the post before removing
-        if user in comment.likes.all():
-            comment.likes.remove(user)
-            return Response({"message": "comment unlinked successfully."})
-        else:
-            return Response({"message": "User is not associated with this comment."}, status=400)
-    except BookCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
-
-@api_view(['POST'])
-def book_like_reply_comment(request, comment_id):
-    user = request.user  
-    try:
-        comment = BookReplyCommentModel.objects.get(id=comment_id)
-        if user not in comment.likes.all():
-            comment.likes.add(user)
-            # post.save()
-            return Response({"message": "comment liked successfully."})
-        else:
-            return Response({"message": "comment Already Liked."},status=403)
-
-    except BookReplyCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
-
-@api_view(['POST'])
-def book_unlink_reply_comment(request, comment_id):
-    user = request.user
-    try:
-        comment = BookReplyCommentModel.objects.get(id=comment_id)
-        # Check if the user is associated with the post before removing
-        if user in comment.likes.all():
-            comment.likes.remove(user)
-            return Response({"message": "comment unlinked successfully."})
-        else:
-            return Response({"message": "User is not associated with this comment."}, status=400)
-    except BookReplyCommentModel.DoesNotExist:
-        return Response({"message": "comment not found."}, status=404)
 

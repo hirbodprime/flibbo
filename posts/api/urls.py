@@ -53,57 +53,8 @@ urlpatterns = [
 
     # book urls
 
-    path('books/list/', custom_views.BookPostListAPIView.as_view(), name='book_list'),
-    path('book/create/', custom_views.BookPostCreateAPIView.as_view(), name='book_create'),
-    path('book/get/<int:pk>/', custom_views.BookPostRetrieveAPIView.as_view(), name='book_detail'),
-    path('book/update/<int:pk>/', custom_views.BookPostUpdateAPIView.as_view(), name='book_update'),
-    path('book/delete/<int:pk>/', custom_views.BookPostDestroyAPIView.as_view(), name='book_delete'),
-
-    path('book/save/<int:post_id>/', custom_views.book_save_post, name='book_save_post'),
-    path('book/unsave/<int:post_id>/', custom_views.book_unsave_post, name='book_unsave_post'),
-    path('book/like/<int:post_id>/', custom_views.book_like_post, name='book_like_post'),
-    path('book/share/<int:pk>/', custom_views.ShareBookView.as_view(), name='book_share_post'),
-    path('book/unlike/<int:post_id>/', custom_views.book_unlink_post, name='book_unlink_post'),
-
-    path('book/comment/like/<int:comment_id>/', custom_views.book_like_comment, name='book_like_comment'),
-    path('book/comment/unlike/<int:comment_id>/', custom_views.book_unlink_comment, name='book_unlink_comment'),
-    path('book/reply-comment/like/<int:comment_id>/', custom_views.book_like_reply_comment, name='book_like_reply_comment'),
-    path('book/reply-comment/unlike/<int:comment_id>/', custom_views.book_unlink_reply_comment, name='book_unlink_reply_comment'),
-
-    path('book/comments/', custom_views.BookCommentListView.as_view(), name='book-comment-list'),
-    path('book/comment/create/<int:id>/', custom_views.BookCommentCreateView.as_view(), name='book-comment-create'),
-    path('book/reply-comments/', custom_views.BookReplyCommentListView.as_view(), name='book-reply-comment-list'),
-    path('book/reply-comment/create/<int:id>/', custom_views.BookReplyCommentCreateView.as_view(), name='book-reply-comment-create'),
-
-    # podcast urls
-
-    path('podcasts/list/', custom_views.PodcastPostListAPIView.as_view(), name='podcast_list'),
-    path('podcast/create/', custom_views.PodcastPostCreateAPIView.as_view(), name='podcast_create'),
-    path('podcast/get/<int:pk>/', custom_views.PodcastPostRetrieveAPIView.as_view(), name='podcast_detail'),
-    path('chat3/',custom_views.OpenAIChatInteractionViewe3.as_view()),
-    path('chat2/',custom_views.OpenAIChatInteractionViewe.as_view()),
-    path('podcast/update/<int:pk>/', custom_views.PodcastPostUpdateAPIView.as_view(), name='podcast_update'),
-    path('podcast/delete/<int:pk>/', custom_views.PodcastPostDestroyAPIView.as_view(), name='podcast_delete'),
-    path('podcast/update/views/<str:ids>/', custom_views.PodcastPostUpdateViewsAPIView.as_view(), name='podcast_update_views'),
+    path('books/list/', custom_views.BookListView.as_view(), name='book_list'),
+    path('books/<int:book_id>/pages/', custom_views.BookPagesView.as_view(), name='book-pages'),
 
 
-    path('podcast/save/<int:post_id>/', custom_views.podcast_save_post, name='podcast_save_post'),
-    path('podcast/unsave/<int:post_id>/', custom_views.podcast_unsave_post, name='podcast_unsave_post'),
-    path('podcast/view/<int:post_id>/', custom_views.podcast_view_post_api, name='podcast_view_post'),
-    path('podcast/unlikes/<str:post_id>/', custom_views.podcast_unlikes_update, name='podcast_unlikes_post'),
-    # path('podcast/notifs/<str:post_id>/', custom_views.podcast_send_notification, name='podcast_unlikes_post'),
-    path('podcast/like/<int:post_id>/', custom_views.podcast_like_post, name='podcast_like_post'),
-    path('podcast/share/<int:pk>/', custom_views.SharePodcastView.as_view(), name='podcast_share_post'),
-    path('podcast/unlike/<int:post_id>/', custom_views.podcast_unlink_post, name='podcast_unlink_post'),
-    
-    path('podcast/comment/like/<int:comment_id>/', custom_views.podcast_like_comment, name='podcast_like_comment'),
-    path('podcast/comment/unlike/<int:comment_id>/', custom_views.podcast_unlink_comment, name='podcast_unlink_comment'),
-    path('podcast/reply-comment/like/<int:comment_id>/', custom_views.podcast_like_reply_comment, name='podcast_like_reply_comment'),
-    path('podcast/reply-comment/unlike/<int:comment_id>/', custom_views.podcast_unlink_reply_comment, name='podcast_unlink_reply_comment'),\
-
-    path('podcast/comments/', custom_views.PodcastCommentListView.as_view(), name='podcast-comment-list'),
-    path('podcast/comment/create/<int:id>/', custom_views.PodcastCommentCreateView.as_view(), name='podcast-comment-create'),
-    path('podcast/reply-comments/', custom_views.PodcastReplyCommentListView.as_view(), name='podcast-reply-comment-list'),
-    path('podcast/reply-comment/create/<int:id>/', custom_views.PodcastReplyCommentCreateView.as_view(), name='podcast-reply-comment-create'),
-    # Add other URL patterns as needed
 ] 

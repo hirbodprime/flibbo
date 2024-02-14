@@ -1,9 +1,23 @@
 from django.contrib import admin
+from django.contrib.admin import AdminSite , ModelAdmin
 from .models import (TweetPostModel,BookPostModel,PodcastPostModel,TweetCommentModel, TweetReplyCommentModel,
     PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,ReportPost)  # Import the concrete model
+    BookCommentModel, BookReplyCommentModel,ReportPost,Language,Book,Page,UserBookProgress)  # Import the concrete model
 
 admin.site.register(ReportPost)
+
+class BookAdmin(AdminSite):
+    site_header = 'book admin'
+    site_title = 'book admin'
+
+
+
+book_admin = BookAdmin(name='bookadmin')
+book_admin.register(Language, ModelAdmin)
+book_admin.register(Book, ModelAdmin)
+book_admin.register(Page, ModelAdmin)
+book_admin.register(UserBookProgress, ModelAdmin)
+
 
 
 # Admin class for TweetPostModel

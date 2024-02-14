@@ -2,8 +2,8 @@ from rest_framework import serializers
 from posts.models import (
     TweetPostModel, BookPostModel, PodcastPostModel,TweetCommentModel,
     TweetReplyCommentModel, PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,ReportPost
-    )
+    BookCommentModel, BookReplyCommentModel,ReportPost,Book,Page
+)
 
 from django_countries.fields import CountryField
 from django.contrib.auth import get_user_model
@@ -15,6 +15,16 @@ from accounts.models import BlockModel
 from django.conf import settings
 
 User = get_user_model()
+
+class PageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = ['id', 'book', 'language', 'page_number', 'content']
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = ['id', 'title', 'description', 'cover_image']
 
 class TweetSignlePostSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField()
@@ -1052,25 +1062,6 @@ class TweetReplyCommentSerializer(CommentBaseSerializer):
 
 
 
-
-class PodcastCommentSerializer(CommentBaseSerializer):
-    class Meta(CommentBaseSerializer.Meta):
-        model = PodcastCommentModel
-
-class PodcastReplyCommentSerializer(CommentBaseSerializer):
-    class Meta(CommentBaseSerializer.Meta):
-        model = PodcastReplyCommentModel
-
-
-
-
-class BookCommentSerializer(CommentBaseSerializer):
-    class Meta(CommentBaseSerializer.Meta):
-        model = BookCommentModel
-
-class BookReplyCommentSerializer(CommentBaseSerializer):
-    class Meta(CommentBaseSerializer.Meta):
-        model = BookReplyCommentModel
 
 
 
