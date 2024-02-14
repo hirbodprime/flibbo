@@ -270,7 +270,7 @@ class TweetPostUpdateViewsAPIView(APIView):
 
             if result:
                 print('View count incremented successfully.')
-                return Response({'success':True,"success":"Views Added"}, status=status.HTTP_200_OK)
+                return Response({'success':True,"message":"Views Added"}, status=status.HTTP_200_OK)
 
             else:
                 print('User already added to views for this post or post not found.')
