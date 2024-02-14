@@ -27,8 +27,13 @@ def activity_post_save(sender, instance, created, **kwargs):
             print(newest_activity.activity_type)
             group_name = f"group_activity_updates_{newest_activity.tweet.user.id}"
             message['related_post'] = newest_activity.tweet.id
-            message['reciever'] = newest_activity.tweet.user.id,
+            message['reciever'] = newest_activity.tweet.user.id
 
+        elif newest_activity.activity_type == "view":
+            print(newest_activity.activity_type)
+            group_name = f"group_activity_updates_{newest_activity.tweet.user.id}"
+            message['related_post'] = newest_activity.tweet.id
+            message['reciever'] = newest_activity.tweet.user.id,
 
         message = {
             'type': 'activity_update',
