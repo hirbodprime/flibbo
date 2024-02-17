@@ -77,7 +77,7 @@ class OpenAIChatCreateDescriptionView(CreateAPIView):
                 # {"role": "system", "content": "You are a Post Caption Creator, you make the best captions."},
                 {"role": "system", "content": "You are a helpful assistant"},
                 # {"role": "user", "content": f"this is the description written  by me, i would like you to help me make it better: {user_prompt}"}
-                {"role": "user", "content": user_prompt}
+                {"role": "user", "content": f"I will send you a caption please make it better, Answer with maximum of 280 Characters not more but less is okay. the prompt: {user_prompt}"}
             ]
 
             completion = client.chat.completions.create(
