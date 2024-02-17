@@ -702,11 +702,19 @@ class TweetPostCommentListView(ListAPIView):
         tweet_id = self.kwargs['tweet_id']
         user = self.request.user
         sort = self.request.query_params.get('sort', 'popular')  # Get sort parameter from query params
-        # Start with all comments for the post that don't have a parent comment
-        comments = TweetCommentModel.objects.filter(post=tweet_id, parent_comment__isnull=True)
-        # If the user is authenticated, exclude comments they've hidden
-        if user and user.is_authenticated:
-            comments = comments.exclude(hidden_by_users=user)
+
+        # Start with all comments for the post
+        comments = TweetCommentModel.objects.filter(post=tweet_id)
+
+        # Construct a Q object for hidden comments and their replies
+        hidden_condition = Q(hidden_by_users=user) | Q(parent_comment__hidden_by_users=user)
+
+        # Exclude hidden comments and replies
+        comments = comments.exclude(hidden_condition)
+
+        # Filter comments that don't have a parent comment (i.e., top-level comments)
+        comments = comments.filter(parent_comment__isnull=True)
+
         # Sort comments based on the provided sort parameter
         if sort == 'popular':
             comments = comments.annotate(like_count=Count('likes')).order_by('-like_count')
@@ -718,7 +726,9 @@ class TweetPostCommentListView(ListAPIView):
             comments = comments.order_by('-pinned', '-pinned_at')
         else:
             raise ValidationError('Invalid sort parameter.')
+
         return comments
+
     def list(self, request, *args, **kwargs):
         try:
             queryset = self.filter_queryset(self.get_queryset())
