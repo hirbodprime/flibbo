@@ -605,26 +605,26 @@ def tweet_unlink_post(request, post_id):
 
 
 
-class TweetPostCommentListView(ListAPIView):
-    serializer_class = TweetCommentSerializer
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        block_obj,created = BlockModel.objects.get_or_create(user=self.request.user)
-        users_blocked_by_current_user = block_obj.blocked_users.all()
+# class TweetPostCommentListView(ListAPIView):
+#     serializer_class = TweetCommentSerializer
+#     permission_classes = [IsAuthenticated]
+#     def get_queryset(self):
+#         block_obj,created = BlockModel.objects.get_or_create(user=self.request.user)
+#         users_blocked_by_current_user = block_obj.blocked_users.all()
 
-        # Step 2: Get users who have blocked the current user
-        users_who_blocked_current_user,created = BlockModel.objects.get_or_create(user=self.request.user)
-        blocked_by_users_obj =  users_who_blocked_current_user.blocked_by.all()
-        # Step 3: Combine the lists
-        blocked_users_combined = users_blocked_by_current_user | blocked_by_users_obj
-        tweet_id = self.kwargs['tweet_id']  # Assuming you have 'tweet_id' in your URL patterns
-        comments = TweetCommentModel.objects.exclude(user__in=blocked_users_combined).filter(post=tweet_id).annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')
-        return comments
+#         # Step 2: Get users who have blocked the current user
+#         users_who_blocked_current_user,created = BlockModel.objects.get_or_create(user=self.request.user)
+#         blocked_by_users_obj =  users_who_blocked_current_user.blocked_by.all()
+#         # Step 3: Combine the lists
+#         blocked_users_combined = users_blocked_by_current_user | blocked_by_users_obj
+#         tweet_id = self.kwargs['tweet_id']  # Assuming you have 'tweet_id' in your URL patterns
+#         comments = TweetCommentModel.objects.exclude(user__in=blocked_users_combined).filter(post=tweet_id).annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')
+#         return comments
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({'comments': serializer.data})
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.get_queryset()
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response({'comments': serializer.data})
 
 class TweetPostCommentUpdateLikesAPIView(APIView):
     def get(self, request, ids):
