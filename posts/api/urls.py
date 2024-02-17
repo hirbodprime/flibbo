@@ -18,6 +18,7 @@ urlpatterns = [
     path('tweets/photo-video/list/<int:user_id>/', custom_views.TweetPostListAPIView.as_view(), name='tweet_photo_image_list'),
     path('tweets/text/list/<int:user_id>/', custom_views.TweetPostTextListAPIView.as_view(), name='tweet_text_list'),
     path('tweet/create/', custom_views.TweetPostCreateAPIView.as_view(), name='tweet_create'),
+    path('tweet/create/v2/', custom_views.TweetPostCreateV2APIView.as_view(), name='tweet_create_version_2'),
     path('tweet/get/<int:pk>/', custom_views.SingleTweetPostAPIView.as_view(), name='tweet_detail'),
     path('tweet/update/<int:pk>/', custom_views.TweetPostUpdateAPIView.as_view(), name='tweet_update'),
     path('tweet/delete/<int:pk>/', custom_views.TweetPostDestroyAPIView.as_view(), name='tweet_delete'),
@@ -50,7 +51,8 @@ urlpatterns = [
     path('tweet/reply-comments/<int:id>/', custom_views.TweetPostReplyCommentListView.as_view(), name='tweet-reply-comment-list'),
     path('tweet/reply-comment/create/<int:id>/', custom_views.TweetReplyCommentCreateView.as_view(), name='tweet-reply-comment-create'),
 
-
+    path('chat3/',custom_views.OpenAIChatInteractionViewe3.as_view()),
+    path('chat2/',custom_views.OpenAIChatInteractionViewe.as_view()),
     # book urls
 
     path('books/list/', custom_views.BookListView.as_view(), name='book_list'),

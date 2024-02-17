@@ -51,11 +51,12 @@ urlpatterns = [
     path('delete/chat/<str:chat_id>/', v.delete_chat, name='delete_chat_api'),
     path('text-prompts/', v.get_random_prompts, name='random-prompts'),
     path('image-prompts/', v.get_random_image_prompts, name='random-prompts'),
-    
+    path('chat/caption/', v.OpenAIChatCreateDescriptionView.as_view()),
     path('chat-edit/',v.OpenAIImageEditInteractionView.as_view()),
     path('chat/',v.OpenAIChatInteractionView.as_view()),
     path('image/',v.OpenAIImageInteractionView.as_view()),
     path('audio/',v.OpenAIAudioInteractionView.as_view()),
+    path('random-prompts/', v.RandomPromptsAPIView.as_view(), name='random-prompts'),
 
     path('chat/create/',v.OpenAIChatIDCreateView.as_view(), name='openai-chat-create'),
     path('chat/history/', v.OpenAIChatIDHistoryView.as_view(), name='openai-chat-history'),

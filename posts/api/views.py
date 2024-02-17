@@ -27,7 +27,7 @@ from posts.models import (
     TweetReplyCommentModel,BasePostModel, ReportPost,Book, Page,Language,UserBookProgress
     )
 from .serializers import (
-    TweetPostSerializer,TweetPostCreateSerializer,PageSerializer,BookSerializer,
+    TweetPostSerializer,TweetPostCreateSerializer,PageSerializer,BookSerializer,TweetPostCreateV2Serializer,
     TweetCommentSerializer,TweetReplyCommentSerializer,
     ReportPostSerializer,UserSerializer,TweetSignlePostSerializer
     )
@@ -187,26 +187,6 @@ class FollowerPostsViewSet(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-# class CategoryPostsViewSet(APIView):
-#     def get(self, request):
-#         paginator = CustomPagination()
-#         # paginator.page_size = 1
-#         user = request.user  # Assuming the user is authenticated
-#         user_categorymodel_obj = UserFavoriteCategories.objects.get(user=user)
-#         categories = user_categorymodel_obj.favorite_categories.all()
-        
-#         # Assuming you have a TweetPostSerializer for TweetPostModel
-#         tweets = TweetPostModel.objects.filter(hide=False).order_by('-created_date')
-#         paginated_tweets = paginator.paginate_queryset(tweets, request)
-#         tweet_data = [TweetPostSerializer(tweet, context={'request': request}).data for tweet in paginated_tweets]
-#         response_data = {
-#             "tweets": tweet_data,
-#             'next': paginator.get_next_link(),
-#             'previous': paginator.get_previous_link()
-#             # "podcasts": podcast_data,
-#         }
-        
-#         return Response(response_data, status=status.HTTP_200_OK)
 
 
 
@@ -495,11 +475,21 @@ class TweetPostTextListAPIView(ListAPIView):
 class TweetPostCreateAPIView(CreateAPIView):
     queryset = TweetPostModel.objects.all()
     serializer_class = TweetPostCreateSerializer
+    permission_classes = [IsAuthenticated]
+
     def perform_create(self, serializer):
         # Assign the logged-in user to the 'user' field of the TweetPostModel
         serializer.save(user=self.request.user)
         
+class TweetPostCreateV2APIView(CreateAPIView):
+    queryset = TweetPostModel.objects.all()
+    serializer_class = TweetPostCreateV2Serializer
+    permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        # Assign the logged-in user to the 'user' field of the TweetPostModel
+        serializer.save(user=self.request.user)
+        
 class TweetPostRetrieveAPIView(RetrieveAPIView):
     queryset = TweetPostModel.objects.all()
     serializer_class = TweetPostSerializer
@@ -648,18 +638,34 @@ class TweetPostCommentUpdateLikesAPIView(APIView):
                 return Response({'error': 'No comments found for the given IDs'}, status=status.HTTP_404_NOT_FOUND)
             try:
                 user_device,created = UserDeviceModel.objects.get_or_create(user=comments_id[0].user)
-                token = [user_device.user_token]
-                fcm.sendPush("Liked Comment", f"{user.username} Liked your comment", token)
-            except:
-                pass
+                tokens = [user_device.user_token]
+                # Ensure all tokens are strings
+                tokens = [str(token) for token in tokens if token is not None]
+
+                if tokens:  # Check if the list is not empty
+                    try:
+                        fcm.sendPush("Liked Comment", f"{user.username} Liked your comment", tokens)
+                    except Exception as e:
+                        return Response({'success': False, "error": str(e)}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'success': False, "error": "No valid tokens found."}, status=status.HTTP_200_OK)
+
+            except Exception as e:
+                return Response({'success': False, "error": str(e)}, status=status.HTTP_200_OK)
+
+
             result = increment_likes_count_tweet_comments(comments_id, user)
             if result:
                 print('View count incremented successfully.')
+                return Response({'success': True}, status=status.HTTP_200_OK)
+
             else:
                 print('User already added to views for this post or post not found.')
+                return Response({'success': False,"error":"User already added to views for this post or post not found."}, status=status.HTTP_200_OK)
+
         else:
             print('user not auth')
-        return Response({'success': True}, status=status.HTTP_200_OK)
+            return Response({'success': False,"error":"user not authenticated"}, status=status.HTTP_200_OK)
 
 
 

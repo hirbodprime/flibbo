@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite , ModelAdmin
 from .models import (TweetPostModel,BookPostModel,PodcastPostModel,TweetCommentModel, TweetReplyCommentModel,
     PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,ReportPost,Language,Book,Page,UserBookProgress)  # Import the concrete model
+    BookCommentModel, BookReplyCommentModel,ReportPost,Language,Book,Page,UserBookProgress,TweetPostImagesModel)  # Import the concrete model
 
 admin.site.register(ReportPost)
 
@@ -76,3 +76,6 @@ class BookCommentAdmin(admin.ModelAdmin):
 @admin.register(BookReplyCommentModel)
 class BookReplyCommentAdmin(admin.ModelAdmin):
     list_display = ('id','user', 'text', 'created_at', 'parent_comment')
+
+
+admin.site.register(TweetPostImagesModel)

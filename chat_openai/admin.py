@@ -61,6 +61,7 @@ class ToolsOptionsModelAdmin(admin.ModelAdmin):
     change_form_template = "custom_admin.html"
 
 
+admin.site.register(models.Prompt)
 admin.site.register(models.OpenAIChatID)
 admin.site.register(models.UserAIStudioLimit)
 

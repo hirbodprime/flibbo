@@ -2,7 +2,7 @@ from rest_framework import serializers
 from posts.models import (
     TweetPostModel, BookPostModel, PodcastPostModel,TweetCommentModel,
     TweetReplyCommentModel, PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,ReportPost,Book,Page
+    BookCommentModel, BookReplyCommentModel,ReportPost,Book,Page, TweetPostImagesModel,TweetPostImagesModel
 )
 
 from django_countries.fields import CountryField
@@ -16,6 +16,28 @@ from django.conf import settings
 
 User = get_user_model()
 
+class TweetPostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TweetPostImagesModel
+        fields = ['image']
+
+
+class TweetPostCreateV2Serializer(serializers.ModelSerializer):
+    images = serializers.ListField(child=serializers.ImageField(), write_only=True, required=False)
+
+    class Meta:
+        model = TweetPostModel
+        fields = ['file','link','id','cover', 'title', 'photo_blur_hash', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'mention_users', 'images']
+
+    def create(self, validated_data):
+        images_data = validated_data.pop('images', None)
+        tweet = super().create(validated_data)
+        if images_data:
+            for image_data in images_data:
+                TweetPostImagesModel.objects.create(tweet=tweet, image=image_data)
+        return tweet
+
+        
 class PageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
@@ -546,7 +568,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
                 
 class TweetPostSerializer(serializers.ModelSerializer):
     # location = CustomCountryField()
-
+    images = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)
     photo = serializers.SerializerMethodField()
     profile_image_url  = serializers.SerializerMethodField()
     user_username = serializers.SerializerMethodField()
@@ -566,6 +588,28 @@ class TweetPostSerializer(serializers.ModelSerializer):
     request_status = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     total_comments = serializers.SerializerMethodField()
+    file = serializers.SerializerMethodField()
+    link = serializers.SerializerMethodField()
+    def get_file(self, obj):
+        # Get the current request object
+        request = self.context.get('request')
+
+        # Check if the object has a 'photo' field
+        if obj.file:
+            # Get the full URL for the photo by prepending the domain
+            return f"{settings.SITE_DOMAIN}{obj.file.url}"
+        else:
+            return None
+    def get_link(self, obj):
+        # Get the current request object
+        request = self.context.get('request')
+
+        # Check if the object has a 'photo' field
+        if obj.link:
+            # Get the full URL for the photo by prepending the domain
+            return obj.link
+        else:
+            return None
     def get_total_comments(self,obj):
         return TweetCommentModel.objects.filter(post=obj).count()
     def get_location(self,obj):
@@ -761,7 +805,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
+        fields = ['link','file','images','cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
                 'updated_date','photo','video',
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
@@ -844,7 +888,7 @@ class TweetPostCreateSerializer(serializers.ModelSerializer):
     # location = CustomCountryField(required=False)
     class Meta:
         model = TweetPostModel
-        fields = ['cover','title', 'photo_blur_hash','height', 'caption', 'hashtag', 'location', 'category', 'urls','voice','photo','video','mention_users']
+        fields = ['link','file','cover','title', 'photo_blur_hash','height', 'caption', 'hashtag', 'location', 'category', 'urls','voice','photo','video','mention_users']
     def create(self, validated_data):
         # Automatically set the 'user' field to the currently logged-in user
         validated_data['user'] = self.context['request'].user

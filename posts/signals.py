@@ -11,9 +11,12 @@ def create_share_link(sender, created, instance, **kwargs):
             'apn': 'com.flibbo.app', 
             'ibi': 'com.flibbo.app'
         }
-        short_link = builder.generate_short_link(app_code='flibbo', **options)
-        instance.share_post = short_link
-        instance.save()
+        try:
+            short_link = builder.generate_short_link(app_code='flibbo', **options)
+            instance.share_post = short_link
+            instance.save()
+        except Exception as e:
+            print(str(e))
 @receiver(m2m_changed, sender=TweetCommentModel.reported_by.through)
 def delete_comment_on_100_reports(sender, instance, **kwargs):
     if instance.reported_by.count() >= 100:

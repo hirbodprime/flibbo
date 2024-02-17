@@ -6,7 +6,8 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.http import JsonResponse, HttpResponseBadRequest , HttpResponse
-from django.db.models import Q
+from django.db.models import Q, Count
+
 
 # rest imports
 from rest_framework.generics import CreateAPIView,GenericAPIView,ListAPIView, DestroyAPIView
@@ -18,8 +19,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from .history_serializers import * 
-from chat_openai.models import OpenAIImageEditInteraction,HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
-from .serializers import (OpenAIImageEditInteractionSerializer,HeyGenTalkingPhotoIDModelSerializer,HeyGenTalkingPhotoImageUploadSerializer,SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
+from chat_openai.models import Prompt,OpenAIImageEditInteraction,HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from .serializers import (PromptSerializer,OpenAIImageEditInteractionSerializer,HeyGenTalkingPhotoIDModelSerializer,HeyGenTalkingPhotoImageUploadSerializer,SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
 OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
@@ -47,7 +48,53 @@ client = OpenAI(
 
 
 
+          
+# share your thoughts
+class RandomPromptsAPIView(APIView):
+    def get(self, request):
+        count = Prompt.objects.aggregate(count=Count('id'))['count']
+        if count < 3:  # Ensure there are at least 3 prompts
+            return Response({"error": "Not enough prompts in the database."}, status=400)
 
+        # Get 3 random prompts
+        random_ids = random.sample(range(1, count+1), 3)
+        prompts = Prompt.objects.filter(id__in=random_ids)
+        serializer = PromptSerializer(prompts, many=True)
+        response_prompt = {
+            "data":serializer.data
+        }
+        return Response(response_prompt)
+
+
+class OpenAIChatCreateDescriptionView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user_prompt = request.data.get('user_text_prompt')
+        if user_prompt:
+            print(user_prompt)
+            messages = [
+                # {"role": "system", "content": "You are a Post Caption Creator, you make the best captions."},
+                {"role": "system", "content": "You are a helpful assistant"},
+                # {"role": "user", "content": f"this is the description written  by me, i would like you to help me make it better: {user_prompt}"}
+                {"role": "user", "content": user_prompt}
+            ]
+
+            completion = client.chat.completions.create(
+                model="gpt-3.5-turbo-1106",
+                messages=messages
+            )
+
+            # Extract GPT response message
+            gpt_response = completion.choices[0].message.content
+
+            return Response({"gpt_response": gpt_response})
+        else:
+            return Response({"message": "user prompt is required","error":True})
+
+
+
+            
 # heygen -----------------------------------------
 class HeyGenGetVideoTranslateStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -944,39 +991,7 @@ class OpenAIChatInteractionView(CreateAPIView):
             serializer.save(user=self.request.user, user_text_prompt=user_prompt,gpt_response=gpt_response, chat=chat_instance)
         except:
             serializer.save(user=self.request.user, gpt_response=gpt_response, user_text_prompt=user_prompt)
-
-# class OpenAIChatInteractionView(CreateAPIView):
-#     queryset = OpenAIChatInteraction.objects.all()
-#     serializer_class = OpenAIChatInteractionSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def perform_create(self, serializer):
-#         user_prompt = self.request.data.get('user_text_prompt')
-#         user_chat_history = OpenAIChatInteraction.objects.filter(user=self.request.user)
-#         # if user_chat_history:
-#         chat_history_messages = [
-#             {"role": "assistant", "content": chat.gpt_response} for chat in user_chat_history
-#             # {"role": "assistant", "content": 'Flibbo is an AI powered social media'} 
-#         ]
-#         # else:
-#         #     chat_history_messages = [
-#         #         {"role": "assistant", "content": 'Flibbo is An AI powered Social Media'}
-#         #     ]
-#         messages = [
-#             {"role": "system", "content": "You are a helpful assistant."},
-#             *chat_history_messages,
-#             {"role": "user", "content": user_prompt}
-#         ]
-#         completion = client.chat.completions.create(
-#             model="gpt-4-1106-preview",
-#             messages=messages
-#         )
-        
-#         # Extract GPT response message
-#         gpt_response = completion.choices[0].message.content  # Corrected line
-
-#         # Save model instance
-#         serializer.save(user=self.request.user, gpt_response=gpt_response)
+  
 
 
 class OpenAIAudioInteractionView(CreateAPIView):

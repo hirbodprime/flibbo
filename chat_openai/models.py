@@ -4,7 +4,12 @@ from django.db import models
 from .extract_cover_images import extract_and_save_cover
 
 User = get_user_model()
+class Prompt(models.Model):
+    text = models.TextField(unique=True)
 
+    def __str__(self):
+        return self.text[:50]  # Return first 50 characters
+        
 expression_choice = (
     ('happy','happy'),
     ('neutral','neutral'),

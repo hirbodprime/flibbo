@@ -223,6 +223,8 @@ class BasePostModel(models.Model):
         self.saved_by_users.remove(user)
 
 class TweetPostModel(BasePostModel):
+    file = models.FileField(upload_to='posts/files/', blank=True, null=True)
+    link = models.TextField(blank=True, null=True)
     video = models.FileField(upload_to=upload_video_post, blank=True, null=True,max_length=2000)
     voice = models.FileField(upload_to='posts/voice/', blank=True, null=True,max_length=2000)
     photo = models.ImageField(upload_to=upload_image_post, blank=True, null=True)
@@ -304,6 +306,12 @@ class TweetPostModel(BasePostModel):
             default_storage.delete(temp_video_path)
 
         super(TweetPostModel, self).save(*args, **kwargs)
+    
+class TweetPostImagesModel(models.Model):
+    tweet = models.ForeignKey(TweetPostModel,on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='posts/tweet/images/')
+    
+
 class BookPostModel(BasePostModel):
     book = models.FileField(upload_to=upload_book_post, blank=True, null=True)
     likes = models.ManyToManyField(User, related_name='book_posts_liked', blank=True)
@@ -315,6 +323,7 @@ class BookPostModel(BasePostModel):
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
+
 
 class ReportPost(models.Model):
     post = models.ForeignKey(TweetPostModel, on_delete=models.SET_NULL, null=True)
