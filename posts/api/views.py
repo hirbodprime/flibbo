@@ -605,27 +605,6 @@ def tweet_unlink_post(request, post_id):
 
 
 
-# class TweetPostCommentListView(ListAPIView):
-#     serializer_class = TweetCommentSerializer
-#     permission_classes = [IsAuthenticated]
-#     def get_queryset(self):
-#         block_obj,created = BlockModel.objects.get_or_create(user=self.request.user)
-#         users_blocked_by_current_user = block_obj.blocked_users.all()
-
-#         # Step 2: Get users who have blocked the current user
-#         users_who_blocked_current_user,created = BlockModel.objects.get_or_create(user=self.request.user)
-#         blocked_by_users_obj =  users_who_blocked_current_user.blocked_by.all()
-#         # Step 3: Combine the lists
-#         blocked_users_combined = users_blocked_by_current_user | blocked_by_users_obj
-#         tweet_id = self.kwargs['tweet_id']  # Assuming you have 'tweet_id' in your URL patterns
-#         comments = TweetCommentModel.objects.exclude(user__in=blocked_users_combined).filter(post=tweet_id).annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')
-#         return comments
-
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.get_queryset()
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response({'comments': serializer.data})
-
 class TweetPostCommentUpdateLikesAPIView(APIView):
     def get(self, request, ids):
         str_ids = str(ids)
@@ -693,29 +672,19 @@ class TweetPostUpdateCommentUnLikesAPIView(APIView):
 
 
 
-
 class TweetPostCommentListView(ListAPIView):
     serializer_class = TweetCommentSerializer
-    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticated] 
+    pagination_class = CustomPagination  
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         tweet_id = self.kwargs['tweet_id']
         user = self.request.user
-        sort = self.request.query_params.get('sort', 'popular')  # Get sort parameter from query params
+        sort = self.request.query_params.get('sort', 'popular')
 
-        # Start with all comments for the post
         comments = TweetCommentModel.objects.filter(post=tweet_id)
-
-        # Construct a Q object for hidden comments and their replies
-        hidden_condition = Q(hidden_by_users=user) | Q(parent_comment__hidden_by_users=user)
-
-        # Exclude hidden comments and replies
-        comments = comments.exclude(hidden_condition)
-
-        # Filter comments that don't have a parent comment (i.e., top-level comments)
         comments = comments.filter(parent_comment__isnull=True)
 
-        # Sort comments based on the provided sort parameter
         if sort == 'popular':
             comments = comments.annotate(like_count=Count('likes')).order_by('-like_count')
         elif sort == 'newest':
@@ -732,6 +701,11 @@ class TweetPostCommentListView(ListAPIView):
     def list(self, request, *args, **kwargs):
         try:
             queryset = self.filter_queryset(self.get_queryset())
+
+            # Manually filter out hidden comments after fetching from the database
+            user = request.user
+            queryset = [comment for comment in queryset if not comment.hidden_by_users.filter(id=user.id).exists() and not (comment.parent_comment and comment.parent_comment.hidden_by_users.filter(id=user.id).exists())]
+
             # Applying pagination
             page = self.paginate_queryset(queryset)
             if page is not None:

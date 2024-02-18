@@ -1070,26 +1070,30 @@ class RecursiveSerializer(serializers.Serializer):
         return serializer.data
 
 class TweetCommentSerializer(CommentBaseSerializer):
-    replies = RecursiveSerializer(many=True, read_only=True)
+    replies = serializers.SerializerMethodField()
     replies_count = serializers.SerializerMethodField()
-    voice = serializers.FileField(allow_null=True, required=False)  # Ensure this is defined if it's not inherited
 
     class Meta(CommentBaseSerializer.Meta):
         model = TweetCommentModel
-        fields = CommentBaseSerializer.Meta.fields + ['replies', 'replies_count','pinned','pinned_at']
+        fields = CommentBaseSerializer.Meta.fields + ['replies', 'replies_count', 'pinned', 'pinned_at']
+
+    def get_replies(self, obj):
+        # Filter replies to exclude hidden ones for the current user
+        user = self.context['request'].user
+        replies = obj.replies.all()
+        filtered_replies = [reply for reply in replies if not reply.hidden_by_users.filter(id=user.id).exists()]
+
+        # Serialize filtered replies
+        return TweetCommentSerializer(filtered_replies, many=True, context=self.context).data
 
     def get_replies_count(self, obj):
-        """
-        Recursively count all replies to this comment, including nested replies.
-        """
-        def count_replies(comment):
-            count = comment.replies.count()
-            for reply in comment.replies.all():
-                count += count_replies(reply)
-            return count
+        # Adjust this method to count only non-hidden replies if needed
+        return self.get_replies(obj).__len__()
 
-        return count_replies(obj)
-
+    def to_representation(self, instance):
+        representation = super(TweetCommentSerializer, self).to_representation(instance)
+        # Further customize the representation if needed, e.g., to filter nested replies
+        return representation
     
     def validate(self, data):
         """
