@@ -250,26 +250,6 @@ class TweetPostModel(BasePostModel):
         }
         short_link = builder.generate_short_link(app_code='flibbo', **options)
         return short_link
-    def compress_video(self, video_path):
-        clip = VideoFileClip(video_path)
-
-        # Maintain the original size
-        original_size = clip.size
-
-        # Specify a lower bitrate (e.g., '500k' - can be adjusted as needed)
-        # Bitrate effectively controls the quality and size of the video
-        bitrate = '500k'  # Example bitrate
-
-        # Create a temporary file path
-        temp_path = f"temp_{os.path.basename(video_path)}"
-
-        # Write the video file with the specified bitrate
-        clip.write_videofile(temp_path, codec="libx264", audio_codec="aac", bitrate=bitrate)
-
-        return temp_path
-
-
-
     def save(self, *args, **kwargs):
         if self.photo:  # Check if an image has been uploaded
             # Open the uploaded image

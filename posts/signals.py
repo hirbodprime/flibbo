@@ -41,37 +41,37 @@ def delete_post_if_reports_exceed_threshold(sender, instance, **kwargs):
 
 
 
-# @receiver(post_save, sender=TweetPostImagesModel)
-# def compress_media(sender, instance, **kwargs):
-#     try:
-#         if instance.image:
-#             compress_image(instance.image.path)
-#             logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}")
+@receiver(post_save, sender=TweetPostImagesModel)
+def compress_media(sender, instance, **kwargs):
+    try:
+        if instance.image:
+            compress_image(instance.image.path)
+            logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}")
 
-#         if instance.video:
-#             compress_video(instance.video.path)
-#             logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}")
-#     except Exception as e:
-#         logger.error(f"Error compressing media for TweetPostImagesModel id: {instance.id}: {e}")
+        if instance.video:
+            compress_video(instance.video.path)
+            logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}")
+    except Exception as e:
+        logger.error(f"Error compressing media for TweetPostImagesModel id: {instance.id}: {e}")
 
-# def compress_image(image_path):
-#     try:
-#         with Image.open(image_path) as img:
-#             img.save(image_path, optimize=True, quality=50)
-#             logger.debug(f"Image compressed: {image_path}")
-#     except Exception as e:
-#         logger.error(f"Error compressing image: {image_path}: {e}")
+def compress_image(image_path):
+    try:
+        with Image.open(image_path) as img:
+            img.save(image_path, optimize=True, quality=50)
+            logger.debug(f"Image compressed: {image_path}")
+    except Exception as e:
+        logger.error(f"Error compressing image: {image_path}: {e}")
 
-# def compress_video(video_path):
-#     try:
-#         clip = VideoFileClip(video_path)
-#         target_bitrate = "500k"
-#         temp_video_path = video_path + "_temp.mp4"
-#         clip.write_videofile(temp_video_path, bitrate=target_bitrate)
-#         os.replace(temp_video_path, video_path)
-#         logger.debug(f"Video compressed: {video_path}")
-#     except Exception as e:
-#         logger.error(f"Error compressing video: {video_path}: {e}")
+def compress_video(video_path):
+    try:
+        clip = VideoFileClip(video_path)
+        target_bitrate = "500k"
+        temp_video_path = video_path + "_temp.mp4"
+        clip.write_videofile(temp_video_path, bitrate=target_bitrate)
+        os.replace(temp_video_path, video_path)
+        logger.debug(f"Video compressed: {video_path}")
+    except Exception as e:
+        logger.error(f"Error compressing video: {video_path}: {e}")
 
 # @receiver(post_save, sender=TweetPostImagesModel)
 # def compress_media(sender, instance, **kwargs):
