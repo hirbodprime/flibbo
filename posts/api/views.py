@@ -489,7 +489,24 @@ class TweetPostCreateV2APIView(CreateAPIView):
     def perform_create(self, serializer):
         # Assign the logged-in user to the 'user' field of the TweetPostModel
         serializer.save(user=self.request.user)
+    def post(self, request, *args, **kwargs):
+        from django.utils.timezone import now
+
+        # Get the current time for a unique file name
+        current_time = now().strftime('%Y%m%d%H%M%S')
+        file_name = f'request_received_{current_time}.txt'
         
+        # Construct the file path where the views.py resides
+        file_path = os.path.join(os.path.dirname(__file__), file_name)
+        
+        # Write to the file
+        with open(file_path, 'w') as file:
+            file.write(f'Request received at {current_time}\n')
+            file.write(f'User: {request.user}\n')
+        
+        # Call the original post method, which will perform the creation
+        return super(TweetPostCreateV2APIView, self).post(request, *args, **kwargs)
+
 class TweetPostRetrieveAPIView(RetrieveAPIView):
     queryset = TweetPostModel.objects.all()
     serializer_class = TweetPostSerializer
