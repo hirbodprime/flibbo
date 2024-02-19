@@ -38,9 +38,21 @@ from .models import TweetPostImagesModel
 from PIL import Image
 from moviepy.editor import VideoFileClip
 import os
+from django.utils.timezone import now
+
+# Path to the log file (assuming it's in the same directory as views.py)
+LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'compression_log.txt')
+
+def log_message(message):
+    """Append a message to the log file."""
+    with open(LOG_FILE_PATH, 'a') as log_file:
+        log_file.write(message + '\n')
 
 @receiver(post_save, sender=TweetPostImagesModel)
 def compress_media(sender, instance, **kwargs):
+    # Write to log when signal is triggered
+    log_message(f"Signal triggered for instance {instance.pk} at {now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
     if instance.image:  # Compress image if present
         compress_image(instance.image.path)
 
@@ -51,13 +63,40 @@ def compress_image(image_path):
     with Image.open(image_path) as img:
         # Adjust the quality of the image here (1-100)
         img.save(image_path, optimize=True, quality=50)
+    log_message(f"Image compressed: {image_path}")
+
+import sys
+import contextlib
+from moviepy.editor import VideoFileClip
+
+@contextlib.contextmanager
+def stdout_redirect(where):
+    sys.stdout = where
+    try:
+        yield where
+    finally:
+        sys.stdout = sys.__stdout__
 
 def compress_video(video_path):
-    clip = VideoFileClip(video_path)
-    # You can adjust the target bitrate as needed for compression
-    target_bitrate = "500k"
-    temp_video_path = video_path + "_temp.mp4"
-    clip.write_videofile(temp_video_path, bitrate=target_bitrate)
-    os.replace(temp_video_path, video_path)  # Replace original with compressed
+    try:
+        clip = VideoFileClip(video_path)
+        target_bitrate = "500k"
+        temp_video_path = video_path + "_temp.mp4"
+        
+        # Open the log file in append mode
+        with open(LOG_FILE_PATH, 'a') as log_file, stdout_redirect(log_file):
+            # The output of moviepy will be redirected to log_file
+            clip.write_videofile(temp_video_path, bitrate=target_bitrate)
+            log_file.flush()  # Ensure all data is flushed to the file
 
-# Ensure to connect the signal in an appropriate place, such as in the apps.py within the same app
+        # Replace original with compressed
+        os.replace(temp_video_path, video_path)
+        
+        # Write a completion message to the log file
+        with open(LOG_FILE_PATH, 'a') as log_file:
+            log_file.write(f"Video compressed and saved to: {video_path}\n")
+        
+    except Exception as e:
+        # Write an error to the log file
+        with open(LOG_FILE_PATH, 'a') as log_file:
+            log_file.write(f"Error compressing video {video_path}: {e}\n")
