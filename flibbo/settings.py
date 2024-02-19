@@ -323,20 +323,45 @@ elif host == "local":
     SITE_DOMAIN = "http://127.0.0.1:8000"
 # settings.py
 
+import os
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'log.txt'),
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'error.log'),
+            'formatter': 'verbose',
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
+        'django': {  # This captures errors from the Django framework itself
+            'handlers': ['error_file'],
+            'level': 'ERROR',
             'propagate': True,
         },
+        'tweet_app': {  # Custom logger for our tweet app
+            'handlers': ['file', 'error_file'],  # Log both debug and error levels
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+    'root': {  # This captures errors from all over the application
+        'handlers': ['error_file'],
+        'level': 'ERROR',
     },
 }
-

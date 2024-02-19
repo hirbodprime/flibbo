@@ -1,6 +1,15 @@
 from django.db.models.signals import post_save,pre_save,m2m_changed
 from django.dispatch import receiver
-from .models import ReportPost, TweetPostModel, TweetCommentModel
+from .models import ReportPost, TweetPostModel, TweetCommentModel, TweetPostImagesModel
+from PIL import Image
+from moviepy.editor import VideoFileClip
+import os
+import logging
+
+# Reuse the same logger
+logger = logging.getLogger('tweet_app')
+
+
 @receiver(post_save, sender=TweetPostModel)
 def create_share_link(sender, created, instance, **kwargs):
     if created:
@@ -32,71 +41,57 @@ def delete_post_if_reports_exceed_threshold(sender, instance, **kwargs):
 
 
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from .models import TweetPostImagesModel
-from PIL import Image
-from moviepy.editor import VideoFileClip
-import os
-from django.utils.timezone import now
-
-# Path to the log file (assuming it's in the same directory as views.py)
-LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'compression_log.txt')
-
-def log_message(message):
-    """Append a message to the log file."""
-    with open(LOG_FILE_PATH, 'a') as log_file:
-        log_file.write(message + '\n')
-
 @receiver(post_save, sender=TweetPostImagesModel)
 def compress_media(sender, instance, **kwargs):
-    # Write to log when signal is triggered
-    log_message(f"Signal triggered for instance {instance.pk} at {now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    if instance.image:  # Compress image if present
-        compress_image(instance.image.path)
+    try:
+        if instance.image:
+            compress_image(instance.image.path)
+            logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}")
 
-    if instance.video:  # Compress video if present
-        compress_video(instance.video.path)
+        if instance.video:
+            compress_video(instance.video.path)
+            logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}")
+    except Exception as e:
+        logger.error(f"Error compressing media for TweetPostImagesModel id: {instance.id}: {e}")
 
 def compress_image(image_path):
-    with Image.open(image_path) as img:
-        # Adjust the quality of the image here (1-100)
-        img.save(image_path, optimize=True, quality=50)
-    log_message(f"Image compressed: {image_path}")
-
-import sys
-import contextlib
-from moviepy.editor import VideoFileClip
-
-@contextlib.contextmanager
-def stdout_redirect(where):
-    sys.stdout = where
     try:
-        yield where
-    finally:
-        sys.stdout = sys.__stdout__
+        with Image.open(image_path) as img:
+            img.save(image_path, optimize=True, quality=50)
+            logger.debug(f"Image compressed: {image_path}")
+    except Exception as e:
+        logger.error(f"Error compressing image: {image_path}: {e}")
 
 def compress_video(video_path):
     try:
         clip = VideoFileClip(video_path)
         target_bitrate = "500k"
         temp_video_path = video_path + "_temp.mp4"
-        
-        # Open the log file in append mode
-        with open(LOG_FILE_PATH, 'a') as log_file, stdout_redirect(log_file):
-            # The output of moviepy will be redirected to log_file
-            clip.write_videofile(temp_video_path, bitrate=target_bitrate)
-            log_file.flush()  # Ensure all data is flushed to the file
-
-        # Replace original with compressed
+        clip.write_videofile(temp_video_path, bitrate=target_bitrate)
         os.replace(temp_video_path, video_path)
-        
-        # Write a completion message to the log file
-        with open(LOG_FILE_PATH, 'a') as log_file:
-            log_file.write(f"Video compressed and saved to: {video_path}\n")
-        
+        logger.debug(f"Video compressed: {video_path}")
     except Exception as e:
-        # Write an error to the log file
-        with open(LOG_FILE_PATH, 'a') as log_file:
-            log_file.write(f"Error compressing video {video_path}: {e}\n")
+        logger.error(f"Error compressing video: {video_path}: {e}")
+
+# @receiver(post_save, sender=TweetPostImagesModel)
+# def compress_media(sender, instance, **kwargs):
+#     if instance.image:  # Compress image if present
+#         compress_image(instance.image.path)
+
+#     if instance.video:  # Compress video if present
+#         compress_video(instance.video.path)
+
+# def compress_image(image_path):
+#     with Image.open(image_path) as img:
+#         # Adjust the quality of the image here (1-100)
+#         img.save(image_path, optimize=True, quality=50)
+
+# def compress_video(video_path):
+#     clip = VideoFileClip(video_path)
+#     # You can adjust the target bitrate as needed for compression
+#     target_bitrate = "500k"
+#     temp_video_path = video_path + "_temp.mp4"
+#     clip.write_videofile(temp_video_path, bitrate=target_bitrate)
+#     os.replace(temp_video_path, video_path)  # Replace original with compressed
+
+

@@ -44,7 +44,10 @@ from posts.utils.view_calculate import (increment_views_count_book , increment_v
 from explore.custom_pagination import CustomPagination
 from accounts.models import BlockModel
 from activity.models import Activity
+import logging
 
+# Initialize logger
+logger = logging.getLogger('tweet_app')
 User = get_user_model()
 
 class BookPagesView(APIView):
@@ -480,7 +483,8 @@ class TweetPostCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
         # Assign the logged-in user to the 'user' field of the TweetPostModel
         serializer.save(user=self.request.user)
-        
+
+
 class TweetPostCreateV2APIView(CreateAPIView):
     queryset = TweetPostModel.objects.all()
     serializer_class = TweetPostCreateV2Serializer
@@ -489,23 +493,7 @@ class TweetPostCreateV2APIView(CreateAPIView):
     def perform_create(self, serializer):
         # Assign the logged-in user to the 'user' field of the TweetPostModel
         serializer.save(user=self.request.user)
-    def post(self, request, *args, **kwargs):
-        from django.utils.timezone import now
-
-        # Get the current time for a unique file name
-        current_time = now().strftime('%Y%m%d%H%M%S')
-        file_name = f'request_received_{current_time}.txt'
-        
-        # Construct the file path where the views.py resides
-        file_path = os.path.join(os.path.dirname(__file__), file_name)
-        
-        # Write to the file
-        with open(file_path, 'w') as file:
-            file.write(f'Request received at {current_time}\n')
-            file.write(f'User: {request.user}\n')
-        
-        # Call the original post method, which will perform the creation
-        return super(TweetPostCreateV2APIView, self).post(request, *args, **kwargs)
+        logger.debug(f"TweetPost created by user: {self.request.user.id}")
 
 class TweetPostRetrieveAPIView(RetrieveAPIView):
     queryset = TweetPostModel.objects.all()

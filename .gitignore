@@ -16,3 +16,4 @@ db.sqlite3-journal
 /logs
 /serviceAccountKey.json
 /52570a0103e816caa4b1c40608510824_venv
+/log.txt
