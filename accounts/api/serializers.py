@@ -474,7 +474,7 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'private', 'email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
+        fields = ('premium','id', 'private', 'email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
             'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url','profile_image','country')
 
 

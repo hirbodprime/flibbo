@@ -19,22 +19,33 @@ User = get_user_model()
 class TweetPostImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TweetPostImagesModel
-        fields = ['image']
+        fields = ['image', 'video', 'created_at']  # Ensure 'created_at' is included if you want to use it for sorting
+    
+    def to_representation(self, instance):
+        # Call the base implementation first to get the usual serialization
+        ret = super().to_representation(instance)
+        # Add the 'type' field based on whether it's an image or video
+        ret['type'] = instance.media_type
+        return ret
 
 
 class TweetPostCreateV2Serializer(serializers.ModelSerializer):
     images = serializers.ListField(child=serializers.ImageField(), write_only=True, required=False)
-
+    videos = serializers.ListField(child=serializers.FileField(), write_only=True, required=False)
     class Meta:
         model = TweetPostModel
-        fields = ['file','link','id','cover', 'title', 'photo_blur_hash', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'mention_users', 'images']
+        fields = ['file','link','id','cover', 'title', 'photo_blur_hash', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'mention_users', 'images','videos']
 
     def create(self, validated_data):
         images_data = validated_data.pop('images', None)
+        videos_data = validated_data.pop('videos', None)
         tweet = super().create(validated_data)
         if images_data:
             for image_data in images_data:
                 TweetPostImagesModel.objects.create(tweet=tweet, image=image_data)
+        if videos_data:
+            for video_data in videos_data:
+                TweetPostImagesModel.objects.create(tweet=tweet, video=video_data)
         return tweet
 
         
@@ -568,7 +579,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
                 
 class TweetPostSerializer(serializers.ModelSerializer):
     # location = CustomCountryField()
-    images = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)
+    media = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)
     photo = serializers.SerializerMethodField()
     profile_image_url  = serializers.SerializerMethodField()
     user_username = serializers.SerializerMethodField()
@@ -805,9 +816,12 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['link','file','images','cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
-                'updated_date','photo','video',
-                'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
+        fields = ['link','file','media','cover','private','request_status',
+                'user_followed','likes','id', 'photo_blur_hash','height', 'user',
+                'user_username','user_liked','user_saved','user_viewed' ,'profile_image_url',
+                'user_full_name','title', 'caption', 'hashtag', 'location','urls', 
+                'category', 'created_date','updated_date','photo','video','total_views','total_shares',
+                'share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
 class PodcastPostSerializer(serializers.ModelSerializer):
     user_username = serializers.SerializerMethodField()

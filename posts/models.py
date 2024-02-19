@@ -5,8 +5,10 @@ from category.models import CategoryModel, SubCategoryModel
 from moviepy.editor import VideoFileClip
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from posts.utils.upload_image import PostUploadHandler 
+from django.core.files import File
 
 from django.utils.text import slugify
 from django.contrib.postgres.fields import ArrayField
@@ -16,8 +18,10 @@ from django.contrib.contenttypes.models import ContentType
 from django_countries.fields import CountryField
 from PIL import Image
 import io
+import uuid
 from django.core.files.uploadedfile import InMemoryUploadedFile
 User = get_user_model()
+import tempfile
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -308,9 +312,16 @@ class TweetPostModel(BasePostModel):
         super(TweetPostModel, self).save(*args, **kwargs)
     
 class TweetPostImagesModel(models.Model):
-    tweet = models.ForeignKey(TweetPostModel,on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='posts/tweet/images/')
-    
+    tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='posts/tweet/images/', blank=True, null=True)
+    video = models.FileField(upload_to='posts/tweet/videos/', max_length=1000, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True,blank=True,null=True)
+    def __str__(self):
+        return f"{self.tweet}"
+    @property
+    def media_type(self):
+        return 'image' if self.image else 'video'
+
 
 class BookPostModel(BasePostModel):
     book = models.FileField(upload_to=upload_book_post, blank=True, null=True)

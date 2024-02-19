@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save,pre_save,m2m_changed
 from django.dispatch import receiver
-from posts.models import ReportPost, TweetPostModel, TweetCommentModel
+from .models import ReportPost, TweetPostModel, TweetCommentModel
 @receiver(post_save, sender=TweetPostModel)
 def create_share_link(sender, created, instance, **kwargs):
     if created:
@@ -28,3 +28,36 @@ def delete_post_if_reports_exceed_threshold(sender, instance, **kwargs):
         post_to_delete = TweetPostModel.objects.get(id=instance.post.id)  # Keep a reference to the post instance\
         post_to_delete.hide = True
         post_to_delete.save()
+
+
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import TweetPostImagesModel
+from PIL import Image
+from moviepy.editor import VideoFileClip
+import os
+
+@receiver(post_save, sender=TweetPostImagesModel)
+def compress_media(sender, instance, **kwargs):
+    if instance.image:  # Compress image if present
+        compress_image(instance.image.path)
+
+    if instance.video:  # Compress video if present
+        compress_video(instance.video.path)
+
+def compress_image(image_path):
+    with Image.open(image_path) as img:
+        # Adjust the quality of the image here (1-100)
+        img.save(image_path, optimize=True, quality=50)
+
+def compress_video(video_path):
+    clip = VideoFileClip(video_path)
+    # You can adjust the target bitrate as needed for compression
+    target_bitrate = "500k"
+    temp_video_path = video_path + "_temp.mp4"
+    clip.write_videofile(temp_video_path, bitrate=target_bitrate)
+    os.replace(temp_video_path, video_path)  # Replace original with compressed
+
+# Ensure to connect the signal in an appropriate place, such as in the apps.py within the same app

@@ -33,7 +33,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     profile_image = models.ImageField(upload_to=upload_profile_image,blank=True, null=True) 
     private = models.BooleanField(default=False)
     objects = CustomUserManager()
-
+    premium = models.BooleanField(default=False)
     followers_count = models.BigIntegerField(default=0)
     followings_count = models.BigIntegerField(default=0)
     

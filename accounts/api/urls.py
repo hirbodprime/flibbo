@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import (UserLoginView, SignupConfirmationView, LogoutAPIView,ProfileApiView,UpdateProfileApiView,UsernameCheckView,
-UserSignupValidationView,UsernameValidationView,UserProfileApiView,SavedPostsApiView,
+UserSignupValidationView,UsernameValidationView,UserProfileApiView,SavedPostsApiView,UserProfileV2ApiView,
 CustomTokenObtainPairView, CustomTokenRefreshView,PasswordResetApi,
 PasswordResetConfirmApi,CustomUsersListApiView,ReportUserCreateApiView,
 DeleteAccountAPIView,CheckLoginStatusAPIView,UserSearchView,delete_account,AccessTokenLoginView,
@@ -69,6 +69,8 @@ urlpatterns = [
     path('report/reasons/list/', ReportReasonsListAPIView.as_view(), name='report-user'),
 
     path('profile/user/<int:id>/', UserProfileApiView.as_view(), name='user-profile'),
+    path('profile/user/<str:username>/v2/', UserProfileV2ApiView.as_view(), name='user-profile'),
+
     path('profile/', ProfileApiView.as_view(), name='profile-detail'),
     path('profile/update/', UpdateProfileApiView.as_view(), name='profile-update'),
     path('user/saved/', SavedPostsApiView.as_view(), name='user-saved'),

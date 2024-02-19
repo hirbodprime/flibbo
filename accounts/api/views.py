@@ -667,6 +667,46 @@ class UserProfileApiView(gn.RetrieveAPIView):
             return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserProfileV2ApiView(gn.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = ShowCustomUserSerializer
+    permission_classes = [IsAuthenticated]
+    # def get_object(self):
+    #     return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        if request.user:
+            username = kwargs.get('username')  # 'pk' is the default URL parameter name for the object's primary key
+            user = get_object_or_404(CustomUser, username=username)
+            user_token = AccessToken.objects.get(user=user)
+
+            current_site = get_current_site(request)
+            domain = current_site.domain
+            user_tweets = TweetPostModel.objects.filter(user=user)
+            serializer = ShowCustomUserSerializer(user, context={'request': request,'user_id':user.id})
+            request_activities = RequestToFollow.objects.filter(request_sender=request.user, requset_reciever=user).first()
+            serializer_requests = RequestToFollowListSerializer(instance=request_activities, context={'request': request})
+            tweet_serializer = TweetPostSerializer(
+                user_tweets,
+                many=True,
+                context={'request': request}  # Include the request object in context
+            )
+            response_data = {
+                'token': str(user_token.token),
+                'request': serializer_requests.data,
+                'user_data': serializer.data,
+                'user_tweets': tweet_serializer.data,
+                'success': True,
+            }
+            tweet_serializer = TweetPostSerializer(
+                user_tweets,
+                many=True,
+                context={'request': request}  # Include the request object in context
+            )
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
