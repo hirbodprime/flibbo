@@ -630,14 +630,16 @@ class TweetPostCommentUpdateLikesAPIView(APIView):
                     try:
                         fcm.sendPush("Liked Comment", f"{user.username} Liked your comment", tokens)
                     except Exception as e:
-                        return Response({'success': False, "error": str(e)}, status=status.HTTP_200_OK)
+                        pass
+                        # return Response({'success': False, "error": str(e)}, status=status.HTTP_200_OK)
                 else:
-                    return Response({'success': False, "error": "No valid tokens found."}, status=status.HTTP_200_OK)
+                    pass
+                    # return Response({'success': False, "error": "No valid tokens found."}, status=status.HTTP_200_OK)
 
             except Exception as e:
                 return Response({'success': False, "error": str(e)}, status=status.HTTP_200_OK)
 
-
+            print(user)
             result = increment_likes_count_tweet_comments(comments_id, user)
             if result:
                 print('View count incremented successfully.')

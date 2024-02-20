@@ -19,7 +19,7 @@ User = get_user_model()
 class TweetPostImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TweetPostImagesModel
-        fields = ['image', 'video', 'created_at']  # Ensure 'created_at' is included if you want to use it for sorting
+        fields = ['image', 'video', 'created_at',"photo_blur_hash_video", "cover_video", "photo_blur_hash_image", "cover_image"]  
     
     def to_representation(self, instance):
         # Call the base implementation first to get the usual serialization
@@ -30,22 +30,56 @@ class TweetPostImageSerializer(serializers.ModelSerializer):
 
 
 class TweetPostCreateV2Serializer(serializers.ModelSerializer):
-    images = serializers.ListField(child=serializers.ImageField(), write_only=True, required=False)
-    videos = serializers.ListField(child=serializers.FileField(), write_only=True, required=False)
+    videos = serializers.ListField(child=serializers.FileField(),write_only=True, required=False)
+    photo_blur_hash_video = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    cover_video = serializers.ListField(child=serializers.FileField(),write_only=True,  required=False)
+    
+    images = serializers.ListField(child=serializers.ImageField(),write_only=True, required=False)
+    photo_blur_hash_image = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    cover_image = serializers.ListField(child=serializers.FileField(),write_only=True, required=False)
+    
     class Meta:
         model = TweetPostModel
-        fields = ['file','link','id','cover', 'title', 'photo_blur_hash', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'mention_users', 'images','videos']
+        fields = ['file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'mention_users', 'images','videos','photo_blur_hash_video', 'cover_video', 'photo_blur_hash_image', 'cover_image']
 
     def create(self, validated_data):
-        images_data = validated_data.pop('images', None)
-        videos_data = validated_data.pop('videos', None)
-        tweet = super().create(validated_data)
-        if images_data:
-            for image_data in images_data:
-                TweetPostImagesModel.objects.create(tweet=tweet, image=image_data)
-        if videos_data:
-            for video_data in videos_data:
-                TweetPostImagesModel.objects.create(tweet=tweet, video=video_data)
+        # Pop media-related fields from validated_data
+        videos_data = validated_data.pop('videos', [])
+        photo_blur_hash_video_data = validated_data.pop('photo_blur_hash_video', [])
+        cover_video_data = validated_data.pop('cover_video', [])
+
+        images_data = validated_data.pop('images', [])
+        photo_blur_hash_image_data = validated_data.pop('photo_blur_hash_image', [])
+        cover_image_data = validated_data.pop('cover_image', [])
+
+        # Pop the mention_users field from validated_data if it exists
+        mention_users_data = validated_data.pop('mention_users', None)
+        
+        # Create the TweetPostModel instance without mention_users
+        tweet = TweetPostModel.objects.create(**validated_data)
+
+        # Associate images with the tweet
+        for image_data, photo_blur_hash, cover_image in zip(images_data, photo_blur_hash_image_data, cover_image_data):
+            TweetPostImagesModel.objects.create(
+                tweet=tweet,
+                image=image_data,
+                photo_blur_hash_image=photo_blur_hash,
+                cover_image=cover_image
+            )
+
+        # Associate videos with the tweet
+        for video_data, photo_blur_hash, cover_video in zip(videos_data, photo_blur_hash_video_data, cover_video_data):
+            TweetPostImagesModel.objects.create(
+                tweet=tweet,
+                video=video_data,
+                photo_blur_hash_video=photo_blur_hash,
+                cover_video=cover_video
+            )
+
+        # If there are mention_users, set them after the instance is created
+        if mention_users_data:
+            tweet.mention_users.set(mention_users_data)
+
         return tweet
 
         

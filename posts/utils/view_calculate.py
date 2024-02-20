@@ -102,12 +102,14 @@ def dicrement_likes_count_tweets(post_id, user):
 
 def increment_likes_count_tweet_comments(comment_id, user):
     try:
+        print("jherere ", user)
         posts = TweetCommentModel.objects.filter(id__in=comment_id)
         for post in posts:
             if user not in post.likes.all():
-                Activity.objects.create(user=user, tweet_comment=post, activity_type=Activity.COMMENT)
+                print(user, post, Activity.COMMENT)
+                Activity.objects.create(user=user, tweet_comment=post,tweet=post.post, activity_type=Activity.COMMENT)
 
-                post.increment_total_likes()
+                # post.increment_total_likes()
                 post.increment_like_users(user)  # Use add to add the user to the ManyToMany field
             else:
                 print('User is in the view')

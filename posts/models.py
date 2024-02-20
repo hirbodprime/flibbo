@@ -296,6 +296,11 @@ class TweetPostImagesModel(models.Model):
     image = models.ImageField(upload_to='posts/tweet/images/', blank=True, null=True)
     video = models.FileField(upload_to='posts/tweet/videos/', max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True,blank=True,null=True)
+    photo_blur_hash_video = models.CharField(max_length=1000, blank=True, null=True)
+    cover_video  = models.ImageField(upload_to='posts/tweet/videos/cover', blank=True, null=True,max_length=2000)    
+    photo_blur_hash_image = models.CharField(max_length=1000, blank=True, null=True)
+    cover_image  = models.ImageField(upload_to='posts/tweet/images/cover', blank=True, null=True,max_length=2000)    
+
     def __str__(self):
         return f"{self.tweet}"
     @property
@@ -361,7 +366,7 @@ class TweetCommentModel(models.Model):
 
     def increment_like_users(self, user):
         self.likes.add(user)
-        self.increment_total_likes()  # Ensure total_likes is incremented when a user is added
+        # self.increment_total_likes()  # Ensure total_likes is incremented when a user is added
 
     def decrement_total_likes(self):
         if self.total_likes > 0:
