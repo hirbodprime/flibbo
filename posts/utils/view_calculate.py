@@ -126,8 +126,8 @@ def dicrement_likes_count_tweets_comments(comment_id, user):
             if user in post.likes.all():
                 Activity.objects.create(user=user, tweet_comment=post, activity_type=Activity.UNCOMMENT)
 
-                post.dicrement_total_likes()
-                post.dicrement_like_users(user)  # Use add to add the user to the ManyToMany field
+                # post.dicrement_total_likes()
+                post.decrement_like_users(user)  # Use add to add the user to the ManyToMany field
             else:
                 print('User is in the view')
                 # return False  # User already added

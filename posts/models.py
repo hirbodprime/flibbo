@@ -375,7 +375,7 @@ class TweetCommentModel(models.Model):
 
     def decrement_like_users(self, user):
         self.likes.remove(user)
-        self.decrement_total_likes()  # Ensure total_likes is decremented when a user is removed
+        # self.decrement_total_likes()  # Ensure total_likes is decremented when a user is removed
 
     def total_likes(self):
         return self.likes.count()
