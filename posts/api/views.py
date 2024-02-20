@@ -233,7 +233,7 @@ class CategoryPostsViewSet(APIView):
 class SingleTweetPostAPIView(RetrieveAPIView):
     queryset = TweetPostModel.objects.all()
     serializer_class = TweetSignlePostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
