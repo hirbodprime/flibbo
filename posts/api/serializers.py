@@ -1013,6 +1013,7 @@ class CommentBaseSerializer(serializers.ModelSerializer):
         else:
             return None
     def create(self, validated_data):
+        print(validated_data)
         # Automatically set the user based on the request
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
@@ -1045,19 +1046,19 @@ class CommentBaseSerializer(serializers.ModelSerializer):
                 else:
                     return False 
         return False
-    def validate(self, attrs):
-        """
-        Check that either the voice or text is provided.
-        """
-        voice = attrs.get('voice')
-        text = attrs.get('text')
+    # def validate(self, attrs):
+    #     """
+    #     Check that either the voice or text is provided.
+    #     """
+    #     voice = attrs.get('voice')
+    #     text = attrs.get('text')
 
-        # Check if both voice and text are missing
-        if not voice and not text:
-            raise serializers.ValidationError("Either voice or text must be provided.")
+        # # Check if both voice and text are missing
+        # if not voice or not text:
+        #     raise serializers.ValidationError("Either voice or text must be provided.")
 
-        # Continue with the default validation after custom checks
-        return super().validate(attrs)
+        # # Continue with the default validation after custom checks
+        # return super().validate(attrs)
 
 class CommentBaseWebSocketSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
@@ -1120,6 +1121,7 @@ class RecursiveSerializer(serializers.Serializer):
 class TweetCommentSerializer(CommentBaseSerializer):
     replies = serializers.SerializerMethodField()
     replies_count = serializers.SerializerMethodField()
+    voice = serializers.FileField(max_length=None, allow_empty_file=False, use_url=True, required=False)
 
     class Meta(CommentBaseSerializer.Meta):
         model = TweetCommentModel
@@ -1143,15 +1145,15 @@ class TweetCommentSerializer(CommentBaseSerializer):
         # Further customize the representation if needed, e.g., to filter nested replies
         return representation
     
-    def validate(self, data):
-        """
-        Check that either text or voice is provided.
-        """
-        if not data.get('text') and not data.get('voice'):
-            raise serializers.ValidationError("Either text or a voice note must be provided.")
-        if data.get('text') and data.get('voice'):
-            raise serializers.ValidationError("Cannot provide both text and a voice note.")
-        return data
+    # def validate(self, data):
+        # """
+        # Check that either text or voice is provided.
+        # # """
+        # if not data.get('text') or not data.get('voice'):
+        #     raise serializers.ValidationError("Either text or a voice note must be provided.")
+        # if data.get('text') and data.get('voice'):
+        #     raise serializers.ValidationError("Cannot provide both text and a voice note.")
+        # return data
 class TweetReplyCommentSerializer(CommentBaseSerializer):
     class Meta(CommentBaseSerializer.Meta):
         model = TweetReplyCommentModel
