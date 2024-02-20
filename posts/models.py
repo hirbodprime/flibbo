@@ -271,23 +271,23 @@ class TweetPostModel(BasePostModel):
                                               'image/jpeg', 
                                               output_io_stream.getbuffer().nbytes, 
                                               None)
-        if self.video:  # Check if a video has been uploaded
-            # Save the uploaded video file temporarily
-            temp_video_path = default_storage.save(f"temp_{self.video.name}", ContentFile(self.video.read()))
+        # if self.video:  # Check if a video has been uploaded
+        #     # Save the uploaded video file temporarily
+        #     temp_video_path = default_storage.save(f"temp_{self.video.name}", ContentFile(self.video.read()))
 
-            # Get the full path of the temporary video
-            full_temp_video_path = default_storage.path(temp_video_path)
+        #     # Get the full path of the temporary video
+        #     full_temp_video_path = default_storage.path(temp_video_path)
 
-            # Compress the video
-            compressed_video_path = self.compress_video(full_temp_video_path)
+        #     # Compress the video
+        #     compressed_video_path = self.compress_video(full_temp_video_path)
 
-            # Update self.video with the compressed video
-            with open(compressed_video_path, 'rb') as f:
-                self.video.save(os.path.basename(compressed_video_path), ContentFile(f.read()), save=False)
+        #     # Update self.video with the compressed video
+        #     with open(compressed_video_path, 'rb') as f:
+        #         self.video.save(os.path.basename(compressed_video_path), ContentFile(f.read()), save=False)
 
-            # Clean up the temp files
-            os.remove(compressed_video_path)
-            default_storage.delete(temp_video_path)
+        #     # Clean up the temp files
+        #     os.remove(compressed_video_path)
+        #     default_storage.delete(temp_video_path)
 
         super(TweetPostModel, self).save(*args, **kwargs)
     
