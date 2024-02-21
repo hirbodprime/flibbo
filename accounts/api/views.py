@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from marketplace.models import NftProductModel
 from accounts.permissions import IsOwnerOrReadOnly
 from accounts.models import CustomUser , SavedByUser, ReportUser,AccessToken,BlockModel,ChangeUsernameModel
-from posts.models import TweetPostModel , PodcastPostModel, BookPostModel
+from posts.models import TweetPostModel , PodcastPostModel, BookPostModel, TweetPostImagesModel
 from posts.api.serializers import TweetPostSerializer
 from point.models import ReferralCodeModel
 from point.point_functionality import process_referral_signup
@@ -315,9 +315,26 @@ class SavedTweetsMediaListView(gn.ListAPIView):
     def get_queryset(self):
         user_id = self.kwargs['user_id']  # Get the user_id from the URL kwargs
         user_saved,created = SavedByUser.objects.get_or_create(user_id=user_id)
-        
         # Fetch the saved tweets and exclude those without images and videos
-        return user_saved.saved_tweets.exclude(Q(photo__exact="") & Q(video__exact=""))
+        from itertools import chain
+        slide_images_tweets = []
+        for saved in user_saved.saved_tweets.all():
+            tweet_images = TweetPostImagesModel.objects.filter(tweet=saved)
+            for tweet in tweet_images:
+                slide_images_tweets.append(tweet.tweet)
+        result_list = list(chain(user_saved.saved_tweets.exclude(Q(photo__exact="") & Q(video__exact="")), slide_images_tweets))
+        return result_list
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # page = self.paginate_queryset(queryset)
+        # if page is not limited:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"results": serializer.data})  # Customized response key here
 
 class SavedTweetsTextListView(gn.ListAPIView):
     serializer_class = TweetPostSerializer
@@ -328,6 +345,16 @@ class SavedTweetsTextListView(gn.ListAPIView):
         
         # Fetch the saved tweets and exclude those without images and videos
         return user_saved.saved_tweets.filter(photo__exact="", video__exact="")
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # page = self.paginate_queryset(queryset)
+        # if page is not limited:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"results": serializer.data})  # Customized response key here
 
 
 class BlockUserView(gn.CreateAPIView):

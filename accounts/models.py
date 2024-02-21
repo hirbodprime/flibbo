@@ -125,7 +125,7 @@ class SavedByUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
     # user_tweets = models.ManyToManyField(TweetPostModel, related_name='user_tweets', blank=True)
     saved_tweets = models.ManyToManyField(TweetPostModel, related_name='tweet_posts_saved', blank=True)
-
+    
     # user_books = models.ManyToManyField(BookPostModel, related_name='user_books', blank=True)
     saved_books = models.ManyToManyField(BookPostModel, related_name='book_posts_saved', blank=True)
     
