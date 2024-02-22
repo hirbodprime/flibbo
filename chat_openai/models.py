@@ -9,7 +9,12 @@ class Prompt(models.Model):
 
     def __str__(self):
         return self.text[:50]  # Return first 50 characters
-        
+class PromptImage(models.Model):
+    text = models.TextField(unique=True)
+
+    def __str__(self):
+        return self.text[:50]  # Return first 50 characters
+               
 expression_choice = (
     ('happy','happy'),
     ('neutral','neutral'),
@@ -21,6 +26,7 @@ class SuggestPromptsModel(models.Model):
     prompt = models.TextField()
     def __str__(self):
         return self.prompt
+
 class SuggestPromptsImageModel(models.Model):
     prompt = models.TextField()
     def __str__(self):

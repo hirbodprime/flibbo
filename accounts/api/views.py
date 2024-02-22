@@ -43,6 +43,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import  permission_classes
 from rest_framework.decorators import api_view
 from accounts.models import report_reasons_choices
+from django.db.models import Count, Q, Exists, OuterRef, F
 
 from django.contrib.auth import login
 from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
@@ -655,9 +656,7 @@ from following_system.api.serializers import RequestToFollowListSerializer
 class UserProfileApiView(gn.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = ShowCustomUserSerializer
-    # permission_classes = [IsAuthenticated]
-    # def get_object(self):
-    #     return self.request.user
+    permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, *args, **kwargs):
         if request.user:
@@ -694,30 +693,62 @@ class UserProfileApiView(gn.RetrieveAPIView):
             return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class UserProfileV2ApiView(gn.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = ShowCustomUserSerializer
     permission_classes = [IsAuthenticated]
-    # def get_object(self):
-    #     return self.request.user
 
     def retrieve(self, request, *args, **kwargs):
         if request.user:
-            username = kwargs.get('username')  # 'pk' is the default URL parameter name for the object's primary key
+            username = kwargs.get('username')
             user = get_object_or_404(CustomUser, username=username)
             user_token = AccessToken.objects.get(user=user)
+            
+            sort_by = request.query_params.get('sort_by', 'media').lower()
+            filter_by = request.query_params.get('filter', 'recent').lower()
+            options = request.query_params.get('based', None)
 
+            # Start with a base QuerySet
+            user_tweets = TweetPostModel.objects.filter(user=user)
+
+            # Apply 'options' filter
+            user_tweets = TweetPostModel.objects.filter(user=user)
+
+            # Apply 'options' filter
+            if options in ['personal', 'premium']:
+                user_tweets = user_tweets.filter(options=options)
+
+            # Filter tweets with media directly using a QuerySet
+            if sort_by == "media":
+                # This filter assumes 'photo' and 'video' are CharFields or similar.
+                # Adjust the logic if these fields are handled differently in your model.
+                has_media = (
+                    Q(photo__isnull=False, photo__gt='') | 
+                    Q(video__isnull=False, video__gt='') | 
+                    Exists(TweetPostImagesModel.objects.filter(tweet=OuterRef('pk')))
+                )
+                user_tweets = user_tweets.filter(has_media)
+            elif sort_by == "voice":
+                # Add another condition for tweets with a non-empty 'voice' field
+                user_tweets = user_tweets.exclude(voice="")
+                
+            # Apply 'filter_by' conditions
+            if filter_by == "popular":
+                user_tweets = user_tweets.annotate(like_count=Count('likes')).order_by('-like_count')
+            elif filter_by == 'recent':
+                user_tweets = user_tweets.order_by('-created_date')  # Ensure field name is 'created_at' or adjust as needed
+            elif filter_by == 'oldest':
+                user_tweets = user_tweets.order_by('created_date')
+
+            # Serialization and response preparation
             current_site = get_current_site(request)
             domain = current_site.domain
-            user_tweets = TweetPostModel.objects.filter(user=user)
-            serializer = ShowCustomUserSerializer(user, context={'request': request,'user_id':user.id})
+            serializer = ShowCustomUserSerializer(user, context={'request': request, 'user_id': user.id})
             request_activities = RequestToFollow.objects.filter(request_sender=request.user, requset_reciever=user).first()
             serializer_requests = RequestToFollowListSerializer(instance=request_activities, context={'request': request})
-            tweet_serializer = TweetPostSerializer(
-                user_tweets,
-                many=True,
-                context={'request': request}  # Include the request object in context
-            )
+            tweet_serializer = TweetPostSerializer(user_tweets, many=True, context={'request': request})
+
             response_data = {
                 'token': str(user_token.token),
                 'request': serializer_requests.data,
@@ -725,17 +756,10 @@ class UserProfileV2ApiView(gn.RetrieveAPIView):
                 'user_tweets': tweet_serializer.data,
                 'success': True,
             }
-            tweet_serializer = TweetPostSerializer(
-                user_tweets,
-                many=True,
-                context={'request': request}  # Include the request object in context
-            )
 
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 

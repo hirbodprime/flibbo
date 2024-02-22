@@ -226,6 +226,10 @@ class BasePostModel(models.Model):
     def dicrement_save_users(self,user):
         self.saved_by_users.remove(user)
 
+tweet_post_profile_choices = (
+    ('personal','personal'),
+    ('premium','premium'),
+    )
 class TweetPostModel(BasePostModel):
     file = models.FileField(upload_to='posts/files/', blank=True, null=True)
     link = models.TextField(blank=True, null=True)
@@ -238,7 +242,7 @@ class TweetPostModel(BasePostModel):
     shared_by_users = models.ManyToManyField(User, related_name='tweet_posts_shared', blank=True)
     mention_users = models.ManyToManyField(User, blank=True,related_name='tweet_user_mentioned')
     share_post = models.CharField(max_length=600,blank=True, null=True)
-
+    options = models.CharField(choices=tweet_post_profile_choices, max_length=50,blank=True, null=True)
     liked_by_user = models.BooleanField(default=False)
     def get_absolute_url(self,post_id):
         from firebase_dynamic_links import dynamic_link_builder

@@ -1,15 +1,41 @@
 from django.db.models.signals import post_save,pre_save,m2m_changed
 from django.dispatch import receiver
 from .models import ReportPost, TweetPostModel, TweetCommentModel, TweetPostImagesModel
+from posts.api.serializers import TweetPostSerializer
 from PIL import Image
 from moviepy.editor import VideoFileClip
 import os
 import logging
-
+import asyncio
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from .consumers import HomeConsumer
 # Reuse the same logger
 logger = logging.getLogger('tweet_app')
 
-
+# @receiver(post_save, sender=TweetPostModel)
+# def broadcast_new_post(sender, instance, created, **kwargs):
+#     if created:
+#         # Prepare a simple message or notification
+#         message = {
+#             'type': 'new_post',
+#             'message': 'A new post has been created!',
+#             # You can include minimal information like post ID if needed
+#             'post_id': instance.id
+#         }
+        
+#         # Use channel layer to broadcast the message
+#         channel_layer = get_channel_layer()
+#         # Ensure the async function is called in a synchronous context
+#         async_to_sync(channel_layer.group_send)(
+#             'home',  # The group name where clients are listening
+#             message
+#         )
+@receiver(post_save, sender=TweetPostModel)
+def broadcast_new_post(sender, instance, created, **kwargs):
+    if created:
+        # Just signal that a new post has been created
+        asyncio.run(HomeConsumer.broadcast_new_post_notification())
 @receiver(post_save, sender=TweetPostModel)
 def create_share_link(sender, created, instance, **kwargs):
     if created:

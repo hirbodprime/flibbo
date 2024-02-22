@@ -2,6 +2,8 @@ import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -18,7 +20,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.backends import TokenBackend
-
+from posts.api.serializers import TweetPostSerializer
 logger = logging.getLogger(__name__)
 User = get_user_model()
 import json
@@ -74,6 +76,24 @@ class HomeConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
 
+    @classmethod
+    async def broadcast_new_post_notification(cls):
+        # This method doesn't need an instance to serialize; it just notifies clients.
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            'home',
+            {
+                'type': 'new_post_notification',
+            }
+        )
+
+    # Handler for the 'new_post_notification' event
+    async def new_post_notification(self, event):
+        # Send a message to WebSocket clients
+        await self.send(text_data=json.dumps({
+            'type': 'new_post',
+            'message': 'A new post has been created'
+        }))
     async def receive(self, text_data):
         data = json.loads(text_data)
         user = self.scope['user']

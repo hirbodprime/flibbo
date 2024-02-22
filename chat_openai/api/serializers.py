@@ -8,7 +8,10 @@ class PromptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prompt
         fields = ['text']
-
+class PromptImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prompt
+        fields = ['text']
 class HeyGenTalkingPhotoImageUploadSerializer(serializers.Serializer):
     image = serializers.ImageField(use_url=True)
 

@@ -56,7 +56,8 @@ urlpatterns = [
     path('chat/',v.OpenAIChatInteractionView.as_view()),
     path('image/',v.OpenAIImageInteractionView.as_view()),
     path('audio/',v.OpenAIAudioInteractionView.as_view()),
-    path('random-prompts/', v.RandomPromptsAPIView.as_view(), name='random-prompts'),
+    path('prompts-text/', v.RandomPromptsAPIView.as_view(), name='prompts-text'),
+    path('prompts-image/', v.RandomPromptsImageAPIView.as_view(), name='prompts-images'),
 
     path('chat/create/',v.OpenAIChatIDCreateView.as_view(), name='openai-chat-create'),
     path('chat/history/', v.OpenAIChatIDHistoryView.as_view(), name='openai-chat-history'),

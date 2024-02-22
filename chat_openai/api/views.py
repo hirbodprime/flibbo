@@ -19,9 +19,9 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from .history_serializers import * 
-from chat_openai.models import Prompt,OpenAIImageEditInteraction,HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
+from chat_openai.models import Prompt,PromptImage,OpenAIImageEditInteraction,HeyGenTalkingPhotoIDModel,HeyGenCreateVideoModel,SuggestPromptsImageModel,SuggestPromptsModel,OpenAIChatID,TalkImages,Dialect,Language,LanguageAndDialectRelation,TextToSpeechResponse,VoiceActorModel,FlikiVideoModel,UserAIStudioLimit,TextToImageResponse,StyleListModel,AIToolsModel,ClipResponse,AnimationResponse,TalkResponse,OpenAIChatInteraction,CategoriesModel,OpenAIAudioInteraction,OpenAIImageInteraction,OpenAITextToSpeechInteraction,OpenAIChatCategories
 from .serializers import (PromptSerializer,OpenAIImageEditInteractionSerializer,HeyGenTalkingPhotoIDModelSerializer,HeyGenTalkingPhotoImageUploadSerializer,SuggestPromptsImageSerializer,TalkVoiceActorSerializer,OpenAIChatIDSerializer,TalkImagesListSerializer,VoiceActorSerializer,StylesModelSerializer,AIToolsModelSerializer,OpenAIChatInteractionSerializer,OpenAIAudioInteractionSerializer,
-OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,
+OpenAIImageInteractionSerializer,ChatInteractionSerializer,SuggestPromptsSerializer,PromptImageSerializer,
  AudioInteractionSerializer, ImageInteractionSerializer, OpenAICategoriesSerializer,OpenAIChatCategoriesSerializer, OpenAITextToSpeechInteractionSerializer,OpenAIChatCategoriesSerializer)
 from explore.custom_pagination import CustomPagination
 from chat_openai.studio_d import create_talk,get_animation,get_talk,create_animation,get_presenters,get_presenter_drivers,create_clip,get_clip
@@ -64,7 +64,20 @@ class RandomPromptsAPIView(APIView):
             "data":serializer.data
         }
         return Response(response_prompt)
+class RandomPromptsImageAPIView(APIView):
+    def get(self, request):
+        count = PromptImage.objects.aggregate(count=Count('id'))['count']
+        if count < 3:  # Ensure there are at least 3 prompts
+            return Response({"error": "Not enough prompts in the database."}, status=400)
 
+        # Get 3 random prompts
+        random_ids = random.sample(range(1, count+1), 3)
+        prompts = PromptImage.objects.filter(id__in=random_ids)
+        serializer = PromptImageSerializer(prompts, many=True)
+        response_prompt = {
+            "data":serializer.data
+        }
+        return Response(response_prompt)
 
 class OpenAIChatCreateDescriptionView(CreateAPIView):
     permission_classes = [IsAuthenticated]
