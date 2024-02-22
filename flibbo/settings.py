@@ -294,7 +294,9 @@ ASGI_APPLICATION = 'flibbo_app.routing.application'
 host = os.getenv('HOST', 'local')  # Default to 'local' if not set
 
 # Determine the Redis hosts based on the environment
-if host == "dev":
+if host == "pro":
+    redis_hosts = [('127.0.0.1', 6379)]
+elif host == "dev":
     redis_hosts = [('127.0.0.1', 6379)]
 elif host == "local":
     redis_hosts = [('127.0.0.1', 32768)]
