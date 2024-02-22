@@ -1176,7 +1176,7 @@ class OpenAIImageShareYourThoughtsInteractionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        image_text = request.data.get('user_text_prompt_image')
+        image_text = request.data.get('prompt')
         if not image_text:
             return JsonResponse({'error': 'Image text is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1188,15 +1188,20 @@ class OpenAIImageShareYourThoughtsInteractionView(APIView):
                 quality="standard",
                 n=1,
             )
-            # Assuming the response object has an attribute `data` with the needed info
-            # and that data contains a list of generated image details
-            # This is a generic example and might need to be adapted
-            image_urls = [img['url'] for img in response['data']]  # Adapt based on actual structure
+            # If response object has a method to get images or data directly, use it here
+            # This is a placeholder and should be adapted based on actual API response structure
+            if hasattr(response, 'data'):
+                # Assuming 'data' is a method or property that returns the images information
+                image_data = response.data
+                image_urls = [img.url for img in image_data]  # Adjust this based on the actual attribute that holds the URL
+            else:
+                # Fallback or error handling if response does not have 'data' attribute
+                image_urls = []
 
             return JsonResponse({'message': 'Success', 'image_urls': image_urls}, status=status.HTTP_200_OK)
         except Exception as e:
-            # Handle exception, could be logging or returning a different message
             return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class OpenAIImageEditInteractionView(CreateAPIView):
