@@ -1171,16 +1171,16 @@ class OpenAIImageInteractionView(CreateAPIView):
         serializer.save(**save_dict)
 
 
+
 class OpenAIImageShareYourThoughtsInteractionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        image_text = request.data.get('prompt')
+        image_text = request.data.get('user_text_prompt_image')
         if not image_text:
             return JsonResponse({'error': 'Image text is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Assuming `client` is already defined and configured elsewhere in your code
             response = client.images.generate(
                 model="dall-e-3",
                 prompt=image_text,
@@ -1188,14 +1188,14 @@ class OpenAIImageShareYourThoughtsInteractionView(APIView):
                 quality="standard",
                 n=1,
             )
-            # Process the response from OpenAI's API
-            # The exact processing here depends on the structure of `response` and what you want to extract
-            generated_image_data = response  # Placeholder for actual data extraction logic
+            # Assuming the response object has an attribute `data` with the needed info
+            # and that data contains a list of generated image details
+            # This is a generic example and might need to be adapted
+            image_urls = [img['url'] for img in response['data']]  # Adapt based on actual structure
 
-            # Assuming you want to send back some information about the generated image
-            return JsonResponse({'message': 'Success', 'image_data': generated_image_data}, status=status.HTTP_200_OK)
+            return JsonResponse({'message': 'Success', 'image_urls': image_urls}, status=status.HTTP_200_OK)
         except Exception as e:
-            # Log the exception or handle it as needed
+            # Handle exception, could be logging or returning a different message
             return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
