@@ -732,8 +732,13 @@ class UserProfileV2ApiView(gn.RetrieveAPIView):
             elif sort_by == "voice":
                 # Add another condition for tweets with a non-empty 'voice' field
                 user_tweets = user_tweets.exclude(voice="")
-                
-            # Apply 'filter_by' conditions
+            elif sort_by == "text":
+                # Exclude tweets without a caption and also exclude tweets with any media content
+                user_tweets = user_tweets.exclude(caption="").exclude(
+                    Q(photo__isnull=False, photo__gt='') | 
+                    Q(video__isnull=False, video__gt='') | 
+                    Exists(TweetPostImagesModel.objects.filter(tweet=OuterRef('pk')))
+                )
             if filter_by == "popular":
                 user_tweets = user_tweets.annotate(like_count=Count('likes')).order_by('-like_count')
             elif filter_by == 'recent':

@@ -635,6 +635,11 @@ class TweetPostSerializer(serializers.ModelSerializer):
     total_comments = serializers.SerializerMethodField()
     file = serializers.SerializerMethodField()
     link = serializers.SerializerMethodField()
+    voice = serializers.SerializerMethodField()
+    def get_voice(self,obj):
+        if obj.voice:
+            return f"{settings.SITE_DOMAIN}{obj.voice.url}" 
+        return None
     def get_file(self, obj):
         # Get the current request object
         request = self.context.get('request')
@@ -850,7 +855,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['link','file','media','cover','private','request_status',
+        fields = ['options','voice','link','file','media','cover','private','request_status',
                 'user_followed','likes','id', 'photo_blur_hash','height', 'user',
                 'user_username','user_liked','user_saved','user_viewed' ,'profile_image_url',
                 'user_full_name','title', 'caption', 'hashtag', 'location','urls', 
