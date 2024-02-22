@@ -5,31 +5,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+DEBUG = os.getenv("DEBUG")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-p-a-$+fet#iu^-e)s^z^d^vkv=(u7-howm07h1si+06%sikd0h'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-if os.getenv("DEBUG") == "True":
-    DEBUG = True
-else:
-    DEBUG = False
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # # Set the 'SECURE_SSL_REDIRECT' setting to True to force HTTPS
 # SECURE_SSL_REDIRECT = True
 # ALLOWED_HOSTS = ["192.168.3.73"]
-ALLOWED_HOSTS = ["*","127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
+ALLOWED_HOSTS = ['104.194.156.61','192.168.3.108','www.dev.flxdevpanel.com','dev.flxdevpanel.com',"127.0.0.1","core.flxdevpanel.com","www.core.flxdevpanel.com",'app.flxdevpanel.com','www.app.flxdevpanel.com']
 
 AUTHENTICATION_BACKENDS = [
     'accounts.custom_authentication.UsernameBackend',  # Replace 'your_app_name' with the actual name of your app
@@ -38,7 +25,7 @@ AUTHENTICATION_BACKENDS = [
 ]   
 SITE_ID = 1
 
-CSRF_TRUSTED_ORIGINS = ['https://app.flxdevpanel.com']
+CSRF_TRUSTED_ORIGINS = ['https://app.flxdevpanel.com','https://dev.flxdevpanel.com']
 # Application definition
 USE_X_FORWARDED_HOST = True
 INSTALLED_APPS = [
@@ -76,6 +63,7 @@ INSTALLED_APPS = [
     'marketplace',
     'wallet',
     'activity',
+    'point',
 ]
 
 MIDDLEWARE = [
@@ -87,10 +75,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'accounts.middleware.CheckHostMiddleware',
     "allauth.account.middleware.AccountMiddleware",
-    "django.middleware.security.SecurityMiddleware",
 ]
+# 'accounts.middleware.CheckHostMiddleware',
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 X_FRAME_OPTIONS = 'ALLOW-FROM uri'
 
@@ -207,8 +194,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
 
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 10,
     # Other DRF settings...
 }
 
@@ -258,19 +245,10 @@ FIREBASE_APP_NOTIFICATION = initialize_app(name="notification")
 # https://cloud.google.com/docs/authentication/getting-started>
 
 FCM_DJANGO_SETTINGS = {
-     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-     # default: None (the default Firebase app)
     "DEFAULT_FIREBASE_APP": FIREBASE_APP_NOTIFICATION,
     "FCM_SERVER_KEY": os.getenv("FCM_SERVER_KEY"),
      # default: _('FCM Django')
     "APP_VERBOSE_NAME": "FCM Flibbo",
-     # true if you want to have only one active device per registered user at a time
-     # default: False
-    # "ONE_DEVICE_PER_USER": True/False,
-     # devices to which notifications cannot be sent,
-     # are deleted upon receiving error response from FCM
-     # default: False
-    # "DELETE_INACTIVE_DEVICES": True/False,
 }
 
 
@@ -312,14 +290,78 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # web socket config
-# ASGI_APPLICATION = 'flibbo_app.routing.application'
+ASGI_APPLICATION = 'flibbo_app.routing.application'
+host = os.getenv('HOST', 'local')  # Default to 'local' if not set
 
-# # Configure Channels
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],
-#         },
-#     },
-# }
+# Determine the Redis hosts based on the environment
+if host == "dev":
+    redis_hosts = [('127.0.0.1', 6379)]
+elif host == "local":
+    redis_hosts = [('127.0.0.1', 32768)]
+
+
+# Configure Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': redis_hosts,
+        },
+    },
+}
+
+
+host = os.getenv("HOST")
+SITE_DOMAIN = ""
+if host == "pro":
+    SITE_DOMAIN = "https://app.flxdevpanel.com"
+elif host == "dev":
+    SITE_DOMAIN = "https://dev.flxdevpanel.com"
+elif host == "local-test":
+    SITE_DOMAIN = "http://192.168.3.90:8080"
+elif host == "local":
+    SITE_DOMAIN = "http://127.0.0.1:8000"
+# settings.py
+
+import os
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'log.txt'),
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'error.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {  # This captures errors from the Django framework itself
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'tweet_app': {  # Custom logger for our tweet app
+            'handlers': ['file', 'error_file'],  # Log both debug and error levels
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+    'root': {  # This captures errors from all over the application
+        'handlers': ['error_file'],
+        'level': 'ERROR',
+    },
+}

@@ -1,0 +1,313 @@
+{
+    "success": true,
+    "data": [
+        {
+            "_id": "61b8b2f24268666c126babb1",
+            "name": "Afrikaans"
+        },
+        {
+            "_id": "62b2110fb751a736405225ce",
+            "name": "Albanian"
+        },
+        {
+            "_id": "61b8b2f24268666c126babb3",
+            "name": "Amharic"
+        },
+        {
+            "_id": "61b8b2f24268666c126babb5",
+            "name": "Arabic"
+        },
+        {
+            "_id": "635bc419d0900a036c2e439d",
+            "name": "Armenian"
+        },
+        {
+            "_id": "62b21780d63b5531a40753f4",
+            "name": "Azerbaijani"
+        },
+        {
+            "_id": "61b8b2f24268666c126babb7",
+            "name": "Bangla/Bengali"
+        },
+        {
+            "_id": "635bc666d0900a036c2e6ed2",
+            "name": "Basque"
+        },
+        {
+            "_id": "62b2188ed63b5531a40757e3",
+            "name": "Bosnian"
+        },
+        {
+            "_id": "61b8b2f34268666c126babb9",
+            "name": "Bulgarian"
+        },
+        {
+            "_id": "61b8b2f34268666c126babbb",
+            "name": "Burmese"
+        },
+        {
+            "_id": "61b8b2f34268666c126babbd",
+            "name": "Catalan"
+        },
+        {
+            "_id": "61b8b2f44268666c126babbf",
+            "name": "Chinese"
+        },
+        {
+            "_id": "61b8b2f44268666c126babc1",
+            "name": "Croatian"
+        },
+        {
+            "_id": "61b8b2f44268666c126babc3",
+            "name": "Czech"
+        },
+        {
+            "_id": "61b8b2f44268666c126babc5",
+            "name": "Danish"
+        },
+        {
+            "_id": "61b8b2f54268666c126babc7",
+            "name": "Dutch"
+        },
+        {
+            "_id": "61b8b2f54268666c126babc9",
+            "name": "English"
+        },
+        {
+            "_id": "61b8b2f54268666c126babcb",
+            "name": "Estonian"
+        },
+        {
+            "_id": "61b8b2f54268666c126babcd",
+            "name": "Filipino"
+        },
+        {
+            "_id": "61b8b2f64268666c126babcf",
+            "name": "Finnish"
+        },
+        {
+            "_id": "61b8b2f64268666c126babd1",
+            "name": "French"
+        },
+        {
+            "_id": "61b8b2f64268666c126babd3",
+            "name": "Galician"
+        },
+        {
+            "_id": "62b219d2d63b5531a4075de7",
+            "name": "Georgian"
+        },
+        {
+            "_id": "61b8b2f64268666c126babd5",
+            "name": "German"
+        },
+        {
+            "_id": "61b8b2f74268666c126babd7",
+            "name": "Greek"
+        },
+        {
+            "_id": "61b8b2f74268666c126babd9",
+            "name": "Gujarati"
+        },
+        {
+            "_id": "61b8b2f74268666c126babdb",
+            "name": "Hebrew"
+        },
+        {
+            "_id": "61b8b2f74268666c126babdd",
+            "name": "Hindi"
+        },
+        {
+            "_id": "61b8b2f84268666c126babdf",
+            "name": "Hungarian"
+        },
+        {
+            "_id": "61b8b2f84268666c126babe1",
+            "name": "Icelandic"
+        },
+        {
+            "_id": "61b8b2f84268666c126babe3",
+            "name": "Indonesian"
+        },
+        {
+            "_id": "61b8b2f94268666c126babe5",
+            "name": "Irish"
+        },
+        {
+            "_id": "61b8b2f94268666c126babe7",
+            "name": "Italian"
+        },
+        {
+            "_id": "61b8b2f94268666c126babe9",
+            "name": "Japanese"
+        },
+        {
+            "_id": "61b8b2f94268666c126babeb",
+            "name": "Javanese"
+        },
+        {
+            "_id": "61b8b2fa4268666c126babed",
+            "name": "Kannada"
+        },
+        {
+            "_id": "620518726fc020955bdcf7cc",
+            "name": "Kazakh"
+        },
+        {
+            "_id": "61b8b2fa4268666c126babef",
+            "name": "Khmer"
+        },
+        {
+            "_id": "61b8b2fa4268666c126babf1",
+            "name": "Korean"
+        },
+        {
+            "_id": "620519ba6fc020955bdcf864",
+            "name": "Lao"
+        },
+        {
+            "_id": "61b8b2fa4268666c126babf3",
+            "name": "Latvian"
+        },
+        {
+            "_id": "61b8b2fb4268666c126babf5",
+            "name": "Lithuanian"
+        },
+        {
+            "_id": "62051a6c6fc020955bdcf8a2",
+            "name": "Macedonian"
+        },
+        {
+            "_id": "61b8b2fb4268666c126babf7",
+            "name": "Malay"
+        },
+        {
+            "_id": "61b8b2fc4268666c126babfd",
+            "name": "Malayalam"
+        },
+        {
+            "_id": "61b8b2fb4268666c126babf9",
+            "name": "Maltese"
+        },
+        {
+            "_id": "61b8b2fb4268666c126babfb",
+            "name": "Marathi"
+        },
+        {
+            "_id": "62b21becd63b5531a4076ba1",
+            "name": "Mongolian"
+        },
+        {
+            "_id": "62b21c96d63b5531a4076ed9",
+            "name": "Nepali"
+        },
+        {
+            "_id": "61b8b2fc4268666c126babff",
+            "name": "Norwegian"
+        },
+        {
+            "_id": "62051b886fc020955bdcf90f",
+            "name": "Pashto"
+        },
+        {
+            "_id": "61b8b2fc4268666c126bac01",
+            "name": "Persian"
+        },
+        {
+            "_id": "61b8b2fc4268666c126bac03",
+            "name": "Polish"
+        },
+        {
+            "_id": "61b8b2fd4268666c126bac05",
+            "name": "Portuguese"
+        },
+        {
+            "_id": "61b8b2fd4268666c126bac07",
+            "name": "Punjabi"
+        },
+        {
+            "_id": "61b8b2fd4268666c126bac09",
+            "name": "Romanian"
+        },
+        {
+            "_id": "61b8b2fd4268666c126bac0b",
+            "name": "Russian"
+        },
+        {
+            "_id": "61b8b2fe4268666c126bac0d",
+            "name": "Serbian"
+        },
+        {
+            "_id": "62051f366fc020955bdcfb5c",
+            "name": "Sinhala"
+        },
+        {
+            "_id": "61b8b2fe4268666c126bac0f",
+            "name": "Slovak"
+        },
+        {
+            "_id": "61b8b2fe4268666c126bac11",
+            "name": "Slovenian"
+        },
+        {
+            "_id": "61b8b2ff4268666c126bac13",
+            "name": "Somali"
+        },
+        {
+            "_id": "61b8b2ff4268666c126bac15",
+            "name": "Spanish"
+        },
+        {
+            "_id": "61b8b2ff4268666c126bac17",
+            "name": "Sundanese"
+        },
+        {
+            "_id": "61b8b2ff4268666c126bac19",
+            "name": "Swahili"
+        },
+        {
+            "_id": "61b8b3004268666c126bac1b",
+            "name": "Swedish"
+        },
+        {
+            "_id": "61b8b3014268666c126bac1d",
+            "name": "Tamil"
+        },
+        {
+            "_id": "61b8b3014268666c126bac1f",
+            "name": "Telugu"
+        },
+        {
+            "_id": "61b8b3014268666c126bac21",
+            "name": "Thai"
+        },
+        {
+            "_id": "61b8b3014268666c126bac23",
+            "name": "Turkish"
+        },
+        {
+            "_id": "61b8b3024268666c126bac25",
+            "name": "Ukrainian"
+        },
+        {
+            "_id": "61b8b3024268666c126bac27",
+            "name": "Urdu"
+        },
+        {
+            "_id": "61b8b3024268666c126bac29",
+            "name": "Uzbek"
+        },
+        {
+            "_id": "61b8b3024268666c126bac2b",
+            "name": "Vietnamese"
+        },
+        {
+            "_id": "61b8b3034268666c126bac2d",
+            "name": "Welsh"
+        },
+        {
+            "_id": "61b8b3034268666c126bac2f",
+            "name": "Zulu"
+        }
+    ]
+}

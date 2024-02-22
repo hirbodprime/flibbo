@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from marketplace.models import NftProductModel
 from decimal import Decimal
-
+from django.conf import settings
 class NftProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = NftProductModel
@@ -53,8 +53,7 @@ class NftProductlistSerializer(serializers.ModelSerializer):
 
         # Check if the object has a 'photo' field
         if obj.image:
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.image.url}"
 
         else:
             return None
@@ -65,8 +64,7 @@ class NftProductlistSerializer(serializers.ModelSerializer):
         # Check if the object has a 'photo' field
         if obj.video:
             # Get the full URL for the photo by prepending the domain
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.video.url}"
+            return f"{settings.SITE_DOMAIN}{obj.video.url}"
         else:
             return None
     class Meta:
@@ -116,8 +114,7 @@ class NftProductGeterializer(serializers.ModelSerializer):
         # Check if the object has a 'photo' field
         if obj.image:
             # Get the full URL for the photo by prepending the domain
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.image.url}"
         else:
             return None
     def get_video(self, obj):
@@ -127,8 +124,7 @@ class NftProductGeterializer(serializers.ModelSerializer):
         # Check if the object has a 'photo' field
         if obj.video:
             # Get the full URL for the photo by prepending the domain
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.video.url}"
+            return f"{settings.SITE_DOMAIN}{obj.video.url}"
         else:
             return None
     class Meta:

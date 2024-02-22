@@ -1,5 +1,6 @@
 
 from rest_framework import serializers
+from django.conf import settings
 from category.models import (
     CategoryModel , 
     MenuCategoryModel, 
@@ -30,8 +31,7 @@ class CategorySerializer(BaseCategorySerializer):
         # Check if the object has a 'photo' field
         if obj.image:
             # Get the full URL for the photo by prepending the domain
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.image.url}"
         else:
             return None
     def get_selected_by_user(self, obj):

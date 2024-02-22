@@ -1,0 +1,40 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            function toggleFields() {
+                var choice = document.getElementById("id_choice_field").value;
+
+                // Hide all fields initially
+                var allFields = ['fluent', 'subtitle', 'expression', 'speed_rate', 'bg_color', 'aspectratio', 'bg_music'];
+                allFields.forEach(function(fieldName) {
+                    document.querySelector('.field-' + fieldName).style.display = 'none';
+                });
+
+                // Show fields based on the choice
+                if (choice === 'talk') {
+                    ['fluent', 'subtitle', 'expression', 'speed_rate'].forEach(function(fieldName) {
+                        document.querySelector('.field-' + fieldName).style.display = 'block';
+                    });
+                } else if (choice === 'clip') {
+                    ['bg_color'].forEach(function(fieldName) {
+                        document.querySelector('.field-' + fieldName).style.display = 'block';
+                    });
+                } else if (choice === 'fliki-video') {
+                    ['aspectratio', 'bg_music'].forEach(function(fieldName) {
+                        document.querySelector('.field-' + fieldName).style.display = 'block';
+                    });
+                }
+                // Add similar blocks for other choices if needed
+            }
+
+            // Initial toggle on load
+            toggleFields();
+
+            // Toggle fields on change
+            document.getElementById("id_choice_field").addEventListener("change", toggleFields);
+        });
+    </script>
+{% endblock %}

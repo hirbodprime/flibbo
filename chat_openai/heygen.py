@@ -1,67 +1,87 @@
 import requests
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
-api_key = 'YmI3MGMzMjY5ZDNjNGFkMWI2NjhiMGFkMTlhYWMzNTgtMTcwMjcxNDczMg=='
+api_key = os.getenv("HEYGEN_API_KEY")
 
-def create_video():
-    # Request headers
-    url = 'https://api.heygen.com/v1/video.generate'
-    headers = {
+headers = {
         'X-Api-Key': api_key,
         'Content-Type': 'application/json'
+}
+def create_video_heygen(bg_color, ratio, avatar_id, input_text, audio_input, voice_id, talking_photo_id):
+    # API endpoint URL
+    url = 'https://api.heygen.com/v1/video.generate'
+
+    # Construct the clip data
+    clip = {
+        "caption": False,
+        "scale": 1,
+        "voice_id": voice_id,
+        "avatar_style": "normal",
+        "talking_photo_style": "normal"
     }
 
-    # Request data
+    # Add either avatar_id or talking_photo_id
+    if avatar_id:
+        clip["avatar_id"] = avatar_id
+    elif talking_photo_id:
+        clip["talking_photo_id"] = talking_photo_id
+
+    # Add input_text or input_audio
+    if input_text:
+        clip["input_text"] = input_text
+    elif audio_input:
+        clip["input_audio"] = audio_input
+
+    # Prepare the complete data payload
     data = {
-        "background": "#ffffff",
-        "clips": [
-            {
-                "avatar_id": "Zoey-inTshirt-20220816",
-                "avatar_style": "normal",
-                "input_text": "hello there i am zoey and i am using a new voice",
-                "offset": {
-                    "x": 0,
-                    "y": 0
-                },
-                "scale": 1,
-                "voice_id": "ffdbe4de35d34391830da243f2b82e13"
-            }
-        ],
-        "ratio": "16:9",
-        "test": True,
-        "version": "v1alpha"
+        "background": bg_color,
+        "ratio": ratio,
+        "test": False,
+        "version": "v1alpha",
+        "clips": [clip]
     }
 
-    # Make the POST request
-    response = requests.post(url, json=data, headers=headers)
+    try:
+        # Make the POST request
+        response = requests.post(url, json=data, headers=headers)
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        # The request was successful
-        print("Request successful. Response data:", response.json())
-    else:
-        # The request failed
-        print("Request failed. Status code:", response.status_code)
+        # Process response
+        if response.status_code == 200:
+            response_data = response.json()
+            return {"success": True, **response_data}
+        else:
+            return {"success": False, "error": response.text, "status_code": response.status_code}
+
+    except requests.RequestException as e:
+        # Handle any exceptions during the request
+        return {"success": False, "error": str(e)}
+
 
 
 def get_video(video_id):
 
     url = f"https://api.heygen.com/v1/video_status.get?video_id={video_id}"
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
 
-# get_video()
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
 
-def add_caption():
+
+
+
+def add_caption(video_id):
     url = "https://api.heygen.com/v1/video/caption.generate"
 
-    payload = { "video_id": "85fa1df2a0dd48f5908781df11a63c2f" }
+    payload = { "video_id": video_id }
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
@@ -70,10 +90,16 @@ def add_caption():
 
     response = requests.post(url, json=payload, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
 
-def get_caption():
-    url = "https://api.heygen.com/v1/video/caption.get?video_id=85fa1df2a0dd48f5908781df11a63c2f"
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
+
+def get_caption(video_id):
+    url = f"https://api.heygen.com/v1/video/caption.get?video_id={video_id}"
     headers = {
         "accept": "application/json",
         "x-api-key": api_key
@@ -81,7 +107,13 @@ def get_caption():
 
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
 
 
 def list_avatars():
@@ -89,62 +121,70 @@ def list_avatars():
     # url = "https://api.heygen.com/v1/avatar.list"
     url = "https://api.heygen.com/v2/avatars"
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
-
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data}
 
 
-# list_avatars()
 def list_voices():
 
     # url = "https://api.heygen.com/v1/voice.list"
     url = "https://api.heygen.com/v2/voices"
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data}
+
+def get_langunages_translate():
+    url = "https://api.heygen.com/v2/video_translate/target_languages"
 
     response = requests.get(url, headers=headers)
 
-    print(response.text)
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
 
 
-def list_templates():
-    url = "https://api.heygen.com/v2/templates"
+import random
+import string
 
-    headers = {
-        "accept": "application/json",
-        "x-api-key": api_key
-    }
+def generate_random_title(language, length=10):
+    # Create a sequence of letters and digits
+    chars = string.ascii_letters + string.digits
 
-    response = requests.get(url, headers=headers)
+    # Generate a random string of specified length
+    random_string = ''.join(random.choice(chars) for _ in range(length))
 
-    print(response.text)
+    # Combine the language and the random string
+    title = f"{language}_{random_string}"
+    return title
 
-# create_video()
-# get_video('cbf38fa4fc9e49abb5dd8c678d6ce385')
-# list_avatars()
-def generate_from_template():
-
-    url = "https://api.heygen.com/v1/template.generate"
+def create_video_translate(video_url,output_language):
+    url = "https://api.heygen.com/v2/video_translate"
+    title = generate_random_title(output_language)
 
     payload = {
-        "template_id": "02548b8c42da4f259d24af69e5d318d7",
-        "title": "video_title",
-        "video_id": "85fa1df2a0dd48f5908781df11a63c2f",
-        "test": False,
-        "variables": [
-        {
-            "properties": { "newKey": "New Value" },
-            "name": "name"
-        }
-    ]
+        "video_url": video_url,
+        "output_language": output_language,
+        "title": title,
+        "translate_audio_only": False,
+        "speaker_num": 32
     }
     headers = {
         "accept": "application/json",
@@ -154,6 +194,30 @@ def generate_from_template():
 
     response = requests.post(url, json=payload, headers=headers)
 
-    print(response.text)
+    if response.status_code == 201:
+        response_data = response.json()
+        return {"success":True,**response_data}
 
-generate_from_template()
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
+
+
+    
+
+def get_video_translate(video_id):
+
+    url = f"https://api.heygen.com/v2/video_translate/{video_id}"
+
+
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return {"success":True,**response_data}
+
+    else:
+        response_data = response.json()
+        return {"success":False,**response_data} 
+
