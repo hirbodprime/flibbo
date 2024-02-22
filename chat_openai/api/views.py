@@ -1171,6 +1171,34 @@ class OpenAIImageInteractionView(CreateAPIView):
         serializer.save(**save_dict)
 
 
+class OpenAIImageShareYourThoughtsInteractionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        image_text = request.data.get('prompt')
+        if not image_text:
+            return JsonResponse({'error': 'Image text is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Assuming `client` is already defined and configured elsewhere in your code
+            response = client.images.generate(
+                model="dall-e-3",
+                prompt=image_text,
+                size="1024x1024",
+                quality="standard",
+                n=1,
+            )
+            # Process the response from OpenAI's API
+            # The exact processing here depends on the structure of `response` and what you want to extract
+            generated_image_data = response  # Placeholder for actual data extraction logic
+
+            # Assuming you want to send back some information about the generated image
+            return JsonResponse({'message': 'Success', 'image_data': generated_image_data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            # Log the exception or handle it as needed
+            return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class OpenAIImageEditInteractionView(CreateAPIView):
     queryset = OpenAIImageEditInteraction.objects.all()
     serializer_class = OpenAIImageEditInteractionSerializer
