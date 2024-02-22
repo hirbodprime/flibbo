@@ -9,8 +9,10 @@ from rest_framework.views import APIView
 from marketplace.models import NftProductModel
 from accounts.permissions import IsOwnerOrReadOnly
 from accounts.models import CustomUser , SavedByUser, ReportUser,AccessToken,BlockModel,ChangeUsernameModel
-from posts.models import TweetPostModel , PodcastPostModel, BookPostModel
+from posts.models import TweetPostModel , PodcastPostModel, BookPostModel, TweetPostImagesModel
 from posts.api.serializers import TweetPostSerializer
+from point.models import ReferralCodeModel
+from point.point_functionality import process_referral_signup
 from wallet.models import UsersNfts
 from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
@@ -41,6 +43,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import  permission_classes
 from rest_framework.decorators import api_view
 from accounts.models import report_reasons_choices
+from django.db.models import Count, Q, Exists, OuterRef, F
 
 from django.contrib.auth import login
 from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
@@ -209,7 +212,7 @@ class GoogleLogin(SocialLoginView): # if you want to use Implicit Grant, use thi
             refresh_token = str(refresh)
             # Add additional data to the response\
             user = request.user
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_data = {
                 'id': user.id,
                 'username': user.username,
@@ -256,9 +259,7 @@ class AppleLogin(SocialLoginView):
             refresh_token = str(refresh)
             # Add additional data to the response\
             user = request.user
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            profile_image_url = f"https://{site_domain}{user.profile_image.url}" if user.profile_image else None
-            # profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_data = {
                 'id': user.id,
                 'username': user.username,
@@ -315,9 +316,26 @@ class SavedTweetsMediaListView(gn.ListAPIView):
     def get_queryset(self):
         user_id = self.kwargs['user_id']  # Get the user_id from the URL kwargs
         user_saved,created = SavedByUser.objects.get_or_create(user_id=user_id)
-        
         # Fetch the saved tweets and exclude those without images and videos
-        return user_saved.saved_tweets.exclude(Q(photo__exact="") & Q(video__exact=""))
+        from itertools import chain
+        slide_images_tweets = []
+        for saved in user_saved.saved_tweets.all():
+            tweet_images = TweetPostImagesModel.objects.filter(tweet=saved)
+            for tweet in tweet_images:
+                slide_images_tweets.append(tweet.tweet)
+        result_list = list(chain(user_saved.saved_tweets.exclude(Q(photo__exact="") & Q(video__exact="")), slide_images_tweets))
+        return result_list
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # page = self.paginate_queryset(queryset)
+        # if page is not limited:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"results": serializer.data})  # Customized response key here
 
 class SavedTweetsTextListView(gn.ListAPIView):
     serializer_class = TweetPostSerializer
@@ -328,6 +346,16 @@ class SavedTweetsTextListView(gn.ListAPIView):
         
         # Fetch the saved tweets and exclude those without images and videos
         return user_saved.saved_tweets.filter(photo__exact="", video__exact="")
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # page = self.paginate_queryset(queryset)
+        # if page is not limited:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"results": serializer.data})  # Customized response key here
 
 
 class BlockUserView(gn.CreateAPIView):
@@ -440,10 +468,8 @@ class CheckLoginStatusAPIView(APIView):
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
-                site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            # Build the profile image URL using request.build_absolute_uri
             
-                profile_image_url = f"https://{site_domain}/{user.profile_image.url}" if user.profile_image else None
+                profile_image_url = f"{settings.SITE_DOMAIN}/{user.profile_image.url}" if user.profile_image else None
                 user_token = AccessToken.objects.get(user=user)
                 user_data = {
                     
@@ -564,7 +590,7 @@ class PasswordResetApi(APIView):
 
             # Construct the password reset link
             # reset_link = reverse('reset_password_api')
-            reset_link = f'https://app.flxdevpanel.com/?uid={uid}&token={token}'
+            reset_link = f"{settings.SITE_DOMAIN}/?uid={uid}&token={token}"
 
             # Send the reset link in the response
             # Create the email subject and message
@@ -630,9 +656,7 @@ from following_system.api.serializers import RequestToFollowListSerializer
 class UserProfileApiView(gn.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = ShowCustomUserSerializer
-    # permission_classes = [IsAuthenticated]
-    # def get_object(self):
-    #     return self.request.user
+    permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, *args, **kwargs):
         if request.user:
@@ -670,7 +694,77 @@ class UserProfileApiView(gn.RetrieveAPIView):
 
 
 
+class UserProfileV2ApiView(gn.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = ShowCustomUserSerializer
+    permission_classes = [IsAuthenticated]
 
+    def retrieve(self, request, *args, **kwargs):
+        if request.user:
+            username = kwargs.get('username')
+            user = get_object_or_404(CustomUser, username=username)
+            user_token = AccessToken.objects.get(user=user)
+            
+            sort_by = request.query_params.get('sort_by', 'media').lower()
+            filter_by = request.query_params.get('filter', 'recent').lower()
+            options = request.query_params.get('based', None)
+
+            # Start with a base QuerySet
+            user_tweets = TweetPostModel.objects.filter(user=user)
+
+            # Apply 'options' filter
+            user_tweets = TweetPostModel.objects.filter(user=user)
+
+            # Apply 'options' filter
+            if options in ['personal', 'premium']:
+                user_tweets = user_tweets.filter(options=options)
+
+            # Filter tweets with media directly using a QuerySet
+            if sort_by == "media":
+                # This filter assumes 'photo' and 'video' are CharFields or similar.
+                # Adjust the logic if these fields are handled differently in your model.
+                has_media = (
+                    Q(photo__isnull=False, photo__gt='') | 
+                    Q(video__isnull=False, video__gt='') | 
+                    Exists(TweetPostImagesModel.objects.filter(tweet=OuterRef('pk')))
+                )
+                user_tweets = user_tweets.filter(has_media)
+            elif sort_by == "voice":
+                # Add another condition for tweets with a non-empty 'voice' field
+                user_tweets = user_tweets.exclude(voice="")
+            elif sort_by == "text":
+                # Exclude tweets without a caption and also exclude tweets with any media content
+                user_tweets = user_tweets.exclude(caption="").exclude(
+                    Q(photo__isnull=False, photo__gt='') | 
+                    Q(video__isnull=False, video__gt='') | 
+                    Exists(TweetPostImagesModel.objects.filter(tweet=OuterRef('pk')))
+                )
+            if filter_by == "popular":
+                user_tweets = user_tweets.annotate(like_count=Count('likes')).order_by('-like_count')
+            elif filter_by == 'recent':
+                user_tweets = user_tweets.order_by('-created_date')  # Ensure field name is 'created_at' or adjust as needed
+            elif filter_by == 'oldest':
+                user_tweets = user_tweets.order_by('created_date')
+
+            # Serialization and response preparation
+            current_site = get_current_site(request)
+            domain = current_site.domain
+            serializer = ShowCustomUserSerializer(user, context={'request': request, 'user_id': user.id})
+            request_activities = RequestToFollow.objects.filter(request_sender=request.user, requset_reciever=user).first()
+            serializer_requests = RequestToFollowListSerializer(instance=request_activities, context={'request': request})
+            tweet_serializer = TweetPostSerializer(user_tweets, many=True, context={'request': request})
+
+            response_data = {
+                'token': str(user_token.token),
+                'request': serializer_requests.data,
+                'user_data': serializer.data,
+                'user_tweets': tweet_serializer.data,
+                'success': True,
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -753,8 +847,7 @@ class UserLoginView(gn.CreateAPIView):
             domain = current_site.domain
             user_token = AccessToken.objects.get(user=user)
 
-            # Build the profile image URL using request.build_absolute_uri
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_data = {
                 
                 'id': user.id,
@@ -779,6 +872,7 @@ class UserLoginView(gn.CreateAPIView):
         else:
             # User authentication failed
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+# from point.signals import referral_signup_signal
 
 class SignupConfirmationView(gn.CreateAPIView):
     serializer_class = SignupSerializer
@@ -805,8 +899,7 @@ class SignupConfirmationView(gn.CreateAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            # Build the profile image URL using request.build_absolute_uri
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             user_token = AccessToken.objects.get(user=user)
 
             user_data = {
@@ -829,37 +922,27 @@ class SignupConfirmationView(gn.CreateAPIView):
                 'country':user.country,
             }
             # Instead of directly accessing the key, use the .get() method
-            bonus_code = request.data.get('bonus_code', None)
-            if bonus_code:
-                url = "https://panel.flhub.org/bonus/api/create/"
-                data = {
-                    'bonus_code': bonus_code,
-                    'used_user_username': user.username,
-                    'used_user_first_name': user.full_name,
-                    'used_user_email': user.email,
-                }
-
-                response = requests.post(url, data=data)
-
-                if response.status_code == 201:
-                    return Response({
-                        'token': str(user_token.token),
-                        'user_data':user_data,
-                        'access_token': access_token,
-                        'refresh_token': refresh_token,
-                        'success': True
-                    }, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+            from point.models import PointWalletModel
+            PointWalletModel.objects.create(user=user)
+            referral_code = request.data.get('referral_code', None)
+            if referral_code:
+                try:
+                    referrer = ReferralCodeModel.objects.get(ref_code=referral_code).user
+                    ReferralCodeModel.objects.create(referrer=referrer, user=user)
+                    process_referral_signup(new_user=user, referral_code=referral_code)
+                except ReferralCodeModel.DoesNotExist:
+                    print("Invalid referral code:", referral_code)
             else:
-                return Response({
+                ReferralCodeModel.objects.create(user=user)
+                
+            print(referral_code)
+            return Response({
                         'token': str(user_token.token),
                         'user_data':user_data,
                         'access_token': access_token,
                         'refresh_token': refresh_token,
                         'success': True
-                    }, status=status.HTTP_201_CREATED)
+                }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from .serializers import ProfileSerializer,SavedByUserSerializer
@@ -880,8 +963,7 @@ class ProfileApiView(gn.RetrieveAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            # Build the profile image URL using request.build_absolute_uri
-            profile_image_url = request.build_absolute_uri(user.profile_image.url) if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user.profile_image.url}" if user.profile_image else None
             # print(profile_image_url)
             
             user_token = AccessToken.objects.get(user=user)
@@ -946,10 +1028,8 @@ class SavedPostsApiView(gn.RetrieveAPIView):
             current_site = get_current_site(request)
             domain = current_site.domain
 
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            # Build the profile image URL using request.build_absolute_uri
             
-            profile_image_url = f"https://{site_domain}/{user.profile_image.url}" if user.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}/{user.profile_image.url}" if user.profile_image else None
             saved_posts = SavedByUser.objects.filter(user=user)
             saved_tweets_list = []
             
@@ -957,15 +1037,15 @@ class SavedPostsApiView(gn.RetrieveAPIView):
                 saved_tweets = saved_post.saved_tweets.all()  # Use .all() to access the related saved tweets
                 for saved_tweet in saved_tweets:
                     if saved_tweet.photo:
-                        photo = f"https://{site_domain}/{saved_tweet.photo.url}"
+                        photo = f"{settings.SITE_DOMAIN}/{saved_tweet.photo.url}"
                         
                     else:
                         photo = None
                     if saved_tweet.video:
-                        video = f"https://{site_domain}/{saved_tweet.video.url}"
+                        video = f"{settings.SITE_DOMAIN}/{saved_tweet.video.url}"
                     else:
                         video = None
-                    share_url = f"https://{site_domain}/posts/api/tweet/get/{saved_tweet.id}"
+                    share_url = f"{settings.SITE_DOMAIN}/posts/api/tweet/get/{saved_tweet.id}"
                     
                     mention_users = [mention_user.username for mention_user in saved_tweet.mention_users.all()]
                     

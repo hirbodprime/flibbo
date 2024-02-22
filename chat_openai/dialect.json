@@ -1,0 +1,469 @@
+{
+    "success": true,
+    "data": [
+        {
+            "_id": "62051bab6fc020955bdcf92b",
+            "name": "🇦🇫 Afghanistan"
+        },
+        {
+            "_id": "62b2115db751a73640522820",
+            "name": "🇦🇱 Albania"
+        },
+        {
+            "_id": "61b8b3034268666c126bac31",
+            "name": "🇩🇿 Algeria"
+        },
+        {
+            "_id": "61b8b3044268666c126bac33",
+            "name": "🇦🇷 Argentina"
+        },
+        {
+            "_id": "635bc437d0900a036c2e483f",
+            "name": "🇦🇲 Armenia"
+        },
+        {
+            "_id": "61b8b3044268666c126bac35",
+            "name": "🇦🇺 Australia"
+        },
+        {
+            "_id": "61b8b3044268666c126bac37",
+            "name": "🇦🇹 Austria"
+        },
+        {
+            "_id": "62b2145cd63b5531a4074a88",
+            "name": "🇦🇿 Azerbaijan"
+        },
+        {
+            "_id": "61b8b3044268666c126bac39",
+            "name": "🇧🇭 Bahrain"
+        },
+        {
+            "_id": "61b8b3054268666c126bac3b",
+            "name": "🇧🇩 Bangladesh"
+        },
+        {
+            "_id": "61b8b3054268666c126bac3d",
+            "name": "🇧🇪 Belgium"
+        },
+        {
+            "_id": "61b8b3054268666c126bac3f",
+            "name": "🇧🇴 Bolivia"
+        },
+        {
+            "_id": "62b21879d63b5531a40757b1",
+            "name": "🇧🇦 Bosnia and Herzegovina"
+        },
+        {
+            "_id": "61b8b3054268666c126bac41",
+            "name": "🇧🇷 Brazil"
+        },
+        {
+            "_id": "61b8b3064268666c126bac43",
+            "name": "🇧🇬 Bulgaria"
+        },
+        {
+            "_id": "61b8b3064268666c126bac45",
+            "name": "🇰🇭 Cambodia"
+        },
+        {
+            "_id": "61b8b3064268666c126bac47",
+            "name": "🇨🇦 Canada"
+        },
+        {
+            "_id": "61b8b3064268666c126bac49",
+            "name": "🇨🇱 Chile"
+        },
+        {
+            "_id": "61b8b3074268666c126bac4b",
+            "name": "🇨🇴 Colombia"
+        },
+        {
+            "_id": "61b8b3074268666c126bac4d",
+            "name": "🇨🇷 Costa Rica"
+        },
+        {
+            "_id": "61b8b3074268666c126bac51",
+            "name": "🇭🇷 Croatia"
+        },
+        {
+            "_id": "61b8b3074268666c126bac4f",
+            "name": "🇨🇺 Cuba"
+        },
+        {
+            "_id": "61b8b3084268666c126bac53",
+            "name": "Ж Cyrillic"
+        },
+        {
+            "_id": "61b8b3084268666c126bac55",
+            "name": "🇨🇿 Czech Republic"
+        },
+        {
+            "_id": "61b8b3084268666c126bac57",
+            "name": "🇩🇰 Denmark"
+        },
+        {
+            "_id": "61b8b3084268666c126bac59",
+            "name": "🇩🇴 Dominican Republic"
+        },
+        {
+            "_id": "61b8b3094268666c126bac5b",
+            "name": "🇪🇨 Ecuador"
+        },
+        {
+            "_id": "61b8b3094268666c126bac5d",
+            "name": "🇪🇬 Egypt"
+        },
+        {
+            "_id": "61b8b3094268666c126bac5f",
+            "name": "🇸🇻 El Salvador"
+        },
+        {
+            "_id": "61b8b30a4268666c126bac61",
+            "name": "🇬🇶 Equatorial Guinea"
+        },
+        {
+            "_id": "61b8b30a4268666c126bac63",
+            "name": "🇪🇪 Estonia"
+        },
+        {
+            "_id": "61b8b30a4268666c126bac65",
+            "name": "🇪🇹 Ethiopia"
+        },
+        {
+            "_id": "61b8b30a4268666c126bac67",
+            "name": "🇫🇮 Finland"
+        },
+        {
+            "_id": "61b8b30b4268666c126bac69",
+            "name": "🇫🇷 France"
+        },
+        {
+            "_id": "62b219b3d63b5531a4075d97",
+            "name": "🇬🇪 Georgia"
+        },
+        {
+            "_id": "61b8b30b4268666c126bac6b",
+            "name": "🇩🇪 Germany"
+        },
+        {
+            "_id": "61b8b30b4268666c126bac6d",
+            "name": "🇬🇷 Greece"
+        },
+        {
+            "_id": "61b8b30b4268666c126bac6f",
+            "name": "🇬🇹 Guatemala"
+        },
+        {
+            "_id": "635b8cc01ffad1eb36e1d1da",
+            "name": "🇨🇳 Henan"
+        },
+        {
+            "_id": "61b8b30c4268666c126bac71",
+            "name": "🇭🇳 Honduras"
+        },
+        {
+            "_id": "61b8b30c4268666c126bac73",
+            "name": "🇭🇰 Hong Kong"
+        },
+        {
+            "_id": "61b8b30c4268666c126bac75",
+            "name": "🇭🇺 Hungary"
+        },
+        {
+            "_id": "61b8b30d4268666c126bac79",
+            "name": "🇮🇸 Iceland"
+        },
+        {
+            "_id": "61b8b30d4268666c126bac7b",
+            "name": "🇮🇳 India"
+        },
+        {
+            "_id": "61b8b30d4268666c126bac7d",
+            "name": "🇮🇩 Indonesia"
+        },
+        {
+            "_id": "61b8b30d4268666c126bac7f",
+            "name": "🇮🇷 Iran"
+        },
+        {
+            "_id": "61b8b30e4268666c126bac81",
+            "name": "🇮🇶 Iraq"
+        },
+        {
+            "_id": "61b8b30e4268666c126bac83",
+            "name": "🇮🇪 Ireland"
+        },
+        {
+            "_id": "61b8b30e4268666c126bac85",
+            "name": "🇮🇱 Israel"
+        },
+        {
+            "_id": "61b8b30f4268666c126bac87",
+            "name": "🇮🇹 Italy"
+        },
+        {
+            "_id": "61b8b30c4268666c126bac77",
+            "name": "🇯🇵 Japan"
+        },
+        {
+            "_id": "61b8b30f4268666c126bac89",
+            "name": "🇯🇴 Jordan"
+        },
+        {
+            "_id": "620518a26fc020955bdcf803",
+            "name": "🇰🇿 Kazakhstan"
+        },
+        {
+            "_id": "61b8b30f4268666c126bac8b",
+            "name": "🇰🇪 Kenya"
+        },
+        {
+            "_id": "61b8b30f4268666c126bac8d",
+            "name": "🇰🇷 Korea"
+        },
+        {
+            "_id": "61b8b3104268666c126bac8f",
+            "name": "🇰🇼 Kuwait"
+        },
+        {
+            "_id": "620519d76fc020955bdcf86d",
+            "name": "🇱🇦 Laos"
+        },
+        {
+            "_id": "61b8b3104268666c126bac91",
+            "name": "🇱🇻 Latvia"
+        },
+        {
+            "_id": "62b2125bb751a73640523003",
+            "name": "🇱🇧 Lebanon"
+        },
+        {
+            "_id": "635b8bd71ffad1eb36e1c8c5",
+            "name": "🇨🇳 Liaoning"
+        },
+        {
+            "_id": "61b8b3104268666c126bac93",
+            "name": "🇱🇾 Libya"
+        },
+        {
+            "_id": "61b8b3104268666c126bac95",
+            "name": "🇱🇹 Lithuania"
+        },
+        {
+            "_id": "61b8b3114268666c126bac97",
+            "name": "🇲🇾 Malaysia"
+        },
+        {
+            "_id": "61b8b3114268666c126bac99",
+            "name": "🇲🇹 Malta"
+        },
+        {
+            "_id": "61b8b3114268666c126bac9b",
+            "name": "🇨🇳 Mandarin Simplified"
+        },
+        {
+            "_id": "61b8b3114268666c126bac9d",
+            "name": "🇲🇽 Mexico"
+        },
+        {
+            "_id": "62b21bd9d63b5531a4076a9d",
+            "name": "🇲🇳 Mongolia"
+        },
+        {
+            "_id": "61b8b3124268666c126baca1",
+            "name": "🇲🇦 Morocco"
+        },
+        {
+            "_id": "61b8b3124268666c126bac9f",
+            "name": "🇲🇲 Myanmar"
+        },
+        {
+            "_id": "62b21c88d63b5531a4076ed0",
+            "name": "🇳🇵 Nepal"
+        },
+        {
+            "_id": "61b8b3124268666c126baca3",
+            "name": "🇳🇱 Netherlands"
+        },
+        {
+            "_id": "61b8b3124268666c126baca5",
+            "name": "🇳🇿 New Zealand"
+        },
+        {
+            "_id": "61b8b3134268666c126baca7",
+            "name": "🇳🇮 Nicaragua"
+        },
+        {
+            "_id": "61b8b3134268666c126baca9",
+            "name": "🇳🇬 Nigeria"
+        },
+        {
+            "_id": "62051a956fc020955bdcf8ab",
+            "name": "🇲🇰 Republic of North Macedonia"
+        },
+        {
+            "_id": "61b8b3134268666c126bacab",
+            "name": "🇳🇴 Norway"
+        },
+        {
+            "_id": "62b2137ed63b5531a4074772",
+            "name": "🇴🇲 Oman"
+        },
+        {
+            "_id": "61b8b3144268666c126bacaf",
+            "name": "🇵🇰 Pakistan"
+        },
+        {
+            "_id": "61b8b3144268666c126bacad",
+            "name": "🇵🇦 Panama"
+        },
+        {
+            "_id": "61b8b3144268666c126bacb1",
+            "name": "🇵🇾 Paraguay"
+        },
+        {
+            "_id": "61b8b3144268666c126bacb3",
+            "name": "🇵🇪 Peru"
+        },
+        {
+            "_id": "61b8b3154268666c126bacb5",
+            "name": "🇵🇭 Philippines"
+        },
+        {
+            "_id": "61b8b3154268666c126bacb7",
+            "name": "🇵🇱 Poland"
+        },
+        {
+            "_id": "61b8b3154268666c126bacb9",
+            "name": "🇵🇹 Portugal"
+        },
+        {
+            "_id": "61b8b3154268666c126bacbb",
+            "name": "🇵🇷 Puerto Rico"
+        },
+        {
+            "_id": "61b8b3164268666c126bacbd",
+            "name": "🇶🇦 Qatar"
+        },
+        {
+            "_id": "61b8b3164268666c126bacbf",
+            "name": "🇷🇴 Romania"
+        },
+        {
+            "_id": "61b8b3164268666c126bacc1",
+            "name": "🇷🇺 Russia"
+        },
+        {
+            "_id": "61b8b3164268666c126bacc3",
+            "name": "🇸🇦 Saudi Arabia"
+        },
+        {
+            "_id": "635b8a821ffad1eb36e1bcb3",
+            "name": "🇨🇳 Shaanxi"
+        },
+        {
+            "_id": "635b8a0b1ffad1eb36e1b85f",
+            "name": "🇨🇳 Shandong"
+        },
+        {
+            "_id": "635b89401ffad1eb36e1ae2d",
+            "name": "🇨🇳 Sichuan"
+        },
+        {
+            "_id": "61b8b3174268666c126bacc5",
+            "name": "🇸🇬 Singapore"
+        },
+        {
+            "_id": "61b8b3174268666c126bacc7",
+            "name": "🇸🇰 Slovakia"
+        },
+        {
+            "_id": "61b8b3174268666c126bacc9",
+            "name": "🇸🇮 Slovenia"
+        },
+        {
+            "_id": "61b8b3184268666c126baccd",
+            "name": "🇸🇴 Somalia"
+        },
+        {
+            "_id": "61b8b3184268666c126baccf",
+            "name": "🇿🇦 South Africa"
+        },
+        {
+            "_id": "61b8b3184268666c126bacd1",
+            "name": "🇪🇸 Spain"
+        },
+        {
+            "_id": "61b8b3174268666c126baccb",
+            "name": "🇱🇰 Sri Lanka"
+        },
+        {
+            "_id": "61b8b3194268666c126bacd3",
+            "name": "🇸🇪 Sweden"
+        },
+        {
+            "_id": "61b8b3194268666c126bacd5",
+            "name": "🇨🇭 Switzerland"
+        },
+        {
+            "_id": "61b8b3194268666c126bacd7",
+            "name": "🇸🇾 Syria"
+        },
+        {
+            "_id": "61b8b31a4268666c126bacdf",
+            "name": "🇹🇼 Taiwanese Mandarin"
+        },
+        {
+            "_id": "61b8b3194268666c126bacd9",
+            "name": "🇹🇿 Tanzania"
+        },
+        {
+            "_id": "61b8b31a4268666c126bacdb",
+            "name": "🇹🇭 Thailand"
+        },
+        {
+            "_id": "61b8b31b4268666c126bace1",
+            "name": "🇹🇳 Tunisia"
+        },
+        {
+            "_id": "61b8b31a4268666c126bacdd",
+            "name": "🇹🇷 Turkey"
+        },
+        {
+            "_id": "61b8b31c4268666c126bace9",
+            "name": "🇺🇦 Ukraine"
+        },
+        {
+            "_id": "61b8b31b4268666c126bace3",
+            "name": "🇦🇪 United Arab Emirates"
+        },
+        {
+            "_id": "61b8b31b4268666c126bace5",
+            "name": "🇬🇧 United Kingdom"
+        },
+        {
+            "_id": "61b8b31c4268666c126bace7",
+            "name": "🇺🇸 United States"
+        },
+        {
+            "_id": "61b8b31c4268666c126baceb",
+            "name": "🇺🇾 Uruguay"
+        },
+        {
+            "_id": "61b8b31c4268666c126baced",
+            "name": "🇺🇿 Uzbekistan"
+        },
+        {
+            "_id": "61b8b31d4268666c126bacf1",
+            "name": "🇻🇪 Venezuela"
+        },
+        {
+            "_id": "61b8b31d4268666c126bacef",
+            "name": "🇻🇳 Vietnam"
+        },
+        {
+            "_id": "61b8b31d4268666c126bacf3",
+            "name": "🇾🇪 Yemen"
+        }
+    ]
+}

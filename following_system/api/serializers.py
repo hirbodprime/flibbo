@@ -2,7 +2,7 @@ from rest_framework import serializers
 from following_system.models import FollowModel,RequestToFollow
 from django.contrib.auth import get_user_model
 from activity.models import Activity
-
+from django.conf import settings
 User = get_user_model()
 
 
@@ -48,8 +48,7 @@ class RequestToFollowListSerializer(serializers.ModelSerializer):
     def get_sender_profile_image(self, obj):
         request_sender = obj.request_sender  # Assuming 'request_sender' is the foreign key to the User model
         if request_sender.profile_image:
-            site_domain = 'app.flxdevpanel.com'
-            return f'https://{site_domain}{request_sender.profile_image.url}'
+            return f"{settings.SITE_DOMAIN}{request_sender.profile_image.url}"
         else:
             return None
         # return f'{request_sender.profile_image.url}'
@@ -95,7 +94,7 @@ class FollowersModelListSerializer(serializers.ModelSerializer):
         for user_obj in followers_users:
             usere = CustomUser.objects.get(email=user_obj)
 
-            profile_image_url = request.build_absolute_uri(user_obj.profile_image.url) if user_obj.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user_obj.profile_image.url}" if user_obj.profile_image else None
             is_followed = obj.is_user_following(user_obj)
             status = None
             try:
@@ -132,7 +131,7 @@ class FollowingModelListSerializer(serializers.ModelSerializer):
         data = []
         for user_obj in following_users:
             usere = CustomUser.objects.get(email=user_obj)
-            profile_image_url = request.build_absolute_uri(user_obj.profile_image.url) if user_obj.profile_image else None
+            profile_image_url = f"{settings.SITE_DOMAIN}{user_obj.profile_image.url}" if user_obj.profile_image else None
             is_followed = obj.is_user_following(user_obj)
             status = None
             try:
@@ -176,7 +175,6 @@ class FollowModelCreateSerializer(serializers.ModelSerializer):
 
         # Get the instance of the user creating the follow
         user_creating_follow = self.context['request'].user
-        print(user_creating_follow)
         user_creating_follow_user_obj = User.objects.get(email=user_creating_follow)
         user_creating_follow_followmodel,created = FollowModel.objects.get_or_create(user=user_creating_follow)
         # Check if the user is already following

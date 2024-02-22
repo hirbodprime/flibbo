@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.contrib.auth import load_backend, login as django_login
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.conf import settings
 import requests
 User = get_user_model()
 
@@ -354,8 +355,7 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.private
     def get_profile_image(self, obj):
         if obj.profile_image:
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
     class Meta:
@@ -428,8 +428,7 @@ class CustomUsersListSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         if obj.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
     class Meta:
@@ -463,8 +462,7 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         if obj.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
 
@@ -476,7 +474,7 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'private', 'email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
+        fields = ('premium','id', 'private', 'email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
             'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url','profile_image','country')
 
 
@@ -620,8 +618,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def get_profile_image(self, obj):
         if obj.profile_image:
             request = self.context.get('request')
-            site_domain = "app.flxdevpanel.com"  # Replace this with your actual website domain
-            return f"https://{site_domain}{obj.profile_image.url}"
+            return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
     class Meta:
@@ -689,7 +686,7 @@ class SignupSerializer(serializers.ModelSerializer):
     birthday = serializers.DateField(required=False,allow_null=True)
     class Meta:
         model = User
-        fields = ('username','email', 'full_name', 'birthday','password', 'confirm_password','bonus_code')
+        fields = ('username','email', 'full_name', 'birthday','password', 'confirm_password')
         extra_kwargs = {
             "password": {"write_only": True, "required": True, "min_length": 6}
         }
@@ -697,16 +694,6 @@ class SignupSerializer(serializers.ModelSerializer):
     def validate(self, data):
         password = data.get("password")
         confirm_password = data.pop("confirm_password")
-        bonus_code = data.get("bonus_code")
-        if bonus_code:
-            print(bonus_code)
-            url = f"https://panel.flhub.org/users/api/check-bonus-code/{bonus_code}/"
-            response = requests.get(url)
-
-            if response.status_code == 200:
-                pass
-            else:
-                raise serializers.ValidationError({"error_bonus":"The Bonus Code is wronge!"})
         if password != confirm_password:
             raise serializers.ValidationError("Passwords do not match!")
 

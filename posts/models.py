@@ -5,8 +5,10 @@ from category.models import CategoryModel, SubCategoryModel
 from moviepy.editor import VideoFileClip
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from posts.utils.upload_image import PostUploadHandler 
+from django.core.files import File
 
 from django.utils.text import slugify
 from django.contrib.postgres.fields import ArrayField
@@ -16,8 +18,10 @@ from django.contrib.contenttypes.models import ContentType
 from django_countries.fields import CountryField
 from PIL import Image
 import io
+import uuid
 from django.core.files.uploadedfile import InMemoryUploadedFile
 User = get_user_model()
+import tempfile
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -57,8 +61,46 @@ def upload_video_post(instance, filename):
     return upload_video_post_handler.get_filename(instance, filename)
 
 
+# book 
+class Language(models.Model):
+    code = models.CharField(max_length=10)  # e.g., 'en', 'fr', 'es', 'de'
+    name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
 
+class Book(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(null=True,blank=True)
+    cover_image = models.ImageField(upload_to="book/covers/",null=True,blank=True)
+    def __str__(self):
+        return self.title
+
+class Page(models.Model):
+    book = models.ForeignKey(Book, related_name='pages', on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    page_number = models.IntegerField()
+    content = models.TextField()  # Or consider using a FileField for scanned pages
+
+    class Meta:
+        unique_together = ('book', 'page_number', 'language')
+
+    def __str__(self):
+        return f'{self.book.title} - Page {self.page_number} [{self.language.code}]'
+
+class UserBookProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    last_page_read = models.IntegerField()
+
+    class Meta:
+        unique_together = ('user', 'book', 'language')
+
+    def __str__(self):
+        return f'{self.user.username} - {self.book.title} - Page {self.last_page_read}'
+
+# book 
 class BasePostModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True, null=True)
@@ -86,7 +128,6 @@ class BasePostModel(models.Model):
     height = models.CharField(blank=True, null=True)
     cover = models.ImageField(upload_to=upload_image_post, blank=True, null=True,max_length=2000)
     class Meta:
-        # verbose_name_plural = "Posts"
         abstract = True
 
     def __str__(self):
@@ -149,14 +190,14 @@ class BasePostModel(models.Model):
         self.total_comments -= 1
         self.save()
     
-    # def total_likes(self):
-    #     return self.likes.count()
+    def total_likes(self):
+        return self.likes.count()
 
     # def total_saves(self):
     #     return self.saved_by_users.count()
     
     def increment_total_likes(self):
-        self.total_likes += 1
+        # self.total_likes += 1
         self.save()
         
     def increment_like_users(self,user):
@@ -185,8 +226,15 @@ class BasePostModel(models.Model):
     def dicrement_save_users(self,user):
         self.saved_by_users.remove(user)
 
+tweet_post_profile_choices = (
+    ('personal','personal'),
+    ('premium','premium'),
+    )
 class TweetPostModel(BasePostModel):
+    file = models.FileField(upload_to='posts/files/', blank=True, null=True)
+    link = models.TextField(blank=True, null=True)
     video = models.FileField(upload_to=upload_video_post, blank=True, null=True,max_length=2000)
+    voice = models.FileField(upload_to='posts/voice/', blank=True, null=True,max_length=2000)
     photo = models.ImageField(upload_to=upload_image_post, blank=True, null=True)
     likes = models.ManyToManyField(User, related_name='tweet_posts_liked', blank=True)
     viewed_by_users = models.ManyToManyField(User, related_name='viewed_posts_post', blank=True)
@@ -194,7 +242,7 @@ class TweetPostModel(BasePostModel):
     shared_by_users = models.ManyToManyField(User, related_name='tweet_posts_shared', blank=True)
     mention_users = models.ManyToManyField(User, blank=True,related_name='tweet_user_mentioned')
     share_post = models.CharField(max_length=600,blank=True, null=True)
-
+    options = models.CharField(choices=tweet_post_profile_choices, max_length=50,blank=True, null=True)
     liked_by_user = models.BooleanField(default=False)
     def get_absolute_url(self,post_id):
         from firebase_dynamic_links import dynamic_link_builder
@@ -206,26 +254,6 @@ class TweetPostModel(BasePostModel):
         }
         short_link = builder.generate_short_link(app_code='flibbo', **options)
         return short_link
-    def compress_video(self, video_path):
-        clip = VideoFileClip(video_path)
-
-        # Maintain the original size
-        original_size = clip.size
-
-        # Specify a lower bitrate (e.g., '500k' - can be adjusted as needed)
-        # Bitrate effectively controls the quality and size of the video
-        bitrate = '500k'  # Example bitrate
-
-        # Create a temporary file path
-        temp_path = f"temp_{os.path.basename(video_path)}"
-
-        # Write the video file with the specified bitrate
-        clip.write_videofile(temp_path, codec="libx264", audio_codec="aac", bitrate=bitrate)
-
-        return temp_path
-
-
-
     def save(self, *args, **kwargs):
         if self.photo:  # Check if an image has been uploaded
             # Open the uploaded image
@@ -247,25 +275,43 @@ class TweetPostModel(BasePostModel):
                                               'image/jpeg', 
                                               output_io_stream.getbuffer().nbytes, 
                                               None)
-        if self.video:  # Check if a video has been uploaded
-            # Save the uploaded video file temporarily
-            temp_video_path = default_storage.save(f"temp_{self.video.name}", ContentFile(self.video.read()))
+        # if self.video:  # Check if a video has been uploaded
+        #     # Save the uploaded video file temporarily
+        #     temp_video_path = default_storage.save(f"temp_{self.video.name}", ContentFile(self.video.read()))
 
-            # Get the full path of the temporary video
-            full_temp_video_path = default_storage.path(temp_video_path)
+        #     # Get the full path of the temporary video
+        #     full_temp_video_path = default_storage.path(temp_video_path)
 
-            # Compress the video
-            compressed_video_path = self.compress_video(full_temp_video_path)
+        #     # Compress the video
+        #     compressed_video_path = self.compress_video(full_temp_video_path)
 
-            # Update self.video with the compressed video
-            with open(compressed_video_path, 'rb') as f:
-                self.video.save(os.path.basename(compressed_video_path), ContentFile(f.read()), save=False)
+        #     # Update self.video with the compressed video
+        #     with open(compressed_video_path, 'rb') as f:
+        #         self.video.save(os.path.basename(compressed_video_path), ContentFile(f.read()), save=False)
 
-            # Clean up the temp files
-            os.remove(compressed_video_path)
-            default_storage.delete(temp_video_path)
+        #     # Clean up the temp files
+        #     os.remove(compressed_video_path)
+        #     default_storage.delete(temp_video_path)
 
         super(TweetPostModel, self).save(*args, **kwargs)
+    
+class TweetPostImagesModel(models.Model):
+    tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='posts/tweet/images/', blank=True, null=True)
+    video = models.FileField(upload_to='posts/tweet/videos/', max_length=1000, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True,blank=True,null=True)
+    photo_blur_hash_video = models.CharField(max_length=1000, blank=True, null=True)
+    cover_video  = models.ImageField(upload_to='posts/tweet/videos/cover', blank=True, null=True,max_length=2000)    
+    photo_blur_hash_image = models.CharField(max_length=1000, blank=True, null=True)
+    cover_image  = models.ImageField(upload_to='posts/tweet/images/cover', blank=True, null=True,max_length=2000)    
+
+    def __str__(self):
+        return f"{self.tweet}"
+    @property
+    def media_type(self):
+        return 'image' if self.image else 'video'
+
+
 class BookPostModel(BasePostModel):
     book = models.FileField(upload_to=upload_book_post, blank=True, null=True)
     likes = models.ManyToManyField(User, related_name='book_posts_liked', blank=True)
@@ -277,6 +323,7 @@ class BookPostModel(BasePostModel):
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
+
 
 class ReportPost(models.Model):
     post = models.ForeignKey(TweetPostModel, on_delete=models.SET_NULL, null=True)
@@ -298,34 +345,45 @@ class PodcastPostModel(BasePostModel):
     def get_absolute_url(self):
         return reverse('podcast_detail', args=[str(self.id)])
 
-
+class BookModel(models.Model):
+    pass
 
 class TweetCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    text = models.TextField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    post = models.ForeignKey(TweetPostModel, on_delete=models.CASCADE)
-    likes = models.ManyToManyField(User, blank=True,related_name='tweet_likes')
+    pinned = models.BooleanField(default=False, help_text="Indicates if the comment is pinned.")
+    pinned_at = models.DateTimeField(null=True, blank=True, help_text="The time at which the comment was pinned.")
+    post = models.ForeignKey(TweetPostModel, on_delete=models.CASCADE, related_name='comments')
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    likes = models.ManyToManyField(User, blank=True, related_name='tweet_comment_likes')
+    reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')
     total_likes = models.PositiveIntegerField(default=0)
-    reported_by = models.ManyToManyField(User, blank=True, related_name='reported_comments')  # New field
-
+    hidden_by_users = models.ManyToManyField(User, related_name='hidden_comments', blank=True)
+    voice = models.FileField(upload_to="posts/comments/voice/",null=True,blank=True)
     def __str__(self):
         return f"Comment by {self.user.username} on {self.id}"
-
 
     def increment_total_likes(self):
         self.total_likes += 1
         self.save()
-        
-    def increment_like_users(self,user):
-        self.likes.add(user)
 
-    def dicrement_total_likes(self):
-        self.total_likes -= 1
-        self.save()
-        
-    def dicrement_like_users(self,user):
+    def increment_like_users(self, user):
+        self.likes.add(user)
+        # self.increment_total_likes()  # Ensure total_likes is incremented when a user is added
+
+    def decrement_total_likes(self):
+        if self.total_likes > 0:
+            self.total_likes -= 1
+            self.save()
+
+    def decrement_like_users(self, user):
         self.likes.remove(user)
+        # self.decrement_total_likes()  # Ensure total_likes is decremented when a user is removed
+
+    def total_likes(self):
+        return self.likes.count()
+
         
 class TweetReplyCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

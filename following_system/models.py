@@ -15,7 +15,7 @@ class FollowModel(models.Model):
         Check if the user associated with this FollowModel is following another user.
         """
         following_ids = self.following.values_list('id', flat=True)
-        return user_to_check.id in following_ids
+        return user_to_check in following_ids
         
     def follow(self, user_to_follow):
         """

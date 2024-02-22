@@ -1,6 +1,5 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
-# D:/technology/web/real_word_projects/flibbo/flibbo-backend/serviceAccountKey.json
 
 import os
 

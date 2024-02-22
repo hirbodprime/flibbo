@@ -8,6 +8,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('admin/', admin.site.urls),
     path('openai/', include('chat_openai.urls')),
+    path('point/', include('point.urls')),
     path('category/', include('category.urls')),
     path('account/', include('accounts.urls')),
     path('network/', include('following_system.urls')),
