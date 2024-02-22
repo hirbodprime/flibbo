@@ -99,6 +99,8 @@ class OpenAIChatCreateDescriptionView(CreateAPIView):
             )
 
             # Extract GPT response message
+            gpt_response = completion.choices[0].message.content
+        
             gpt_response = gpt_response.strip('\"')
 
             return Response({"gpt_response": gpt_response})
