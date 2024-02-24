@@ -51,28 +51,22 @@ class CustomUserSerializerV2(serializers.ModelSerializer):
         # Process new images, if any
         if new_profile_images_data:
             for image_data in new_profile_images_data:
-                ProfileImagesModel.objects.create(user=instance, image=image_data)
+                new_image_instance = ProfileImagesModel.objects.create(user=instance, image=image_data)
+                # Update the profile_image field with the latest image
+                instance.profile_image = new_image_instance.image
+                instance.save()
 
         # Delete the last profile image if flagged
         if delete_last_image:
-            last_image = ProfileImagesModel.objects.filter(user=instance).last()
+            last_image = ProfileImagesModel.objects.filter(user=instance).order_by('-id').first()
             if last_image:
                 last_image.delete()
+                # After deletion, set the profile_image field to the new last image if exists
+                new_last_image = ProfileImagesModel.objects.filter(user=instance).order_by('-id').first()
+                instance.profile_image = new_last_image.image if new_last_image else None
+                instance.save()
 
         return instance
-
-    # def update(self, instance, validated_data):
-    #     new_profile_images_data = validated_data.pop('new_profile_images', None)
-        
-    #     # Call to super to update other fields
-    #     instance = super(CustomUserSerializerV2, self).update(instance, validated_data)
-
-    #     # Process new images, if any
-    #     if new_profile_images_data is not None:
-    #         for image_data in new_profile_images_data:
-    #             ProfileImagesModel.objects.create(user=instance, image=image_data)
-
-    #     return instance 
 
 
 class ProfileImageSerializer(serializers.ModelSerializer):
