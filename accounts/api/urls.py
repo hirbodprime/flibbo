@@ -6,7 +6,7 @@ CustomTokenObtainPairView, CustomTokenRefreshView,PasswordResetApi,
 PasswordResetConfirmApi,CustomUsersListApiView,ReportUserCreateApiView,
 DeleteAccountAPIView,CheckLoginStatusAPIView,UserSearchView,delete_account,AccessTokenLoginView,
 BlockUserView,UnblockUserView,ReportReasonsListAPIView,SavedTweetsMediaListView,SavedTweetsTextListView,UserProfileV2ApiView,
-BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView,ChangePasswordView,AddBonusApiview,ChangePasswordFLUsersView,check_email_exists
+BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView,ChangePasswordView,AddBonusApiview,ChangePasswordFLUsersView,check_email_exists,UpdateProfileV2ApiView
 ,check_username_exists)
 from dj_rest_auth.registration.views import (
     SocialAccountListView, SocialAccountDisconnectView
@@ -73,6 +73,7 @@ urlpatterns = [
 
     path('profile/', ProfileApiView.as_view(), name='profile-detail'),
     path('profile/update/', UpdateProfileApiView.as_view(), name='profile-update'),
+    path('profile/update/v2/', UpdateProfileV2ApiView.as_view(), name='profile-update'),
     path('user/saved/', SavedPostsApiView.as_view(), name='user-saved'),
 
     path('validate-user/', UserSignupValidationView.as_view(), name='validate-user'),

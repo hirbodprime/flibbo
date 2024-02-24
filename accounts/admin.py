@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser,OldUsername,SavedByUser,ReportUser,AccessToken,BlockModel,ChangeUsernameModel
+from .models import CustomUser, OldUsername, SavedByUser, ReportUser, AccessToken, BlockModel, ChangeUsernameModel, ProfileImagesModel
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.html import format_html  # Import format_html
@@ -42,7 +42,7 @@ admin.site.register(CustomUser, CustomUserAdmin)
     
 # admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(BlockModel)
-
+admin.site.register(ProfileImagesModel)
 admin.site.register(ReportUser)
 admin.site.register(OldUsername)
 admin.site.register(SavedByUser)
