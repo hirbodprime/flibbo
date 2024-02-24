@@ -642,6 +642,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
     video  = serializers.SerializerMethodField()
     user_liked = serializers.SerializerMethodField()
     user_saved = serializers.SerializerMethodField()
+    premium = serializers.SerializerMethodField()
     # share_post = serializers.SerializerMethodField()
     
     user_viewed = serializers.SerializerMethodField()
@@ -656,6 +657,8 @@ class TweetPostSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
     link = serializers.SerializerMethodField()
     voice = serializers.SerializerMethodField()
+    def get_premium(self,obj):
+        return obj.user.premium
     def get_voice(self,obj):
         if obj.voice:
             return f"{settings.SITE_DOMAIN}{obj.voice.url}" 
@@ -875,7 +878,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['options','voice','link','file','media','cover','private','request_status',
+        fields = ['premium','options','voice','link','file','media','cover','private','request_status',
                 'user_followed','likes','id', 'photo_blur_hash','height', 'user',
                 'user_username','user_liked','user_saved','user_viewed' ,'profile_image_url',
                 'user_full_name','title', 'caption', 'hashtag', 'location','urls', 
