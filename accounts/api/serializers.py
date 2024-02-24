@@ -666,7 +666,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             return None
     class Meta:
         model = CustomUser
-        fields = ('id', 'private', 'email', 'username', 'full_name', 'join_date', 'birthday','bio', 'followers_count','followings_count',
+        fields = ('id', 'private', 'premium','email', 'username', 'full_name', 'join_date', 'birthday','bio', 'followers_count','followings_count',
             'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url','profile_image','country')
         read_only_fields = ('email','username','join_date','birthday','followers_count','followings_count',)   
     def update(self, instance, validated_data):
