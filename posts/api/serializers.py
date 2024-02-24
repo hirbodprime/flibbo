@@ -13,6 +13,9 @@ from following_system.models import FollowModel, RequestToFollow
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import BlockModel
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -29,58 +32,75 @@ class TweetPostImageSerializer(serializers.ModelSerializer):
         return ret
 
 
+import blurhash
+from PIL import Image
+
+
+def generate_blurhash(image_file):
+    with Image.open(image_file) as image:
+        image.thumbnail((100, 100), Image.Resampling.LANCZOS)
+        image = image.convert("RGB")
+        blurhashe = blurhash.encode(image, x_components=4, y_components=3)
+        print(blurhashe)
+        return blurhashe
+
 class TweetPostCreateV2Serializer(serializers.ModelSerializer):
     videos = serializers.ListField(child=serializers.FileField(),write_only=True, required=False)
-    photo_blur_hash_video = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    # photo_blur_hash_video = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
     cover_video = serializers.ListField(child=serializers.FileField(),write_only=True,  required=False)
     
     images = serializers.ListField(child=serializers.ImageField(),write_only=True, required=False)
-    photo_blur_hash_image = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    # photo_blur_hash_image = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
     cover_image = serializers.ListField(child=serializers.FileField(),write_only=True, required=False)
     
     class Meta:
         model = TweetPostModel
-        fields = ['options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'mention_users', 'images','videos','photo_blur_hash_video', 'cover_video', 'photo_blur_hash_image', 'cover_image']
+        fields = ['options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
 
     def create(self, validated_data):
         # Pop media-related fields from validated_data
         videos_data = validated_data.pop('videos', [])
-        photo_blur_hash_video_data = validated_data.pop('photo_blur_hash_video', [])
+        # photo_blur_hash_video_data = validated_data.pop('photo_blur_hash_video', [])
         cover_video_data = validated_data.pop('cover_video', [])
 
         images_data = validated_data.pop('images', [])
-        photo_blur_hash_image_data = validated_data.pop('photo_blur_hash_image', [])
+        # photo_blur_hash_image_data = validated_data.pop('photo_blur_hash_image', [])
         cover_image_data = validated_data.pop('cover_image', [])
 
-        # Pop the mention_users field from validated_data if it exists
-        mention_users_data = validated_data.pop('mention_users', None)
-        
-        # Create the TweetPostModel instance without mention_users
+        # Create the TweetPostModel instance
         tweet = TweetPostModel.objects.create(**validated_data)
+        for cover_image_file in cover_image_data:
+            cover_image_blurhash = generate_blurhash(cover_image_file)
+            # Save your TweetPostImagesModel instance including the cover_image_blurhash
 
-        # Associate images with the tweet
-        for image_data, photo_blur_hash, cover_image in zip(images_data, photo_blur_hash_image_data, cover_image_data):
-            TweetPostImagesModel.objects.create(
-                tweet=tweet,
-                image=image_data,
-                photo_blur_hash_image=photo_blur_hash,
-                cover_image=cover_image
-            )
+        for cover_video_file in cover_video_data:
+            cover_video_blurhash = generate_blurhash(cover_video_file)
+
+        # Before creating objects for videos
+        if videos_data:
+            for i, video_data in enumerate(videos_data):
+                # This should be creating video objects, not image objects.
+                TweetPostImagesModel.objects.create(
+                    tweet=tweet,
+                    video=video_data,
+                    # photo_blur_hash_video=photo_blur_hash_video_data[i] if i < len(photo_blur_hash_video_data) else '',
+                    photo_blur_hash_video=cover_video_blurhash,
+                    cover_video=cover_video_data[i] if i < len(cover_video_data) else None
+                )
 
         # Associate videos with the tweet
-        for video_data, photo_blur_hash, cover_video in zip(videos_data, photo_blur_hash_video_data, cover_video_data):
+        for i in range(len(images_data)):
             TweetPostImagesModel.objects.create(
                 tweet=tweet,
-                video=video_data,
-                photo_blur_hash_video=photo_blur_hash,
-                cover_video=cover_video
+                image=images_data[i],
+                # photo_blur_hash_image=photo_blur_hash_image_data[i] if i < len(photo_blur_hash_image_data) else '',
+                photo_blur_hash_video=cover_image_blurhash,
+                cover_image=cover_image_data[i] if i < len(cover_image_data) else None
             )
 
-        # If there are mention_users, set them after the instance is created
-        if mention_users_data:
-            tweet.mention_users.set(mention_users_data)
-
         return tweet
+
+
 
         
 class PageSerializer(serializers.ModelSerializer):
