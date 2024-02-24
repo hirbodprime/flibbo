@@ -1139,20 +1139,22 @@ class UpdateProfileV2ApiView(gn.UpdateAPIView):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
-        # No longer need to manually handle 'profile_image' here unless there's specific logic to apply
+        # Check for the 'id': 'del' in request to signal deletion of the last profile image
+        delete_last_image = request.data.get('profile_image') == 'del'
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        # Pass the delete_last_image flag to the serializer context
+        context = {'delete_last_image': delete_last_image}
+        serializer = self.get_serializer(instance, data=request.data, partial=partial, context=context)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        response_data = {
-            'data': serializer.data
-        }
+        response_data = {'data': serializer.data}
         return Response(response_data)
 
 
 
-        
+
+
 class UpdateProfileApiView(gn.UpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer 
