@@ -479,6 +479,7 @@ class PasswordResetSerializer(serializers.Serializer):
 
 class ShowCustomUserSerializer(serializers.ModelSerializer):
     profile_image  = serializers.SerializerMethodField()
+    profile_images  = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
     followings_count = serializers.SerializerMethodField()
@@ -501,7 +502,13 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
             return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
         else:
             return None
-
+    def get_profile_images(self, obj):
+        request_user = self.context['request'].user
+        images = ProfileImagesModel.objects.filter(user=request_user)
+        images_list = []
+        for image in images:
+            images_list.append(f"{settings.SITE_DOMAIN}{image.image.url}")
+        return images_list
     def get_user_followed(self, obj):
         other_user_id = self.context['user_id']
         request_user = self.context['request'].user
@@ -510,7 +517,7 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('premium','id', 'private', 'email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
+        fields = ('premium','id', 'private', 'profile_images','email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
             'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url','profile_image','country')
 
 
