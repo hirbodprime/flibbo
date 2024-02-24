@@ -79,7 +79,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def is_profile_private(self):
         return self.private
-        
+    
+
+class ProfileImagesModel(models.Model):
+    pass
+
 class OldUsername(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     old_username = models.CharField(max_length=30)
