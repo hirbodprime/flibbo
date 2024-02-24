@@ -15,7 +15,7 @@ from point.models import ReferralCodeModel
 from point.point_functionality import process_referral_signup
 from wallet.models import UsersNfts
 from .serializers import ( UserLoginSerializer , LogoutSerializer,
- CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,
+ CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,CustomUserSerializerV2,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
  ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer,EmailCheckSerializer
@@ -1126,8 +1126,33 @@ class SavedPostsApiView(gn.RetrieveAPIView):
 
 
 
+class UpdateProfileV2ApiView(gn.UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializerV2
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Return the user making the request
+        return self.request.user
+
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        # No longer need to manually handle 'profile_image' here unless there's specific logic to apply
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        response_data = {
+            'data': serializer.data
+        }
+        return Response(response_data)
 
 
+
+        
 class UpdateProfileApiView(gn.UpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer 

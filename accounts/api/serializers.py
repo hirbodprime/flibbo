@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from following_system.models import FollowModel
-from accounts.models import SavedByUser,ChangeUsernameModel,CustomUser, ReportUser, BlockModel
+from accounts.models import SavedByUser,ChangeUsernameModel,CustomUser, ReportUser, BlockModel, ProfileImagesModel
 from following_system.models import FollowModel,RequestToFollow
 from accounts.custom_authentication import UsernameBackend
 
@@ -23,7 +23,43 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from django.conf import settings
 import requests
+
 User = get_user_model()
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileImagesModel
+        fields = ['image']
+
+class CustomUserSerializerV2(serializers.ModelSerializer):
+    profile_images = ProfileImageSerializer(many=True, read_only=True)
+    new_profile_images = serializers.ListField(
+        child=serializers.ImageField(), required=False, write_only=True
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'new_profile_images', 'country')
+        read_only_fields = ('email', 'username', 'join_date', 'birthday', 'followers_count', 'followings_count')
+
+    def update(self, instance, validated_data):
+        new_profile_images_data = validated_data.pop('new_profile_images', None)
+        
+        # Call to super to update other fields
+        instance = super(CustomUserSerializerV2, self).update(instance, validated_data)
+
+        # Process new images, if any
+        if new_profile_images_data is not None:
+            for image_data in new_profile_images_data:
+                ProfileImagesModel.objects.create(user=instance, image=image_data)
+
+        return instance 
+
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileImagesModel
+        fields = ['id', 'image']
 
 class UsernameCheckSerializer(serializers.Serializer):
     username = serializers.EmailField()
