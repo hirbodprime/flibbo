@@ -83,14 +83,9 @@ from accounts.models import CustomUser
 
 class FollowersModelListSerializer(serializers.ModelSerializer):
     followers = serializers.SerializerMethodField()
-    premium = serializers.SerializerMethodField()
-
     class Meta:
         model = FollowModel
-        fields = ['user', 'followers','premium']
-    def get_premium(self, obj):
-        return obj.user.premium
-
+        fields = ['user', 'followers']
 
     def get_followers(self, obj):
         request = self.context.get('request')
@@ -114,7 +109,7 @@ class FollowersModelListSerializer(serializers.ModelSerializer):
                 status = request_follow_obj.status
             user_data = {
                 'request_status': status,
-                
+                'premium': user_obj.premium,
                 'private': usere.private,
                 'profile_image': profile_image_url,
                 'username': user_obj.username,
@@ -128,13 +123,10 @@ class FollowersModelListSerializer(serializers.ModelSerializer):
 
 class FollowingModelListSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()
-    premium = serializers.SerializerMethodField()
-
     class Meta:
         model = FollowModel
-        fields = ['user', 'following','premium']
-    def get_premium(self, obj):
-        return obj.user.premium
+        fields = ['user', 'following']
+
     def get_following(self, obj):
         request = self.context.get('request')
         following_users = obj.following.all()
@@ -161,6 +153,7 @@ class FollowingModelListSerializer(serializers.ModelSerializer):
                 'private': usere.private,
                 'profile_image': profile_image_url,
                 'username': user_obj.username,
+                'premium': user_obj.premium,
                 'full_name': user_obj.full_name,
                 'bio': user_obj.bio,
                 'user_followed': is_followed
