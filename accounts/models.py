@@ -82,7 +82,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     
 
 class ProfileImagesModel(models.Model):
-    pass
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='posts/tweet/images/', blank=True, null=True)
 
 class OldUsername(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
