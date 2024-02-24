@@ -41,19 +41,38 @@ class CustomUserSerializerV2(serializers.ModelSerializer):
         model = CustomUser
         fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'new_profile_images', 'country')
         read_only_fields = ('email', 'username', 'join_date', 'birthday', 'followers_count', 'followings_count')
-
     def update(self, instance, validated_data):
         new_profile_images_data = validated_data.pop('new_profile_images', None)
+        delete_last_image = self.context.get('delete_last_image', False)
         
         # Call to super to update other fields
-        instance = super(CustomUserSerializerV2, self).update(instance, validated_data)
+        instance = super().update(instance, validated_data)
 
         # Process new images, if any
-        if new_profile_images_data is not None:
+        if new_profile_images_data:
             for image_data in new_profile_images_data:
                 ProfileImagesModel.objects.create(user=instance, image=image_data)
 
-        return instance 
+        # Delete the last profile image if flagged
+        if delete_last_image:
+            last_image = ProfileImagesModel.objects.filter(user=instance).last()
+            if last_image:
+                last_image.delete()
+
+        return instance
+
+    # def update(self, instance, validated_data):
+    #     new_profile_images_data = validated_data.pop('new_profile_images', None)
+        
+    #     # Call to super to update other fields
+    #     instance = super(CustomUserSerializerV2, self).update(instance, validated_data)
+
+    #     # Process new images, if any
+    #     if new_profile_images_data is not None:
+    #         for image_data in new_profile_images_data:
+    #             ProfileImagesModel.objects.create(user=instance, image=image_data)
+
+    #     return instance 
 
 
 class ProfileImageSerializer(serializers.ModelSerializer):
