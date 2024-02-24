@@ -65,25 +65,35 @@ def delete_post_if_reports_exceed_threshold(sender, instance, **kwargs):
         post_to_delete.save()
 
 
-
-
 @receiver(post_save, sender=TweetPostImagesModel)
 def compress_media(sender, instance, **kwargs):
     try:
         if instance.image:
-            compress_image(instance.image.path)
-            logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}")
+            compress_image(instance.image.path,50)
+            logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}, field: image")
 
         if instance.video:
-            compress_video(instance.video.path)
-            logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}")
+            compress_video(instance.video.path,50)
+            logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}, field: video")
+
+        # Check and compress cover_image if exists
+        if instance.cover_image:
+            compress_image(instance.cover_image.path,10)
+            logger.debug(f"Compressed cover image for TweetPostImagesModel id: {instance.id}, field: cover_image")
+
+        # Check and compress cover_video if exists
+        if instance.cover_video:
+            compress_video(instance.cover_video.path,10)
+            logger.debug(f"Compressed cover video for TweetPostImagesModel id: {instance.id}, field: cover_video")
+
     except Exception as e:
         logger.error(f"Error compressing media for TweetPostImagesModel id: {instance.id}: {e}")
 
-def compress_image(image_path):
+def compress_image(image_path,quality):
+
     try:
         with Image.open(image_path) as img:
-            img.save(image_path, optimize=True, quality=50)
+            img.save(image_path, optimize=True, quality=quality)
             logger.debug(f"Image compressed: {image_path}")
     except Exception as e:
         logger.error(f"Error compressing image: {image_path}: {e}")
@@ -99,25 +109,36 @@ def compress_video(video_path):
     except Exception as e:
         logger.error(f"Error compressing video: {video_path}: {e}")
 
+
 # @receiver(post_save, sender=TweetPostImagesModel)
 # def compress_media(sender, instance, **kwargs):
-#     if instance.image:  # Compress image if present
-#         compress_image(instance.image.path)
+#     try:
+#         if instance.image:
+#             compress_image(instance.image.path)
+#             logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}")
 
-#     if instance.video:  # Compress video if present
-#         compress_video(instance.video.path)
+#         if instance.video:
+#             compress_video(instance.video.path)
+#             logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}")
+#     except Exception as e:
+#         logger.error(f"Error compressing media for TweetPostImagesModel id: {instance.id}: {e}")
 
 # def compress_image(image_path):
-#     with Image.open(image_path) as img:
-#         # Adjust the quality of the image here (1-100)
-#         img.save(image_path, optimize=True, quality=50)
+#     try:
+#         with Image.open(image_path) as img:
+#             img.save(image_path, optimize=True, quality=50)
+#             logger.debug(f"Image compressed: {image_path}")
+#     except Exception as e:
+#         logger.error(f"Error compressing image: {image_path}: {e}")
 
 # def compress_video(video_path):
-#     clip = VideoFileClip(video_path)
-#     # You can adjust the target bitrate as needed for compression
-#     target_bitrate = "500k"
-#     temp_video_path = video_path + "_temp.mp4"
-#     clip.write_videofile(temp_video_path, bitrate=target_bitrate)
-#     os.replace(temp_video_path, video_path)  # Replace original with compressed
-
+#     try:
+#         clip = VideoFileClip(video_path)
+#         target_bitrate = "500k"
+#         temp_video_path = video_path + "_temp.mp4"
+#         clip.write_videofile(temp_video_path, bitrate=target_bitrate)
+#         os.replace(temp_video_path, video_path)
+#         logger.debug(f"Video compressed: {video_path}")
+#     except Exception as e:
+#         logger.error(f"Error compressing video: {video_path}: {e}")
 
