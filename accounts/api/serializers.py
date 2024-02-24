@@ -503,8 +503,8 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
         else:
             return None
     def get_profile_images(self, obj):
-        request_user = self.context['request'].user
-        images = ProfileImagesModel.objects.filter(user=request_user)
+        user_id = self.context['user_id']
+        images = ProfileImagesModel.objects.filter(user=user_id)
         images_list = []
         for image in images:
             images_list.append(f"{settings.SITE_DOMAIN}{image.image.url}")
