@@ -214,10 +214,12 @@ class HomeConsumer(AsyncWebsocketConsumer):
         }))
 
     async def broadcast_new_comment(self, event):
-        # Send message to WebSocket
+        # Send message to WebSocket including the total number of comments for the post and the post_id
         await self.send(text_data=json.dumps({
             'type': 'new_comment',
-            'comment': event['comment']
+            'comment': event['comment'],
+            'post_id': event['comment']['post_id'],  # Include post_id in the broadcast
+            'total_comments': event['comment']['total_comments']  # Include total_comments in the broadcast
         }, cls=CustomJSONEncoder))
 
     @database_sync_to_async
@@ -241,11 +243,16 @@ class HomeConsumer(AsyncWebsocketConsumer):
             serializer = TweetCommentWebSocketSerializer(data=comment_data, context=serializer_context)
             if serializer.is_valid(raise_exception=True):
                 comment = serializer.save()
-                return serializer.data
+                # Fetch the total number of comments for the post
+                total_comments = post.comments.count()
+                comment_data = serializer.data
+                comment_data['total_comments'] = total_comments  # Include the total comments in the response
+                return comment_data
         except TweetPostModel.DoesNotExist:
             raise serializers.ValidationError("The specified post does not exist")
 
         return {}
+
 
 
 
