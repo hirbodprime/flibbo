@@ -298,13 +298,13 @@ class TweetPostUpdateViewsAPIView(APIView):
         print(user)
         if user.is_authenticated:
             tweets_list = TweetPostModel.objects.filter(id__in=id_list)
-            try:
-                user_device = UserDeviceModel.objects.get(user=tweets_list[0].user)
+            # try:
+            #     user_device = UserDeviceModel.objects.get(user=tweets_list[0].user)
 
-                token = [user_device.user_token]
-                fcm.sendPush("View", f"{user.username} Viewed your post", token)
-            except:
-                pass
+            #     token = [user_device.user_token]
+            #     fcm.sendPush("View", f"{user.username} Viewed your post", token)
+            # except:
+            #     pass
             result = increment_views_count_tweets(tweets_list, user)
 
             if result:
