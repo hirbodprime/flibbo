@@ -124,7 +124,7 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
     user_saved = serializers.SerializerMethodField()
     # share_post = serializers.SerializerMethodField()
     user_viewed = serializers.SerializerMethodField()
-    # comments = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
     # location = serializers.SerializerMethodField()
@@ -423,7 +423,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
     # share_post = serializers.SerializerMethodField()
     
     user_viewed = serializers.SerializerMethodField()
-    # comments = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
     # location = serializers.SerializerMethodField()
@@ -646,7 +646,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
     # share_post = serializers.SerializerMethodField()
     
     user_viewed = serializers.SerializerMethodField()
-    # comments = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
     # location = serializers.SerializerMethodField()
