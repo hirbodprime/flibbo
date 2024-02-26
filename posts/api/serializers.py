@@ -490,7 +490,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
                     like['profile_image'] = None
             return first_3_likes
             
-    # def get_comments(self, obj):
+    def get_comments(self, obj):
     #     request_user = self.context['request']
     #     block_obj,created = BlockModel.objects.get_or_create(user=request_user)
     #     users_blocked_by_current_user = block_obj.blocked_users.all()
@@ -553,7 +553,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
     #             comments.append(comment_data)
 
     #         return comments
-    #     return []
+        return []
     def get_user_viewed(self, obj):
         # Get the current request user
         request_user = self.context['request']
@@ -626,7 +626,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
+        fields = ['comments','cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
                 'updated_date','photo','video',
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
@@ -742,7 +742,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
                     like['profile_image'] = None
             return first_3_likes
             
-    # def get_comments(self, obj):
+    def get_comments(self, obj):
     #     request_user = self.context['request'].user
     #     block_obj,created = BlockModel.objects.get_or_create(user=request_user)
     #     users_blocked_by_current_user = block_obj.blocked_users.all()
@@ -805,7 +805,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
     #             comments.append(comment_data)
 
     #         return comments
-    #     return []
+        return []
     def get_user_viewed(self, obj):
         # Get the current request user
         request_user = self.context['request'].user
@@ -878,7 +878,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['premium','options','voice','link','file','media','cover','private','request_status',
+        fields = ['comments','premium','options','voice','link','file','media','cover','private','request_status',
                 'user_followed','likes','id', 'photo_blur_hash','height', 'user',
                 'user_username','user_liked','user_saved','user_viewed' ,'profile_image_url',
                 'user_full_name','title', 'caption', 'hashtag', 'location','urls', 
