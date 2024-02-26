@@ -194,65 +194,65 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
             return  first_3_likes
 
     def get_comments(self, obj):
-        request_user = self.context['request'].user
-        block_obj,created = BlockModel.objects.get_or_create(user=request_user)
-        users_blocked_by_current_user = block_obj.blocked_users.all()
+        # request_user = self.context['request'].user
+        # block_obj,created = BlockModel.objects.get_or_create(user=request_user)
+        # users_blocked_by_current_user = block_obj.blocked_users.all()
 
-        # Step 2: Get users who have blocked the current user
-        users_who_blocked_current_user,created = BlockModel.objects.get_or_create(user=request_user)
-        blocked_by_users_obj =  users_who_blocked_current_user.blocked_by.all()
-        # Step 3: Combine the lists
-        blocked_users_combined = users_blocked_by_current_user | blocked_by_users_obj
-        if request_user.is_authenticated:
-            # Fetch the first 3 comments for the given post
-            # comments_queryset = TweetCommentModel.objects.filter(post=obj.id)[:3]
-            comments_queryset = TweetCommentModel.objects.exclude(user__in=blocked_users_combined).filter(post=obj.id).annotate(num_likes=Count('likes')).order_by('-num_likes', '-created_at')
+        # # Step 2: Get users who have blocked the current user
+        # users_who_blocked_current_user,created = BlockModel.objects.get_or_create(user=request_user)
+        # blocked_by_users_obj =  users_who_blocked_current_user.blocked_by.all()
+        # # Step 3: Combine the lists
+        # blocked_users_combined = users_blocked_by_current_user | blocked_by_users_obj
+        # if request_user.is_authenticated:
+        #     # Fetch the first 3 comments for the given post
+        #     # comments_queryset = TweetCommentModel.objects.filter(post=obj.id)[:3]
+        #     comments_queryset = TweetCommentModel.objects.exclude(user__in=blocked_users_combined).filter(post=obj.id).annotate(num_likes=Count('likes')).order_by('-num_likes', '-created_at')
 
-            # Serialize the comments queryset to a list of dictionaries
-            comments = []
-            for comment in comments_queryset:
-                follow_model_obj = FollowModel.objects.get(user=comment.user)
-                is_followed = follow_model_obj.is_followed_by(request_user)
+        #     # Serialize the comments queryset to a list of dictionaries
+        #     comments = []
+        #     for comment in comments_queryset:
+        #         follow_model_obj = FollowModel.objects.get(user=comment.user)
+        #         is_followed = follow_model_obj.is_followed_by(request_user)
 
-                # Check if the comment is liked by the request user
-                is_liked_by_request_user = comment.likes.filter(id=request_user.id).exists()
-                # Assuming 'request_sender' is the user sending the follow request
-                status = None
-                print(request_user , comment.user)
-                try:
-                    request_follow_obj = RequestToFollow.objects.get(
-                        requset_reciever=comment.user,  # The user who will receive the request
-                        request_sender=request_user   # The user who sent the request
-                    )
-                except RequestToFollow.DoesNotExist:
-                    request_follow_obj = None
+        #         # Check if the comment is liked by the request user
+        #         is_liked_by_request_user = comment.likes.filter(id=request_user.id).exists()
+        #         # Assuming 'request_sender' is the user sending the follow request
+        #         status = None
+        #         print(request_user , comment.user)
+        #         try:
+        #             request_follow_obj = RequestToFollow.objects.get(
+        #                 requset_reciever=comment.user,  # The user who will receive the request
+        #                 request_sender=request_user   # The user who sent the request
+        #             )
+        #         except RequestToFollow.DoesNotExist:
+        #             request_follow_obj = None
 
-                if not request_follow_obj is None:
-                    status = request_follow_obj.status
+        #         if not request_follow_obj is None:
+        #             status = request_follow_obj.status
 
 
-                comment_data = {
-                    'request_status': status,
-                    'user_followed': is_followed,
-                    'user_liked': is_liked_by_request_user,
-                    'created_at': comment.created_at,
-                    'total_likes': comment.total_likes,
-                    'id': comment.id,
-                    'user_id': comment.user.id,
-                    'full_name': comment.user.full_name,
-                    'private': comment.user.private,
-                    'username': comment.user.username,
-                    'text': comment.text,
-                    # Add other fields you want to include in the response
-                }
-                # Adding the profile_image
-                if comment.user.profile_image:
-                    comment_data['profile_image'] = f"{settings.SITE_DOMAIN}/media/{comment.user.profile_image}"
-                else:
-                    comment_data['profile_image'] = None
-                comments.append(comment_data)
+        #         comment_data = {
+        #             'request_status': status,
+        #             'user_followed': is_followed,
+        #             'user_liked': is_liked_by_request_user,
+        #             'created_at': comment.created_at,
+        #             'total_likes': comment.total_likes,
+        #             'id': comment.id,
+        #             'user_id': comment.user.id,
+        #             'full_name': comment.user.full_name,
+        #             'private': comment.user.private,
+        #             'username': comment.user.username,
+        #             'text': comment.text,
+        #             # Add other fields you want to include in the response
+        #         }
+        #         # Adding the profile_image
+        #         if comment.user.profile_image:
+        #             comment_data['profile_image'] = f"{settings.SITE_DOMAIN}/media/{comment.user.profile_image}"
+        #         else:
+        #             comment_data['profile_image'] = None
+        #         comments.append(comment_data)
 
-            return comments
+        #     return comments
         return []
 
 
@@ -329,7 +329,7 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['cover','private','request_status','user_followed','likes','comments','id', 'photo_blur_hash','height','user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
+        fields = ['aspect_ratio','cover','private','request_status','user_followed','likes','comments','id', 'photo_blur_hash','height','user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
                 'updated_date','photo','video',
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
@@ -626,7 +626,7 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['comments','cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
+        fields = ['aspect_ratio','comments','cover','private','request_status','user_followed','likes','id', 'photo_blur_hash','height', 'user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
                 'updated_date','photo','video',
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
@@ -878,7 +878,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['comments','premium','options','voice','link','file','media','cover','private','request_status',
+        fields = ['aspect_ratio','comments','premium','options','voice','link','file','media','cover','private','request_status',
                 'user_followed','likes','id', 'photo_blur_hash','height', 'user',
                 'user_username','user_liked','user_saved','user_viewed' ,'profile_image_url',
                 'user_full_name','title', 'caption', 'hashtag', 'location','urls', 
