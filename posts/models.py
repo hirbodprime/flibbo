@@ -126,6 +126,7 @@ class BasePostModel(models.Model):
     urls = ArrayField(models.CharField(max_length=255), blank=True, null=True)
     photo_blur_hash = models.CharField(max_length=1000, blank=True, null=True)
     height = models.CharField(blank=True, null=True)
+    aspect_ratio = models.CharField(blank=True, null=True)
     cover = models.ImageField(upload_to=upload_image_post, blank=True, null=True,max_length=2000)
     class Meta:
         abstract = True

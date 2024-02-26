@@ -964,7 +964,7 @@ class TweetPostCreateSerializer(serializers.ModelSerializer):
     # location = CustomCountryField(required=False)
     class Meta:
         model = TweetPostModel
-        fields = ['link','file','cover','title', 'photo_blur_hash','height', 'caption', 'hashtag', 'location', 'category', 'urls','voice','photo','video','mention_users']
+        fields = ['aspect_ratio','link','file','cover','title', 'photo_blur_hash','height', 'caption', 'hashtag', 'location', 'category', 'urls','voice','photo','video','mention_users']
     def create(self, validated_data):
         # Automatically set the 'user' field to the currently logged-in user
         validated_data['user'] = self.context['request'].user
