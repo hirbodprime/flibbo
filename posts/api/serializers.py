@@ -55,7 +55,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
     
     class Meta:
         model = TweetPostModel
-        fields = ['options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
+        fields = ['aspect_ratio','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
 
     def create(self, validated_data):
         # Pop media-related fields from validated_data
