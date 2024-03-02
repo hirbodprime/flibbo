@@ -86,6 +86,12 @@ class HomeConsumer(AsyncWebsocketConsumer):
                 'type': 'new_post_notification',
             }
         )
+    async def new_comment_notification(self, event):
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'new_comment',
+            'message': event['message']
+        }))
 
     # Handler for the 'new_post_notification' event
     async def new_post_notification(self, event):

@@ -919,6 +919,8 @@ class CommentBaseWebSocketSerializer(serializers.ModelSerializer):
         # Get the current request user
         request_user = self.context['request']
         # Check if the request user has liked this post
+        if request_user.user:
+            request_user = request_user.user
         if request_user.is_authenticated:
             return obj.likes.filter(email=request_user).exists()
         return False

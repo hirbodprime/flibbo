@@ -9,28 +9,44 @@ import logging
 import asyncio
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from .api.serializers import TweetCommentWebSocketSerializer
 from .consumers import HomeConsumer
 # Reuse the same logger
 logger = logging.getLogger('tweet_app')
 
-# @receiver(post_save, sender=TweetPostModel)
-# def broadcast_new_post(sender, instance, created, **kwargs):
-#     if created:
-#         # Prepare a simple message or notification
-#         message = {
-#             'type': 'new_post',
-#             'message': 'A new post has been created!',
-#             # You can include minimal information like post ID if needed
-#             'post_id': instance.id
-#         }
+# Mock request context generator
+def get_mock_request(user):
+    return {
+        'request': type('Request', (object,), {'user': user, 'META': {}})()
+    }
+
+@receiver(post_save, sender=TweetCommentModel)
+def new_comment_signal(sender, instance, created, **kwargs):
+    print(f"New comment signal triggered for post {instance.post.id}")
+    if created:
+        channel_layer = get_channel_layer()
+        group_name = f'home'
+
+        # Instead of a full request, manually create a context with the necessary data
+        context = get_mock_request(instance.user)
         
-#         # Use channel layer to broadcast the message
-#         channel_layer = get_channel_layer()
-#         # Ensure the async function is called in a synchronous context
-#         async_to_sync(channel_layer.group_send)(
-#             'home',  # The group name where clients are listening
-#             message
-#         )
+        # Serialize the new comment using the mock request context
+        comment_data = TweetCommentWebSocketSerializer(instance, context=context).data
+
+        # Use async_to_sync to call the asynchronous group_send method
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'new_comment_notification',
+                'message': {
+                    'comment': comment_data,
+                    'post_id': instance.post.id,
+                    'total_comments': TweetCommentModel.objects.filter(post=instance.post).count()
+                }
+            }
+        )
+
+
 @receiver(post_save, sender=TweetPostModel)
 def broadcast_new_post(sender, instance, created, **kwargs):
     if created:
@@ -110,35 +126,4 @@ def compress_video(video_path):
         logger.error(f"Error compressing video: {video_path}: {e}")
 
 
-# @receiver(post_save, sender=TweetPostImagesModel)
-# def compress_media(sender, instance, **kwargs):
-#     try:
-#         if instance.image:
-#             compress_image(instance.image.path)
-#             logger.debug(f"Compressed image for TweetPostImagesModel id: {instance.id}")
-
-#         if instance.video:
-#             compress_video(instance.video.path)
-#             logger.debug(f"Compressed video for TweetPostImagesModel id: {instance.id}")
-#     except Exception as e:
-#         logger.error(f"Error compressing media for TweetPostImagesModel id: {instance.id}: {e}")
-
-# def compress_image(image_path):
-#     try:
-#         with Image.open(image_path) as img:
-#             img.save(image_path, optimize=True, quality=50)
-#             logger.debug(f"Image compressed: {image_path}")
-#     except Exception as e:
-#         logger.error(f"Error compressing image: {image_path}: {e}")
-
-# def compress_video(video_path):
-#     try:
-#         clip = VideoFileClip(video_path)
-#         target_bitrate = "500k"
-#         temp_video_path = video_path + "_temp.mp4"
-#         clip.write_videofile(temp_video_path, bitrate=target_bitrate)
-#         os.replace(temp_video_path, video_path)
-#         logger.debug(f"Video compressed: {video_path}")
-#     except Exception as e:
-#         logger.error(f"Error compressing video: {video_path}: {e}")
 
