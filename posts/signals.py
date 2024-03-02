@@ -38,11 +38,9 @@ def new_comment_signal(sender, instance, created, **kwargs):
             group_name,
             {
                 'type': 'new_comment_notification',
-                'message': {
-                    'comment': comment_data,
-                    'post_id': instance.post.id,
-                    'total_comments': TweetCommentModel.objects.filter(post=instance.post).count()
-                }
+                'comment': comment_data,  # Directly include comment data
+                'post_id': instance.post.id,
+                'total_comments': TweetCommentModel.objects.filter(post=instance.post).count()
             }
         )
 
