@@ -7,12 +7,14 @@ PasswordResetConfirmApi,CustomUsersListApiView,ReportUserCreateApiView,
 DeleteAccountAPIView,CheckLoginStatusAPIView,UserSearchView,delete_account,AccessTokenLoginView,
 BlockUserView,UnblockUserView,ReportReasonsListAPIView,SavedTweetsMediaListView,SavedTweetsTextListView,UserProfileV2ApiView,
 BlockedUsersListView,AppleLogin,GoogleLogin,ChangeUsernameView,ChangePasswordView,AddBonusApiview,ChangePasswordFLUsersView,check_email_exists,UpdateProfileV2ApiView
-,check_username_exists)
+,check_username_exists,SearchMentionUsersAPIView)
 from dj_rest_auth.registration.views import (
     SocialAccountListView, SocialAccountDisconnectView
 )
 
 urlpatterns = [
+    path('user/search/', SearchMentionUsersAPIView.as_view(), name='user-search'),
+
     path('check-username/', check_username_exists, name='check_username_exists'),
     path('check-email/', check_email_exists, name='check_email_exists'),
 

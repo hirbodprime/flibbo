@@ -61,6 +61,20 @@ from django.db.models import Max
 
 User = get_user_model()
 
+class SearchMentionUsersAPIView(APIView):
+    def get(self, request, format=None):
+        query = request.query_params.get('q', None)
+        if query is not None:
+            users = CustomUser.objects.filter(
+                Q(username__icontains=query) | Q(full_name__icontains=query),
+                is_active=True  # Optionally filter only active users
+            )
+            serializer = CustomUserSerializerV2(users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "A search query is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 def check_username_exists(request):
     serializer = UsernameCheckSerializer(data=request.data)
