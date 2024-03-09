@@ -2,10 +2,10 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite , ModelAdmin
 from .models import (TweetPostModel,BookPostModel,PodcastPostModel,TweetCommentModel, TweetReplyCommentModel,
     PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,ReportPost,Language,Book,Page,UserBookProgress,TweetPostImagesModel)  # Import the concrete model
+    BookCommentModel, BookReplyCommentModel,ReportPost,Language,Book,Page,UserBookProgress,TweetPostImagesModel,MentionsUsersModel)  # Import the concrete model
 
 admin.site.register(ReportPost)
-
+admin.site.register(MentionsUsersModel)
 class BookAdmin(AdminSite):
     site_header = 'book admin'
     site_title = 'book admin'

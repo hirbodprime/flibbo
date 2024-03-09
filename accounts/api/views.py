@@ -15,7 +15,7 @@ from point.models import ReferralCodeModel
 from point.point_functionality import process_referral_signup
 from wallet.models import UsersNfts
 from .serializers import ( UserLoginSerializer , LogoutSerializer,
- CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,CustomUserSerializerV2,
+ CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,CustomUserSerializerV2,UserSearchSerializer,
  ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
  ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer,EmailCheckSerializer
@@ -69,7 +69,7 @@ class SearchMentionUsersAPIView(APIView):
                 Q(username__icontains=query) | Q(full_name__icontains=query),
                 is_active=True  # Optionally filter only active users
             )
-            serializer = CustomUserSerializerV2(users, many=True)
+            serializer = UserSearchSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"error": "A search query is required."}, status=status.HTTP_400_BAD_REQUEST)

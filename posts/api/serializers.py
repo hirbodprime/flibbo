@@ -2,9 +2,10 @@ from rest_framework import serializers
 from posts.models import (
     TweetPostModel, BookPostModel, PodcastPostModel,TweetCommentModel,
     TweetReplyCommentModel, PodcastCommentModel, PodcastReplyCommentModel,
-    BookCommentModel, BookReplyCommentModel,ReportPost,Book,Page, TweetPostImagesModel,TweetPostImagesModel
+    BookCommentModel, BookReplyCommentModel,ReportPost,Book,Page, TweetPostImagesModel,TweetPostImagesModel,MentionsUsersModel
 )
-
+from django.shortcuts import get_object_or_404
+from accounts.models import CustomUser
 from django_countries.fields import CountryField
 from django.contrib.auth import get_user_model
 from rest_framework.pagination import PageNumberPagination
@@ -53,9 +54,13 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
     # photo_blur_hash_image = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
     cover_image = serializers.ListField(child=serializers.FileField(),write_only=True, required=False)
     
+    tag_users = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    offset_X = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    offset_y = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    
     class Meta:
         model = TweetPostModel
-        fields = ['aspect_ratio','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
+        fields = ['aspect_ratio','tag_users','offset_X','offset_y','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
 
     def create(self, validated_data):
         # Pop media-related fields from validated_data
@@ -66,7 +71,11 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
         images_data = validated_data.pop('images', [])
         # photo_blur_hash_image_data = validated_data.pop('photo_blur_hash_image', [])
         cover_image_data = validated_data.pop('cover_image', [])
-
+        tag_users_data = validated_data.pop('tag_users', [])
+        offset_x_data = validated_data.pop('offset_X', [])  # Adjust to the correct field name
+        offset_y_data = validated_data.pop('offset_y', [])  # Adjust to the correct field name
+        print("aljhslkjhs")
+            
         # Create the TweetPostModel instance
         tweet = TweetPostModel.objects.create(**validated_data)
         for cover_image_file in cover_image_data:
@@ -90,6 +99,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
 
         # Associate videos with the tweet
         for i in range(len(images_data)):
+        
             TweetPostImagesModel.objects.create(
                 tweet=tweet,
                 image=images_data[i],
@@ -97,8 +107,50 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
                 photo_blur_hash_video=cover_image_blurhash,
                 cover_image=cover_image_data[i] if i < len(cover_image_data) else None
             )
+        
+        # Create MentionsUsersModel instances
+        tag_users_data = []
+        offset_x_data = []
+        offset_y_data = []
 
+        # Extract indexed data from self.initial_data instead of validated_data
+        for key in self.initial_data.keys():
+            if 'tag_users' in key:
+                index = key.split('[')[1].split(']')[0]  # Extract the index
+                tag_users_data.append((index, self.initial_data[key]))
+            elif 'offset_x' in key:
+                index = key.split('[')[1].split(']')[0]
+                offset_x_data.append((index, self.initial_data[key]))
+            elif 'offset_y' in key:
+                index = key.split('[')[1].split(']')[0]
+                offset_y_data.append((index, self.initial_data[key]))
+        
+        # Sort the data by index to ensure they match up
+        tag_users_data.sort(key=lambda x: x[0])
+        offset_x_data.sort(key=lambda x: x[0])
+        offset_y_data.sort(key=lambda x: x[0])
+
+        # Now you can iterate and create MentionsUsersModel instances
+        for ((_, user_id), (_, x), (_, y)) in zip(tag_users_data, offset_x_data, offset_y_data):
+            try:
+                # Check if the user exists before creating the MentionsUsersModel instance
+                user = CustomUser.objects.get(id=user_id)
+                MentionsUsersModel.objects.create(
+                    Users=user,
+                    tweet=tweet,
+                    offset_x=int(x),
+                    offset_y=int(y)
+                )
+            except ObjectDoesNotExist:
+                # Handle the case where the user does not exist
+                print(f"User with id {user_id} does not exist.")
+            except ValueError:
+                # Handle the case where x or y is not a valid integer
+                print(f"Invalid value for offset_x or offset_y: {x}, {y}")
+        
         return tweet
+
+
 
 
 
@@ -508,12 +560,21 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
                 'updated_date','photo','video',
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
-                
+               
+from accounts.api.serializers import CustomUserSerializerV2
+# You will also need a serializer for the MentionsUsersModel
+class MentionsUsersModelSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializerV2(read_only=True)  # Use the CustomUserSerializer for nested user data
+
+    class Meta:
+        model = MentionsUsersModel
+        fields = ('user', 'offset_x', 'offset_y')
 class TweetPostSerializer(serializers.ModelSerializer):
     # location = CustomCountryField()
     media = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)
     photo = serializers.SerializerMethodField()
     profile_image_url  = serializers.SerializerMethodField()
+    tags  = serializers.SerializerMethodField()
     user_username = serializers.SerializerMethodField()
     user_full_name = serializers.SerializerMethodField()
     mention_users = serializers.SerializerMethodField()
@@ -535,6 +596,10 @@ class TweetPostSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
     link = serializers.SerializerMethodField()
     voice = serializers.SerializerMethodField()
+    def get_tags(self, obj):
+        mentions = obj.mentionsusersmodel_set.all()
+        return MentionsUsersModelSerializer(mentions, many=True).data
+
     def get_premium(self,obj):
         return obj.user.premium
     def get_voice(self,obj):
@@ -694,7 +759,7 @@ class TweetPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['aspect_ratio','comments','premium','options','voice','link','file','media','cover','private','request_status',
+        fields = ['aspect_ratio','tags','comments','premium','options','voice','link','file','media','cover','private','request_status',
                 'user_followed','likes','id', 'photo_blur_hash','height', 'user',
                 'user_username','user_liked','user_saved','user_viewed' ,'profile_image_url',
                 'user_full_name','title', 'caption', 'hashtag', 'location','urls', 

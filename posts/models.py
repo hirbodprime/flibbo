@@ -295,7 +295,13 @@ class TweetPostModel(BasePostModel):
         #     default_storage.delete(temp_video_path)
 
         super(TweetPostModel, self).save(*args, **kwargs)
-    
+
+class MentionsUsersModel(models.Model):
+    Users = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)
+    offset_x = models.IntegerField()
+    offset_y = models.IntegerField()
+
 class TweetPostImagesModel(models.Model):
     tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='posts/tweet/images/', blank=True, null=True)

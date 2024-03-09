@@ -31,15 +31,52 @@ class ProfileImageSerializer(serializers.ModelSerializer):
         model = ProfileImagesModel
         fields = ['image']
 
+class UserSearchSerializer(serializers.ModelSerializer):
+    """Serializer to be used in the search users API view."""
+    # profile_images = ProfileImageSerializer(many=True, read_only=True)
+    profile_images = serializers.SerializerMethodField()
+    # def get_profile_images(self, obj):
+    #     # Retrieve all profile images for the user
+    #     profile_images = ProfileImagesModel.objects.filter(user=obj)
+    #     # Serialize the queryset
+    #     return [self.context['request'].build_absolute_uri(image.image.url) for image in profile_images if image.image]
+    def get_profile_images(self, obj):
+        """
+        Custom method to fetch profile images, prepend with the site's domain,
+        and return as a list of URLs.
+        """
+        request = self.context.get('request')
+        profile_images_qs = ProfileImagesModel.objects.filter(user=obj)
+        profile_images_urls = [
+            f"{settings.SITE_DOMAIN}{image.image.url}"
+            for image in profile_images_qs
+            if image.image
+        ]
+        return profile_images_urls
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            'id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio',
+            'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 
+            'instagram_url', 'linkedin_url', 'premium','profile_images','profile_image', 'country'
+        )
+        read_only_fields = fields  # Optionally, make all fields read-only as this serializer is used for search
+
 class CustomUserSerializerV2(serializers.ModelSerializer):
     profile_images = ProfileImageSerializer(many=True, read_only=True)
     new_profile_images = serializers.ListField(
         child=serializers.ImageField(), required=False, write_only=True
     )
-
+    profile_image  = serializers.SerializerMethodField()
+    def get_profile_image(self, obj):
+            if obj.profile_image:
+                return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
+            else:
+                return None
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'new_profile_images', 'country')
+        fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'profile_image','new_profile_images', 'country')
         read_only_fields = ('email', 'username', 'join_date', 'birthday', 'followers_count', 'followings_count')
     def update(self, instance, validated_data):
         new_profile_images_data = validated_data.pop('new_profile_images', None)
