@@ -301,6 +301,7 @@ class MentionsUsersModel(models.Model):
     tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)
     offset_x = models.CharField(max_length=500,null=True,blank=True)
     offset_y = models.CharField(max_length=500,null=True,blank=True)
+    index = models.IntegerField(null=True,blank=True)
 
 class TweetPostImagesModel(models.Model):
     tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)

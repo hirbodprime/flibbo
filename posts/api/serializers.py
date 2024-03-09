@@ -57,10 +57,11 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
     tag_users = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
     offset_X = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
     offset_y = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
+    index = serializers.ListField(child=serializers.CharField(),write_only=True, required=False)
     
     class Meta:
         model = TweetPostModel
-        fields = ['aspect_ratio','tag_users','offset_X','offset_y','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
+        fields = ['aspect_ratio','tag_users','index','offset_X','offset_y','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
 
     def create(self, validated_data):
         # Pop media-related fields from validated_data
@@ -74,6 +75,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
         tag_users_data = validated_data.pop('tag_users', [])
         offset_x_data = validated_data.pop('offset_X', [])  # Adjust to the correct field name
         offset_y_data = validated_data.pop('offset_y', [])  # Adjust to the correct field name    
+        index_data = validated_data.pop('index', [])  # Adjust to the correct field name    
         # Create the TweetPostModel instance
         tweet = TweetPostModel.objects.create(**validated_data)
         for cover_image_file in cover_image_data:
@@ -110,7 +112,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
         tag_users_data = []
         offset_x_data = []
         offset_y_data = []
-
+        index_data = []
         # Extract indexed data from self.initial_data instead of validated_data
         for key in self.initial_data.keys():
             if 'tag_users' in key:
@@ -122,14 +124,17 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
             elif 'offset_y' in key:
                 index = key.split('[')[1].split(']')[0]
                 offset_y_data.append((index, self.initial_data[key]))
-        
+            elif 'index' in key:
+                index = key.split('[')[1].split(']')[0]
+                index_data.append((index, self.initial_data[key]))
         # Sort the data by index to ensure they match up
         tag_users_data.sort(key=lambda x: x[0])
         offset_x_data.sort(key=lambda x: x[0])
         offset_y_data.sort(key=lambda x: x[0])
+        index_data.sort(key=lambda x: x[0])
 
         # Now you can iterate and create MentionsUsersModel instances
-        for ((_, user_id), (_, x), (_, y)) in zip(tag_users_data, offset_x_data, offset_y_data):
+        for ((_, user_id), (_, x), (_, y), (_, i)) in zip(tag_users_data, offset_x_data, offset_y_data,index_data):
             try:
                 # Check if the user exists before creating the MentionsUsersModel instance
                 user = CustomUser.objects.get(id=user_id)
@@ -138,6 +143,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
                     tweet=tweet,
                     offset_x=x,
                     offset_y=y,
+                    index=i,
                 )
             except ObjectDoesNotExist:
                 # Handle the case where the user does not exist
@@ -567,7 +573,7 @@ class MentionsUsersModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MentionsUsersModel
-        fields = ('user', 'offset')  # Update this line
+        fields = ('user', 'offset','index')  # Update this line
 
     def get_offset(self, obj):
         # This method constructs the offset object
