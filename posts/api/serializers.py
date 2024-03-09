@@ -157,6 +157,22 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
 
 
 
+from accounts.api.serializers import CustomUserSerializerV2
+# You will also need a serializer for the MentionsUsersModel
+class MentionsUsersModelSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializerV2(read_only=True)  # Use the CustomUserSerializer for nested user data
+    offset = serializers.SerializerMethodField()  # Add this line
+
+    class Meta:
+        model = MentionsUsersModel
+        fields = ('user', 'offset','index')  # Update this line
+
+    def get_offset(self, obj):
+        # This method constructs the offset object
+        return {
+            'x': obj.offset_x,
+            'y': obj.offset_y,
+        }
 
         
 class PageSerializer(serializers.ModelSerializer):
@@ -188,6 +204,10 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
     request_status = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     total_comments = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
+    def get_tags(self, obj):
+        mentions = obj.mentionsusersmodel_set.all()
+        return MentionsUsersModelSerializer(mentions, many=True).data
     def get_total_comments(self,obj):
         return TweetCommentModel.objects.filter(post=obj).count()
     def get_location(self,obj):
@@ -565,22 +585,6 @@ class TweetPostConsumerSerializer(serializers.ModelSerializer):
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
                
-from accounts.api.serializers import CustomUserSerializerV2
-# You will also need a serializer for the MentionsUsersModel
-class MentionsUsersModelSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializerV2(read_only=True)  # Use the CustomUserSerializer for nested user data
-    offset = serializers.SerializerMethodField()  # Add this line
-
-    class Meta:
-        model = MentionsUsersModel
-        fields = ('user', 'offset','index')  # Update this line
-
-    def get_offset(self, obj):
-        # This method constructs the offset object
-        return {
-            'x': obj.offset_x,
-            'y': obj.offset_y,
-        }
 
         
 class TweetPostSerializer(serializers.ModelSerializer):
