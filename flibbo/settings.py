@@ -299,8 +299,8 @@ if host == "pro":
 elif host == "dev":
     redis_hosts = [('127.0.0.1', 6379)]
 elif host == "local":
-    # redis_hosts = [('127.0.0.1', 32768)]
-    redis_hosts = [('127.0.0.1', 6379)]
+    redis_hosts = [('127.0.0.1', 32768)]
+    # redis_hosts = [('127.0.0.1', 6379)]
 
 
 # Configure Channels

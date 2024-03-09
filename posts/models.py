@@ -297,10 +297,10 @@ class TweetPostModel(BasePostModel):
         super(TweetPostModel, self).save(*args, **kwargs)
 
 class MentionsUsersModel(models.Model):
-    Users = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
     tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)
-    offset_x = models.IntegerField()
-    offset_y = models.IntegerField()
+    offset_x = models.CharField(max_length=500,null=True,blank=True)
+    offset_y = models.CharField(max_length=500,null=True,blank=True)
 
 class TweetPostImagesModel(models.Model):
     tweet = models.ForeignKey('TweetPostModel', on_delete=models.CASCADE)

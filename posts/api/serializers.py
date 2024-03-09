@@ -73,9 +73,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
         cover_image_data = validated_data.pop('cover_image', [])
         tag_users_data = validated_data.pop('tag_users', [])
         offset_x_data = validated_data.pop('offset_X', [])  # Adjust to the correct field name
-        offset_y_data = validated_data.pop('offset_y', [])  # Adjust to the correct field name
-        print("aljhslkjhs")
-            
+        offset_y_data = validated_data.pop('offset_y', [])  # Adjust to the correct field name    
         # Create the TweetPostModel instance
         tweet = TweetPostModel.objects.create(**validated_data)
         for cover_image_file in cover_image_data:
@@ -136,10 +134,10 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
                 # Check if the user exists before creating the MentionsUsersModel instance
                 user = CustomUser.objects.get(id=user_id)
                 MentionsUsersModel.objects.create(
-                    Users=user,
+                    user=user,
                     tweet=tweet,
-                    offset_x=int(x),
-                    offset_y=int(y)
+                    offset_x=x,
+                    offset_y=y,
                 )
             except ObjectDoesNotExist:
                 # Handle the case where the user does not exist
@@ -565,10 +563,20 @@ from accounts.api.serializers import CustomUserSerializerV2
 # You will also need a serializer for the MentionsUsersModel
 class MentionsUsersModelSerializer(serializers.ModelSerializer):
     user = CustomUserSerializerV2(read_only=True)  # Use the CustomUserSerializer for nested user data
+    offset = serializers.SerializerMethodField()  # Add this line
 
     class Meta:
         model = MentionsUsersModel
-        fields = ('user', 'offset_x', 'offset_y')
+        fields = ('user', 'offset')  # Update this line
+
+    def get_offset(self, obj):
+        # This method constructs the offset object
+        return {
+            'x': obj.offset_x,
+            'y': obj.offset_y,
+        }
+
+        
 class TweetPostSerializer(serializers.ModelSerializer):
     # location = CustomCountryField()
     media = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)

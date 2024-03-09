@@ -35,6 +35,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
     """Serializer to be used in the search users API view."""
     # profile_images = ProfileImageSerializer(many=True, read_only=True)
     profile_images = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
     # def get_profile_images(self, obj):
     #     # Retrieve all profile images for the user
     #     profile_images = ProfileImagesModel.objects.filter(user=obj)
@@ -53,7 +54,12 @@ class UserSearchSerializer(serializers.ModelSerializer):
             if image.image
         ]
         return profile_images_urls
-
+    def get_profile_image(self, obj):
+        if obj.profile_image:
+            profile_image_link = f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
+            return profile_image_link
+        else:
+            return None
     class Meta:
         model = CustomUser
         fields = (
@@ -69,6 +75,19 @@ class CustomUserSerializerV2(serializers.ModelSerializer):
         child=serializers.ImageField(), required=False, write_only=True
     )
     profile_image  = serializers.SerializerMethodField()
+    profile_imagess  = serializers.SerializerMethodField()
+    def get_profile_imagess(self, obj):
+        """
+        Custom method to fetch profile images, prepend with the site's domain,
+        and return as a list of URLs.
+        """
+        profile_images_qs = ProfileImagesModel.objects.filter(user=obj)
+        profile_images_urls = [
+            f"{settings.SITE_DOMAIN}{image.image.url}"
+            for image in profile_images_qs
+            if image.image
+        ]
+        return profile_images_urls
     def get_profile_image(self, obj):
             if obj.profile_image:
                 return f"{settings.SITE_DOMAIN}{obj.profile_image.url}"
@@ -76,7 +95,7 @@ class CustomUserSerializerV2(serializers.ModelSerializer):
                 return None
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'profile_image','new_profile_images', 'country')
+        fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'profile_imagess', 'profile_image','new_profile_images', 'country')
         read_only_fields = ('email', 'username', 'join_date', 'birthday', 'followers_count', 'followings_count')
     def update(self, instance, validated_data):
         new_profile_images_data = validated_data.pop('new_profile_images', None)
