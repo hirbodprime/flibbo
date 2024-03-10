@@ -15,7 +15,9 @@ class Activity(models.Model):
     UNFOLLOW = 'unfollow'
     COMMENT = 'comment'
     UNCOMMENT = 'uncomment'
+    TAG = 'tag'
     ACTIVITY_CHOICES = (
+        (TAG, 'tag'),
         (VIEW, 'View'),
         (LIKE, 'Like'),
         (SAVE, 'Save'),

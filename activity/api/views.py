@@ -6,7 +6,7 @@ from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 from posts.models import TweetPostModel
 from activity.models import Activity
-from .serializers import ActivitySerializer
+from .serializers import ActivitySerializer, ActivitySerializerV2
 from following_system.models import RequestToFollow 
 from following_system.api.serializers import RequestToFollowListSerializer
 from django.conf import settings
@@ -39,4 +39,70 @@ def activity_feed(request, activity_type_url):
     }
     return Response(response_data)
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def activity_feed_v2(request, category):
+#     category_mappings = {
+#         'all': Activity.ACTIVITY_CHOICES,
+#         'engagement': [Activity.LIKE, Activity.COMMENT],
+#         'requests': [Activity.FOLLOW, Activity.UNFOLLOW],
+#         'tags': [Activity.TAG],
+#     }
 
+#     activities = Activity.objects.filter(user=request.user).order_by('-created_at')
+    
+#     if category != 'all':
+#         if category == 'requests':
+#             # Specific logic for follow requests
+#             request_activities = RequestToFollow.objects.filter(requset_reciever=request.user).order_by('-created_at')
+#             serializer_requests = RequestToFollowListSerializer(instance=request_activities, many=True, context={'request': request})
+#             activities = activities.filter(activity_type__in=category_mappings[category])
+#             response_data = {
+#                 'data': ActivitySerializerV2(instance=activities, many=True, context={'request': request}).data,
+#                 'requests': serializer_requests.data
+#             }
+#             return Response(response_data)
+#         else:
+#             activity_types = category_mappings.get(category, [])
+#             activities = activities.filter(activity_type__in=activity_types)
+    
+#     serializer = ActivitySerializerV2(instance=activities, many=True, context={'request': request})
+#     return Response({'data': serializer.data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def activity_feed_v2(request, category):
+    # Define category to activities mapping
+    category_mappings = {
+        'engagement': [Activity.LIKE, Activity.COMMENT, Activity.SAVE],
+        'requests': [Activity.FOLLOW, Activity.UNFOLLOW],
+        'tags': [Activity.TAG],
+    }
+
+    activities = Activity.objects.filter(user=request.user).order_by('-created_at')
+    
+    if category == 'all':
+        # Split the queryset into newest and oldest
+        newest_activities = activities[:10]  # The 10 most recent activities
+        oldest_activities = activities[10:]  # The rest of the activities
+        
+        # Serializing the activities
+        newest_serializer = ActivitySerializer(instance=newest_activities, context={'request': request}, many=True)
+        oldest_serializer = ActivitySerializer(instance=oldest_activities, context={'request': request}, many=True)
+        
+        response_data = {
+            'newest': newest_serializer.data,
+            'oldest': oldest_serializer.data,
+        }
+        return Response(response_data)
+
+    elif category in category_mappings:
+        # Filter activities based on the selected category
+        activities = activities.filter(activity_type__in=category_mappings[category])
+
+        # Serializing the activities
+        serializer = ActivitySerializer(instance=activities, context={'request': request}, many=True)
+        return Response({'data': serializer.data})
+
+    else:
+        return Response({"error": "Invalid category provided"}, status=400)

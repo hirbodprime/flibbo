@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save,pre_save,m2m_changed
 from django.dispatch import receiver
-from .models import ReportPost, TweetPostModel, TweetCommentModel, TweetPostImagesModel
+from .models import ReportPost, TweetPostModel, TweetCommentModel, TweetPostImagesModel,MentionsUsersModel
 from posts.api.serializers import TweetPostSerializer
 from PIL import Image
 from moviepy.editor import VideoFileClip
@@ -12,7 +12,22 @@ from asgiref.sync import async_to_sync
 from .api.serializers import TweetCommentWebSocketSerializer
 from .consumers import HomeConsumer
 # Reuse the same logger
+from activity.models import Activity
 logger = logging.getLogger('tweet_app')
+
+@receiver(post_save, sender=MentionsUsersModel)
+def create_tag_activity(sender, instance, created, **kwargs):
+    """
+    Signal to create an Activity object whenever a new MentionsUsersModel instance is created.
+    """
+    if created:  # Check if a new mention is being created
+        # Create the Activity object for the tag
+        Activity.objects.create(
+            user=instance.user,  # The user who is tagged
+            tweet=instance.tweet,  # The tweet in which the user is tagged
+            activity_type=Activity.TAG,  # Set the activity type to 'tag'
+            # You may want to add additional fields here as necessary
+        )
 
 # Mock request context generator
 def get_mock_request(user):
