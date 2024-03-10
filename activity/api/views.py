@@ -39,36 +39,6 @@ def activity_feed(request, activity_type_url):
     }
     return Response(response_data)
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def activity_feed_v2(request, category):
-#     category_mappings = {
-#         'all': Activity.ACTIVITY_CHOICES,
-#         'engagement': [Activity.LIKE, Activity.COMMENT],
-#         'requests': [Activity.FOLLOW, Activity.UNFOLLOW],
-#         'tags': [Activity.TAG],
-#     }
-
-#     activities = Activity.objects.filter(user=request.user).order_by('-created_at')
-    
-#     if category != 'all':
-#         if category == 'requests':
-#             # Specific logic for follow requests
-#             request_activities = RequestToFollow.objects.filter(requset_reciever=request.user).order_by('-created_at')
-#             serializer_requests = RequestToFollowListSerializer(instance=request_activities, many=True, context={'request': request})
-#             activities = activities.filter(activity_type__in=category_mappings[category])
-#             response_data = {
-#                 'data': ActivitySerializerV2(instance=activities, many=True, context={'request': request}).data,
-#                 'requests': serializer_requests.data
-#             }
-#             return Response(response_data)
-#         else:
-#             activity_types = category_mappings.get(category, [])
-#             activities = activities.filter(activity_type__in=activity_types)
-    
-#     serializer = ActivitySerializerV2(instance=activities, many=True, context={'request': request})
-#     return Response({'data': serializer.data})
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def activity_feed_v2(request, category):
@@ -79,7 +49,15 @@ def activity_feed_v2(request, category):
         'tags': [Activity.TAG],
     }
 
-    activities = Activity.objects.filter(user=request.user).order_by('-created_at')
+    user_posts_ids = TweetPostModel.objects.filter(user=request.user).values_list('id', flat=True)
+
+    # Adjusting the activities query
+    # This fetches activities related to the user's posts and where the user is the followed_user
+    activities = Activity.objects.filter(
+        Q(tweet__in=user_posts_ids) |
+        Q(followed_user=request.user)
+    ).distinct().order_by('-created_at')
+    
     
     if category == 'all':
         # Split the queryset into newest and oldest
