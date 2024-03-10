@@ -5,6 +5,44 @@ from following_system.models import FollowModel, RequestToFollow
 from django.conf import settings
 from posts.api.serializers import TweetPostSerializer
 
+from posts.models import TweetPostModel
+from posts.api.serializers import TweetPostImageSerializer
+class TweetSignleActivityPostSerializer(serializers.ModelSerializer):
+    media = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)
+    photo = serializers.SerializerMethodField()
+    video  = serializers.SerializerMethodField()
+
+    def get_video(self, obj):
+        # Get the current request object
+        request = self.context.get('request')
+
+        # Check if the object has a 'photo' field
+        if obj.video:
+            # Get the full URL for the photo by prepending the domain
+            site_domain_stream = f"{settings.SITE_DOMAIN}/posts/api/stream-video/"  # Replace this with your actual website domain
+            return f"{site_domain_stream}{obj.id}"
+        else:
+            return None
+
+    def get_photo(self, obj):
+        # Get the current request object
+        request = self.context.get('request')
+
+        # Check if the object has a 'photo' field
+        if obj.photo:
+            # Get the full URL for the photo by prepending the domain
+            return f"{settings.SITE_DOMAIN}{obj.photo.url}"
+        else:
+            return None
+    class Meta:
+        # total_likes = serializers.SerializerMethodField()
+        shared_by_users = serializers.SerializerMethodField()
+        total_views = serializers.SerializerMethodField()
+        model = TweetPostModel
+        fields = ['media','cover','id', 'photo_blur_hash','caption', 'created_date', 'voice','updated_date','photo','video',]
+
+
+
 class ActivitySerializer(serializers.ModelSerializer):
     profile_image_url  = serializers.SerializerMethodField()
     user_username = serializers.SerializerMethodField()
@@ -70,7 +108,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     def get_tweet_details(self, obj):
         request = self.context['request']
         if obj.tweet:
-            return TweetPostSerializer(obj.tweet,context={'request':request}).data
+            return TweetSignleActivityPostSerializer(obj.tweet,context={'request':request}).data
         return None
     def get_user_followed(self, obj):
         request_user = self.context['request'].user
@@ -114,3 +152,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     class Meta:
         model = Activity
         fields = ['user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
+
+
+
+

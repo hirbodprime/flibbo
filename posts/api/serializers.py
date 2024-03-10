@@ -186,6 +186,7 @@ class BookSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'cover_image']
 
 class TweetSignlePostSerializer(serializers.ModelSerializer):
+    media = TweetPostImageSerializer(source='tweetpostimagesmodel_set', many=True, read_only=True)
     photo = serializers.SerializerMethodField()
     profile_image_url  = serializers.SerializerMethodField()
     user_username = serializers.SerializerMethodField()
@@ -343,7 +344,7 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['aspect_ratio','cover','private','request_status','user_followed','likes','comments','id', 'photo_blur_hash','height','user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
+        fields = ['aspect_ratio','media','cover','private','request_status','user_followed','likes','comments','id', 'photo_blur_hash','height','user','user_username','user_liked','user_saved','user_viewed' ,'profile_image_url','user_full_name','title', 'caption', 'hashtag', 'location','urls', 'category', 'created_date',
                 'updated_date','photo','video',
                 'total_views','total_shares','share_post','total_saves','total_comments','total_likes','mention_users','likes']
 
