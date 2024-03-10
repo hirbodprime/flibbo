@@ -106,11 +106,17 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     request_status = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
     comment_text = serializers.SerializerMethodField()
+    comment_voice = serializers.SerializerMethodField()
 
+    def get_comment_voice(self, obj):
+        # Check if the activity is related to a comment with a voice file
+        if obj.activity_type == 'comment' and obj.tweet_comment and obj.tweet_comment.voice:
+            voice_url = obj.tweet_comment.voice.url
+            return f"{settings.SITE_DOMAIN}{voice_url}"
+        return None
     def get_comment_text(self, obj):
         # If the activity is related to a comment, return the comment's text
         if obj.activity_type in 'comment' and obj.tweet_comment:
-            print(obj.tweet_comment.text)
             return obj.tweet_comment.text
         return None
     def get_tweet_details(self, obj):
@@ -159,7 +165,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
             return None
     class Meta:
         model = Activity
-        fields = ['comment_text','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
+        fields = ['comment_text','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
 
 
 

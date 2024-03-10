@@ -809,7 +809,6 @@ class TweetCommentCreateView(APIView):
             pass  # Handle the case where the post owner doesn't have a device registered
 
         # Record the activity
-        Activity.objects.create(user=request.user, tweet=post, activity_type=Activity.COMMENT)
 
         # Assuming an 'increment_total_comments' method exists on TweetPostModel
         post.increment_total_comments()

@@ -3,7 +3,18 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import Activity
+from posts.models import TweetCommentModel
 
+@receiver(post_save, sender=TweetCommentModel)
+def create_comment_activity(sender, instance, created, **kwargs):
+    if created:
+        Activity.objects.create(
+            user=instance.user,
+            tweet=instance.post,  # Assuming you want to reference the TweetPostModel instance
+            tweet_comment=instance,
+            activity_type=Activity.COMMENT,
+            # Add any other fields you need to set for the Activity
+        )
 @receiver(post_save, sender=Activity)
 def activity_post_save(sender, instance, created, **kwargs):
     message = {}
