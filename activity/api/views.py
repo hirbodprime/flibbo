@@ -87,8 +87,8 @@ def activity_feed_v2(request, category):
         oldest_activities = activities[10:]  # The rest of the activities
         
         # Serializing the activities
-        newest_serializer = ActivitySerializer(instance=newest_activities, context={'request': request}, many=True)
-        oldest_serializer = ActivitySerializer(instance=oldest_activities, context={'request': request}, many=True)
+        newest_serializer = ActivitySerializerV2(instance=newest_activities, context={'request': request}, many=True)
+        oldest_serializer = ActivitySerializerV2(instance=oldest_activities, context={'request': request}, many=True)
         
         response_data = {
             'newest': newest_serializer.data,
@@ -101,7 +101,7 @@ def activity_feed_v2(request, category):
         activities = activities.filter(activity_type__in=category_mappings[category])
 
         # Serializing the activities
-        serializer = ActivitySerializer(instance=activities, context={'request': request}, many=True)
+        serializer = ActivitySerializerV2(instance=activities, context={'request': request}, many=True)
         return Response({'data': serializer.data})
 
     else:
