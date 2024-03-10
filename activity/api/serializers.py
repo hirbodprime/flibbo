@@ -39,7 +39,7 @@ class TweetSignleActivityPostSerializer(serializers.ModelSerializer):
         shared_by_users = serializers.SerializerMethodField()
         total_views = serializers.SerializerMethodField()
         model = TweetPostModel
-        fields = ['media','cover','id', 'photo_blur_hash','caption', 'created_date', 'voice','updated_date','photo','video',]
+        fields = ['media','link','cover','id', 'photo_blur_hash','caption', 'voice','photo','video',]
 
 
 
@@ -105,6 +105,14 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     private = serializers.SerializerMethodField()
     request_status = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
+    comment_text = serializers.SerializerMethodField()
+
+    def get_comment_text(self, obj):
+        # If the activity is related to a comment, return the comment's text
+        if obj.activity_type in 'comment' and obj.tweet_comment:
+            print(obj.tweet_comment.text)
+            return obj.tweet_comment.text
+        return None
     def get_tweet_details(self, obj):
         request = self.context['request']
         if obj.tweet:
@@ -151,7 +159,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
             return None
     class Meta:
         model = Activity
-        fields = ['user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
+        fields = ['comment_text','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
 
 
 
