@@ -105,9 +105,20 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     private = serializers.SerializerMethodField()
     request_status = serializers.SerializerMethodField()
     user_followed = serializers.SerializerMethodField()
+    user_followes_me = serializers.SerializerMethodField()
     comment_text = serializers.SerializerMethodField()
     comment_voice = serializers.SerializerMethodField()
+    user_has_liked_comment = serializers.SerializerMethodField()
 
+    # Existing get_* methods...
+
+    def get_user_has_liked_comment(self, obj):
+        # If the activity is related to a comment, check if the request user has liked it
+        request_user = self.context['request'].user
+        if obj.activity_type == 'comment' and obj.tweet_comment:
+            # Check if the request user is in the comment's likes ManyToMany field
+            return obj.tweet_comment.likes.filter(id=request_user.id).exists()
+        return False
     def get_comment_voice(self, obj):
         # Check if the activity is related to a comment with a voice file
         if obj.activity_type == 'comment' and obj.tweet_comment and obj.tweet_comment.voice:
@@ -134,7 +145,16 @@ class ActivitySerializerV2(serializers.ModelSerializer):
         is_followed = follow_model_obj.is_followed_by(request_user)  # Use the is_followed_by method to check if the request_user is following obj.user
 
         return is_followed
-    
+    def get_user_followes_me(self, obj):
+        request_user = self.context['request'].user
+
+        try:
+            follow_model_obj = FollowModel.objects.get(user=request_user)  # Get the FollowModel instance for the user in the object
+        except ObjectDoesNotExist:
+            return False
+        is_followed = follow_model_obj.is_followed_by(obj.user)  # Use the is_followed_by method to check if the request_user is following obj.user
+
+        return is_followed
     def get_request_status(self,obj):
         request_user = self.context['request'].user
         status = None
@@ -165,7 +185,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
             return None
     class Meta:
         model = Activity
-        fields = ['comment_text','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
+        fields = ['user_has_liked_comment','comment_text','user_followes_me','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
 
 
 
