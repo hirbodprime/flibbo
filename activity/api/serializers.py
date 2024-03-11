@@ -109,7 +109,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     comment_text = serializers.SerializerMethodField()
     comment_voice = serializers.SerializerMethodField()
     user_has_liked_comment = serializers.SerializerMethodField()
-
+    request_status_id = serializers.SerializerMethodField()
     # Existing get_* methods...
 
     def get_user_has_liked_comment(self, obj):
@@ -160,14 +160,30 @@ class ActivitySerializerV2(serializers.ModelSerializer):
         status = None
         try:
             request_follow_obj = RequestToFollow.objects.get(
-                requset_reciever=obj.user,  # The user who will receive the request
-                request_sender=request_user   # The user who sent the request
+                requset_reciever=request_user,  # The user who will receive the request
+                request_sender=obj.user   # The user who sent the request
+            )
+        except RequestToFollow.DoesNotExist:
+            print("jrtr")
+            request_follow_obj = None
+
+        if not request_follow_obj is None:
+            status = request_follow_obj.status
+        return status
+    def get_request_status_id(self,obj):
+        request_user = self.context['request'].user
+        status = None
+        try:
+            request_follow_obj = RequestToFollow.objects.get(
+                requset_reciever=request_user,  # The user who will receive the request
+                request_sender=obj.user   # The user who sent the request
             )
         except RequestToFollow.DoesNotExist:
             request_follow_obj = None
 
         if not request_follow_obj is None:
-            status = request_follow_obj.status
+            status = request_follow_obj.id
+        
         return status
     def get_private(self, obj):
         return obj.user.private
@@ -185,7 +201,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
             return None
     class Meta:
         model = Activity
-        fields = ['user_has_liked_comment','comment_text','user_followes_me','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
+        fields = ['request_status_id','user_has_liked_comment','comment_text','user_followes_me','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
 
 
 

@@ -34,5 +34,18 @@ def request_to_follow_updated(sender, instance, **kwargs):
             user_to_follow.increment_followers_count()
             # instance.delete()
             return {'success': True, 'follow': 'Successfully followed this user'}
+    elif instance.status == 'PENDING':
+        user_id = instance.requset_reciever.id
+        # Get the user to follow
+        try:
+            user_to_follow = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            pass
+
+        # Get the instance of the user creating the follow
+        user_creating_follow = instance.request_sender
+
+        # Check if the user is already following
+        Activity.objects.create(user=user_creating_follow, followed_user=user_to_follow, activity_type=Activity.FOLLOW)
     elif instance.status == 'REJECTED':
         instance.delete()
