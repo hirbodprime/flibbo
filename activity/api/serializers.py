@@ -159,10 +159,10 @@ class ActivitySerializerV2(serializers.ModelSerializer):
         request_user = self.context['request'].user
         status = None
         try:
-            request_follow_obj = RequestToFollow.objects.get(
+            request_follow_obj = RequestToFollow.objects.filter(
                 requset_reciever=request_user,  # The user who will receive the request
                 request_sender=obj.user   # The user who sent the request
-            )
+            ).first()
         except RequestToFollow.DoesNotExist:
             print("jrtr")
             request_follow_obj = None
@@ -174,10 +174,10 @@ class ActivitySerializerV2(serializers.ModelSerializer):
         request_user = self.context['request'].user
         status = None
         try:
-            request_follow_obj = RequestToFollow.objects.get(
+            request_follow_obj = RequestToFollow.objects.filter(
                 requset_reciever=request_user,  # The user who will receive the request
                 request_sender=obj.user   # The user who sent the request
-            )
+            ).first()
         except RequestToFollow.DoesNotExist:
             request_follow_obj = None
 
