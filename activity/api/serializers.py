@@ -111,7 +111,15 @@ class ActivitySerializerV2(serializers.ModelSerializer):
     user_has_liked_comment = serializers.SerializerMethodField()
     request_status_id = serializers.SerializerMethodField()
     # Existing get_* methods...
+    comment_id = serializers.SerializerMethodField()
+    # Existing get_* methods...
 
+    def get_comment_id(self, obj):
+    
+        if obj.activity_type == 'comment' and obj.tweet_comment:
+            # Check if the request user is in the comment's likes ManyToMany field
+            return obj.tweet_comment.id
+        return None
     def get_user_has_liked_comment(self, obj):
         # If the activity is related to a comment, check if the request user has liked it
         request_user = self.context['request'].user
@@ -201,7 +209,7 @@ class ActivitySerializerV2(serializers.ModelSerializer):
             return None
     class Meta:
         model = Activity
-        fields = ['request_status_id','user_has_liked_comment','comment_text','user_followes_me','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
+        fields = ['comment_id','request_status_id','user_has_liked_comment','comment_text','user_followes_me','comment_voice','user_followed','request_status','private','user_id','tweet_details','user_username','user_full_name','profile_image_url','activity_type','created_at','tweet','followed_user']
 
 
 
