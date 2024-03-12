@@ -67,11 +67,43 @@ class RequestToFollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = RequestToFollow
         fields = ('requset_reciever',)
+
     def create(self, validated_data):
-        # Automatically fill the 'user' field with the user sending the request
+        # Automatically fill the 'request_sender' field with the user sending the request
         user = self.context['request'].user
+        receiver = validated_data.get('requset_reciever')
+
+        # Check if there's an existing request with the same sender and receiver
+        existing_request = RequestToFollow.objects.filter(
+            request_sender=user,
+            requset_reciever=receiver
+        ).first()
+
+        if existing_request:
+            # Delete any related Activity objects for the existing request
+            Activity.objects.filter(
+                followed_user=existing_request.requset_reciever,
+                user=existing_request.request_sender,
+                activity_type=Activity.FOLLOW
+            ).delete()
+            
+            # Delete the existing request
+            existing_request.delete()
+
+        # Create the new follow request
         request_to_follow = RequestToFollow.objects.create(request_sender=user, **validated_data)
         return request_to_follow
+
+
+# class RequestToFollowSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = RequestToFollow
+#         fields = ('requset_reciever',)
+#     def create(self, validated_data):
+#         # Automatically fill the 'user' field with the user sending the request
+#         user = self.context['request'].user
+#         request_to_follow = RequestToFollow.objects.create(request_sender=user, **validated_data)
+#         return request_to_follow
 
 class FollowModelListSerializer(serializers.ModelSerializer):
     class Meta:
