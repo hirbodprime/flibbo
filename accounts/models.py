@@ -169,3 +169,37 @@ class ChangeUsernameModel(models.Model):
     def __str__(self):
         return self.username
 
+
+# class LanguageModel(models.Model):
+#     name = models.CharField(max_length=100, unique=True)
+
+#     def __str__(self):
+#         return self.name
+
+
+# class JobModel(models.Model):
+#     title = models.CharField(max_length=255)
+#     company = models.CharField(max_length=255)
+#     education = models.CharField(max_length=255)
+#     languages = models.ManyToManyField(Language, related_name='jobs')
+#     cv = models.FileField(upload_to='cvs/')
+
+#     def __str__(self):
+#         return f"{self.title} at {self.company}"
+
+# class InterestsModel(models.Model):
+#     name = models.CharField(max_length=255)
+
+# class HabitsModel(models.Model):
+#     name = models.CharField(max_length=255)
+
+# class StartSignsModel(models.Model):
+#     name = models.CharField(max_length=255)
+
+# class AbouteMeModel(models.Model):
+#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+#     height = models.IntegerField(null=True,blank=True)
+#     job = models.ForeignKey(JobModel, on_delete=models.CASCADE,null=True,blank=True)
+#     interest = models.ForeignKey(InterestsModel, on_delete=models.CASCADE,null=True,blank=True)
+#     habits = models.ForeignKey(HabitsModel, on_delete=models.CASCADE,null=True,blank=True)
+#     stars = models.ForeignKey(StartSignsModel, on_delete=models.CASCADE,null=True,blank=True)

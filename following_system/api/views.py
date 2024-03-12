@@ -11,6 +11,7 @@ from .serializers import (
 )
 from following_system.models import FollowModel,RequestToFollow
 
+from activity.models import Activity
 
 User = get_user_model()
 
@@ -23,24 +24,50 @@ class RequestToFollowCreateAPIView(generics.CreateAPIView):
     serializer_class = RequestToFollowSerializer
     permission_classes = [IsAuthenticated]
 
-
-
 class RequestToFollowUpdateAPIView(generics.UpdateAPIView):
     queryset = RequestToFollow.objects.all()
     serializer_class = RequestToFollowStatusUpdateSerializer
     permission_classes = [IsAuthenticated]
+
     def update(self, request, *args, **kwargs):
-        request_to_follow_id = kwargs.get('id')  # Get the ID from the URL
+        request_to_follow_id = kwargs.get('pk')  # Use 'pk' to match Django's default naming
+        print(request_to_follow_id) 
         try:
-            request_to_follow = RequestToFollow.objects.get(pk=request_to_follow_id)
+            request_to_follow = self.get_queryset().get(pk=request_to_follow_id)
         except RequestToFollow.DoesNotExist:
             return Response({"error": "RequestToFollow not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(request_to_follow, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        updated_request_to_follow = serializer.save()
+
+        # If the status is updated to 'REJECTED', delete the corresponding Activity object
+        if updated_request_to_follow.status == 'REJECTED':
+            # It assumes there is a direct relationship or identifiable link between RequestToFollow and Activity
+            Activity.objects.filter(
+                followed_user=updated_request_to_follow.requset_reciever ,
+                user=updated_request_to_follow.request_sender,
+                activity_type=Activity.FOLLOW
+            ).delete()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# class RequestToFollowUpdateAPIView(generics.UpdateAPIView):
+#     queryset = RequestToFollow.objects.all()
+#     serializer_class = RequestToFollowStatusUpdateSerializer
+#     permission_classes = [IsAuthenticated]
+#     def update(self, request, *args, **kwargs):
+#         request_to_follow_id = kwargs.get('id')  # Get the ID from the URL
+#         try:
+#             request_to_follow = RequestToFollow.objects.get(pk=request_to_follow_id)
+#         except RequestToFollow.DoesNotExist:
+#             return Response({"error": "RequestToFollow not found"}, status=status.HTTP_404_NOT_FOUND)
+
+#         serializer = self.get_serializer(request_to_follow, data=request.data, partial=True)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+
+#         return Response(serializer.data, status=status.HTTP_200_OK)
         
         
 

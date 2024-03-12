@@ -28,7 +28,7 @@ def request_to_follow_updated(sender, instance, **kwargs):
             pass
         else:
             # Call the follow method
-            Activity.objects.create(user=user_creating_follow, followed_user=user_to_follow, activity_type=Activity.FOLLOW)
+            # Activity.objects.create(user=user_creating_follow, followed_user=user_to_follow, activity_type=Activity.FOLLOW)
             user_creating_follow.increment_followings_count()
             user_creating_follow_followmodel.follow(user_to_follow)
             user_to_follow.increment_followers_count()
