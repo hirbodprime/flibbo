@@ -8,7 +8,7 @@ def increment_views_count_tweets(post_id, user):
         posts = TweetPostModel.objects.filter(id__in=post_id)
         for post in posts:
             if user not in post.viewed_by_users.all():
-                Activity.objects.create(user=user, tweet=post, activity_type=Activity.VIEW)
+                # Activity.objects.create(user=user, tweet=post, activity_type=Activity.VIEW)
                 post.increment_total_views()
                 post.increment_view_users(user)  # Use add to add the user to the ManyToMany field
             else:
@@ -107,7 +107,7 @@ def increment_likes_count_tweet_comments(comment_id, user):
         for post in posts:
             if user not in post.likes.all():
                 print(user, post, Activity.COMMENT)
-                Activity.objects.create(user=user, tweet_comment=post,tweet=post.post, activity_type=Activity.COMMENT)
+                # Activity.objects.create(user=user, tweet_comment=post,tweet=post.post, activity_type=Activity.COMMENT)
 
                 # post.increment_total_likes()
                 post.increment_like_users(user)  # Use add to add the user to the ManyToMany field
@@ -124,7 +124,7 @@ def dicrement_likes_count_tweets_comments(comment_id, user):
         posts = TweetCommentModel.objects.filter(id__in=comment_id)
         for post in posts:
             if user in post.likes.all():
-                Activity.objects.create(user=user, tweet_comment=post, activity_type=Activity.UNCOMMENT)
+                # Activity.objects.create(user=user, tweet_comment=post, activity_type=Activity.UNCOMMENT)
 
                 # post.dicrement_total_likes()
                 post.decrement_like_users(user)  # Use add to add the user to the ManyToMany field
