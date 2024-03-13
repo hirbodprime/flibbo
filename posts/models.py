@@ -245,6 +245,7 @@ class TweetPostModel(BasePostModel):
     share_post = models.CharField(max_length=600,blank=True, null=True)
     options = models.CharField(choices=tweet_post_profile_choices, max_length=50,blank=True, null=True)
     liked_by_user = models.BooleanField(default=False)
+    preview = models.BooleanField(default=False)
     def get_absolute_url(self,post_id):
         from firebase_dynamic_links import dynamic_link_builder
         builder = dynamic_link_builder(api_key='AIzaSyBq77V9pbQXFDoM-eOK5G67NB6GxvXXBcc')
