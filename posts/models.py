@@ -234,6 +234,7 @@ tweet_post_profile_choices = (
 class TweetPostModel(BasePostModel):
     file = models.FileField(upload_to='posts/files/', blank=True, null=True)
     link = models.TextField(blank=True, null=True)
+    cover_link = models.FileField(upload_to='posts/link/cover/',blank=True, null=True)
     video = models.FileField(upload_to=upload_video_post, blank=True, null=True,max_length=2000)
     voice = models.FileField(upload_to='posts/voice/', blank=True, null=True,max_length=2000)
     photo = models.ImageField(upload_to=upload_image_post, blank=True, null=True)
@@ -370,6 +371,7 @@ class TweetCommentModel(models.Model):
     total_likes = models.PositiveIntegerField(default=0)
     hidden_by_users = models.ManyToManyField(User, related_name='hidden_comments', blank=True)
     voice = models.FileField(upload_to="posts/comments/voice/",null=True,blank=True)
+    gif = models.FileField(upload_to="posts/comments/gif/",null=True,blank=True)
     def __str__(self):
         return f"Comment by {self.user.username} on {self.id}"
 

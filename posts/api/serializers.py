@@ -61,7 +61,7 @@ class TweetPostCreateV2Serializer(serializers.ModelSerializer):
     
     class Meta:
         model = TweetPostModel
-        fields = ['preview','aspect_ratio','tag_users','index','offset_X','offset_y','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
+        fields = ['preview','cover_link','aspect_ratio','tag_users','index','offset_X','offset_y','options','file','link','id', 'title', 'height', 'caption', 'hashtag', 'location', 'category', 'urls', 'voice', 'photo', 'video', 'images','videos', 'cover_video', 'cover_image']
 
     def create(self, validated_data):
         # Pop media-related fields from validated_data
@@ -206,6 +206,11 @@ class TweetSignlePostSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     total_comments = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
+    cover_link = serializers.SerializerMethodField()
+    def get_cover_link(self,obj):
+        if obj.cover_link:
+            return f"{settings.SITE_DOMAIN}{obj.cover_link.url}" 
+        return None
     def get_tags(self, obj):
         mentions = obj.mentionsusersmodel_set.all()
         return MentionsUsersModelSerializer(mentions, many=True).data
@@ -615,6 +620,11 @@ class TweetPostSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
     link = serializers.SerializerMethodField()
     voice = serializers.SerializerMethodField()
+    cover_link = serializers.SerializerMethodField()
+    def get_cover_link(self,obj):
+        if obj.cover_link:
+            return f"{settings.SITE_DOMAIN}{obj.cover_link.url}" 
+        return None
     def get_tags(self, obj):
         mentions = obj.mentionsusersmodel_set.all()
         return MentionsUsersModelSerializer(mentions, many=True).data
@@ -912,7 +922,7 @@ class CommentBaseSerializer(serializers.ModelSerializer):
     user_followed = serializers.SerializerMethodField()
     class Meta:
         abstract = True
-        fields = ['id','request_status','private','user_followed','text','voice','user_id','username','profile_image','total_likes','created_at','full_name','user_liked']
+        fields = ['id','request_status','private','user_followed','text','gif','voice','user_id','username','profile_image','total_likes','created_at','full_name','user_liked']
     def get_voice(self,obj):
         if obj.voice:
             return f"{settings.SITE_DOMAIN}{obj.voice.url}" 
