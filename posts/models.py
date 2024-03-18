@@ -357,7 +357,7 @@ class PodcastPostModel(BasePostModel):
 
 class BookModel(models.Model):
     pass
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 
 class TweetCommentModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
