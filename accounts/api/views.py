@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from marketplace.models import NftProductModel
 from accounts.permissions import IsOwnerOrReadOnly
-from accounts.models import CustomUser , SavedByUser, ReportUser,AccessToken,BlockModel,ChangeUsernameModel
+from accounts.models import CustomUser , SavedByUser, ReportUser,AccessToken,BlockModel,ChangeUsernameModel,AboutMeModel,LanguageModel, JobModel, InterestsModel, HabitsModel
 from posts.models import TweetPostModel , PodcastPostModel, BookPostModel, TweetPostImagesModel
 from posts.api.serializers import TweetPostSerializer
 from point.models import ReferralCodeModel
@@ -16,7 +16,7 @@ from point.point_functionality import process_referral_signup
 from wallet.models import UsersNfts
 from .serializers import ( UserLoginSerializer , LogoutSerializer,
  CustomUserSerializer, SignupSerializer,ShowCustomUserSerializer,CustomUserSerializerV2,UserSearchSerializer,
- ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,
+ ProfileSerializer,UserSignupValidationSerializer,UsernameValidationSerializer,LanguageModelSerializer, JobModelSerializer, InterestsModelSerializer, HabitsModelSerializer, AboutMeModelSerializer,
  UsernameCheckSerializer,PasswordResetSerializer,CustomUsersListSerializer,ReportUserSerializer,UserSerializer,AccessTokenLoginSerializer,CheckLoginSerializer,BlockModelSerializer,ReportReasonsSerializer,CustomAppleSocialLoginSerializer,CustomGoogleSocialLoginSerializer
  ,ChangeUsernameSerializer,ChangePasswordSerializer,AddBonusCodeSerializer,ChangePasswordFLSerializer,EmailCheckSerializer
  ,UsernameCheckSerializer)
@@ -58,8 +58,104 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Max
+from django.db import transaction
 
 User = get_user_model()
+
+
+
+
+
+
+
+class AboutMeApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user  # Assumes authentication is in place
+        
+        # Fetch related data
+        jobs = JobModel.objects.filter(user=user)
+        interests = InterestsModel.objects.filter(user=user)
+        languages = LanguageModel.objects.all()
+        habits = HabitsModel.objects.filter(user=user)
+        about_me = AboutMeModel.objects.filter(user=user).first()  # Assuming single entry
+        
+        # Serialize data
+        languages_data = LanguageModelSerializer(languages,many=True).data
+        jobs_data = JobModelSerializer(jobs, many=True, context={'request': request}).data
+        interests_data = InterestsModelSerializer(interests, many=True).data
+        habits_data = HabitsModelSerializer(habits, many=True).data
+        about_me_data = AboutMeModelSerializer(about_me).data if about_me else None
+        
+        # Construct and return the response
+        response_data = {
+            "jobs": jobs_data,
+            "languages":languages_data,
+            "interests": interests_data,
+            "habits": habits_data,
+            "about_me": about_me_data
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        user = request.user  # Assumes user is authenticated
+
+        with transaction.atomic():
+            # Example handling for Jobs - similar logic applies to other sections
+            jobs_data = data.get('jobs', [])
+            for job_data in jobs_data:
+                job_id = job_data.get('id')
+                if job_id:
+                    job_instance = JobModel.objects.filter(id=job_id, user=user).first()
+                    if job_instance:
+                        job_serializer = JobModelSerializer(job_instance, data=job_data, partial=True)
+                    else:
+                        return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
+                else:
+                    job_serializer = JobModelSerializer(data=job_data)
+
+                if job_serializer.is_valid():
+                    job_serializer.save(user=user)  # Here you pass the user directly to the save method
+                else:
+                    return Response(job_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Interests - Replace existing with new ones if provided
+            if 'interests' in data:
+                InterestsModel.objects.filter(user=user).delete()
+                for interest_data in data['interests']:
+                    interest_serializer = InterestsModelSerializer(data=interest_data)
+                    if interest_serializer.is_valid():
+                        interest_serializer.save(user=user)
+                    else:
+                        return Response(interest_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Habits - Replace existing with new ones if provided
+            if 'habits' in data:
+                HabitsModel.objects.filter(user=user).delete()
+                for habit_data in data['habits']:
+                    habit_serializer = HabitsModelSerializer(data=habit_data)
+                    if habit_serializer.is_valid():
+                        habit_serializer.save(user=user)
+                    else:
+                        return Response(habit_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # About Me - Update if exists, create if not
+            about_me_data = data.get('about_me')
+            if about_me_data is not None:
+                about_me_instance = AboutMeModel.objects.filter(user=user).first()
+                if about_me_instance:
+                    about_me_serializer = AboutMeModelSerializer(about_me_instance, data=about_me_data, partial=True)
+                else:
+                    about_me_serializer = AboutMeModelSerializer(data=about_me_data)
+                
+                if about_me_serializer.is_valid():
+                    about_me_serializer.save(user=user)
+                else:
+                    return Response(about_me_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Profile updated successfully"}, status=status.HTTP_200_OK)
+
 
 class SearchMentionUsersAPIView(APIView):
     def get(self, request, format=None):

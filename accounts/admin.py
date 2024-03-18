@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, OldUsername, SavedByUser, ReportUser, AccessToken, BlockModel, ChangeUsernameModel, ProfileImagesModel
+from .models import CustomUser, OldUsername, SavedByUser, ReportUser, AccessToken, BlockModel, ChangeUsernameModel, ProfileImagesModel,LanguageModel, JobModel, InterestsModel, HabitsModel, AboutMeModel  # Ensure correct spelling for your models
+
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.html import format_html  # Import format_html
@@ -47,3 +48,33 @@ admin.site.register(ReportUser)
 admin.site.register(OldUsername)
 admin.site.register(SavedByUser)
 admin.site.register(AccessToken)
+
+
+
+
+
+@admin.register(LanguageModel)
+class LanguageModelAdmin(admin.ModelAdmin):
+    list_display = ('name',)  # Adjust this to display fields you're interested in
+    search_fields = ('name',)  # Add fields here you want to be searchable
+
+@admin.register(JobModel)
+class JobModelAdmin(admin.ModelAdmin):
+    list_display = ('title', 'company', 'education', 'user')  # Customize as needed
+    list_filter = ('company', 'education')  # Filters on the side panel
+    search_fields = ('title', 'company', 'education', 'user__username')  # Adjust according to your user model's fields
+
+@admin.register(InterestsModel)
+class InterestsModelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user')
+    search_fields = ('name', 'user__username')
+
+@admin.register(HabitsModel)
+class HabitsModelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user')
+    search_fields = ('name', 'user__username')
+
+@admin.register(AboutMeModel)  # Ensure this matches the exact class name of your model
+class AboutMeModelAdmin(admin.ModelAdmin):
+    list_display = ('user', 'height', 'star_sign')
+    search_fields = ('user__username', 'star_sign')

@@ -12,14 +12,19 @@ upload_profile_image_handler = ProfileUploadHandler('profile_image', 'profile_im
 def upload_profile_image(instance, filename):
     return upload_profile_image_handler.get_filename(instance, filename)
 
-
+GENDER_CHOICES  = (
+    ('male','male'),
+    ('female','female')
+    )
 class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True, null=True, blank=True)  # Add username field 
     full_name = models.CharField(max_length=60,null=True,blank=True)
     bonus_code = models.CharField(max_length=8,null=True,blank=True)
+    gender = models.CharField(max_length=8,null=True,blank=True,choices=GENDER_CHOICES )
     country = models.CharField(max_length=100,null=True,blank=True)
+    phone = models.CharField(max_length=100,null=True,blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     join_date = models.DateTimeField(auto_now_add=True,null=True,blank=True)
@@ -170,36 +175,34 @@ class ChangeUsernameModel(models.Model):
         return self.username
 
 
-# class LanguageModel(models.Model):
-#     name = models.CharField(max_length=100, unique=True)
+class LanguageModel(models.Model):
+    name = models.CharField(max_length=100, unique=True,blank=True, null=True)
 
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return self.name
 
 
-# class JobModel(models.Model):
-#     title = models.CharField(max_length=255)
-#     company = models.CharField(max_length=255)
-#     education = models.CharField(max_length=255)
-#     languages = models.ManyToManyField(Language, related_name='jobs')
-#     cv = models.FileField(upload_to='cvs/')
+class JobModel(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True, null=True)
+    title = models.CharField(max_length=255,blank=True, null=True)
+    company = models.CharField(max_length=255,blank=True, null=True)
+    education = models.CharField(max_length=255,blank=True, null=True)
+    languages = models.ManyToManyField(LanguageModel, related_name='jobs')
+    cv = models.FileField(upload_to='cvs/',blank=True, null=True)
 
-#     def __str__(self):
-#         return f"{self.title} at {self.company}"
+    def __str__(self):
+        return f"{self.title} at {self.company}"
 
-# class InterestsModel(models.Model):
-#     name = models.CharField(max_length=255)
+class InterestsModel(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True, null=True)
+    name = models.CharField(max_length=255,blank=True, null=True)
 
-# class HabitsModel(models.Model):
-#     name = models.CharField(max_length=255)
+class HabitsModel(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True, null=True)
+    name = models.CharField(max_length=255,blank=True, null=True)
 
-# class StartSignsModel(models.Model):
-#     name = models.CharField(max_length=255)
 
-# class AbouteMeModel(models.Model):
-#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-#     height = models.IntegerField(null=True,blank=True)
-#     job = models.ForeignKey(JobModel, on_delete=models.CASCADE,null=True,blank=True)
-#     interest = models.ForeignKey(InterestsModel, on_delete=models.CASCADE,null=True,blank=True)
-#     habits = models.ForeignKey(HabitsModel, on_delete=models.CASCADE,null=True,blank=True)
-#     stars = models.ForeignKey(StartSignsModel, on_delete=models.CASCADE,null=True,blank=True)
+class AboutMeModel(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True, null=True)
+    height = models.IntegerField(null=True,blank=True)
+    star_sign = models.CharField(max_length=255,blank=True, null=True)

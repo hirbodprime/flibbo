@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from following_system.models import FollowModel
-from accounts.models import SavedByUser,ChangeUsernameModel,CustomUser, ReportUser, BlockModel, ProfileImagesModel
+from accounts.models import SavedByUser,ChangeUsernameModel,CustomUser, ReportUser, BlockModel, ProfileImagesModel, LanguageModel, JobModel, InterestsModel, HabitsModel, AboutMeModel
 from following_system.models import FollowModel,RequestToFollow
 from accounts.custom_authentication import UsernameBackend
 
@@ -25,6 +25,51 @@ from django.conf import settings
 import requests
 
 User = get_user_model()
+from rest_framework import serializers
+
+class LanguageModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LanguageModel
+        fields = ['id', 'name']
+
+class JobModelSerializer(serializers.ModelSerializer):
+    languages = serializers.PrimaryKeyRelatedField(queryset=LanguageModel.objects.all(), many=True, required=False, allow_null=True)
+
+    class Meta:
+        model = JobModel
+        fields = ['id', 'title', 'company', 'education', 'languages', 'cv']
+        read_only_fields = ('user',)  # Add this line
+
+    def create(self, validated_data):
+        languages_data = validated_data.pop('languages', [])
+        # Note: The `user` is not in `validated_data` since it's read-only. It should be added in the view.
+        job = JobModel.objects.create(**validated_data)
+        job.languages.set(languages_data)
+        return job
+
+    def update(self, instance, validated_data):
+        languages_data = validated_data.pop('languages', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if languages_data is not None:
+            instance.languages.set(languages_data)
+        return instance
+
+class InterestsModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InterestsModel
+        fields = '__all__'
+
+class HabitsModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HabitsModel
+        fields = '__all__'
+
+class AboutMeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AboutMeModel
+        fields = '__all__'
 
 class ProfileImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -95,7 +140,7 @@ class CustomUserSerializerV2(serializers.ModelSerializer):
                 return None
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'profile_imagess', 'profile_image','new_profile_images', 'country')
+        fields = ('id', 'email', 'username','gender','phone', 'full_name', 'join_date', 'birthday', 'bio', 'followers_count', 'followings_count', 'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 'profile_images', 'profile_imagess', 'profile_image','new_profile_images', 'country')
         read_only_fields = ('email', 'username', 'join_date', 'birthday', 'followers_count', 'followings_count')
     def update(self, instance, validated_data):
         new_profile_images_data = validated_data.pop('new_profile_images', None)
@@ -586,7 +631,7 @@ class ShowCustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('premium','id', 'private', 'profile_images','email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
+        fields = ('gender','phone','premium','id', 'private', 'profile_images','email', 'username', 'full_name', 'join_date', 'birthday','bio','user_followed', 'followers_count','followings_count',
             'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url','profile_image','country')
 
 

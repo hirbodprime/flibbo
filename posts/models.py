@@ -371,7 +371,7 @@ class TweetCommentModel(models.Model):
     total_likes = models.PositiveIntegerField(default=0)
     hidden_by_users = models.ManyToManyField(User, related_name='hidden_comments', blank=True)
     voice = models.FileField(upload_to="posts/comments/voice/",null=True,blank=True)
-    gif = models.FileField(upload_to="posts/comments/gif/",null=True,blank=True)
+    gif = models.TextField(null=True,blank=True)
     def __str__(self):
         return f"Comment by {self.user.username} on {self.id}"
 
