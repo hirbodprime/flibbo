@@ -55,7 +55,7 @@ admin.site.register(PodcastPostModel, PodcastPostModelAdmin)
 
 @admin.register(TweetCommentModel)
 class TweetCommentAdmin(admin.ModelAdmin):
-    list_display = ('id','user', 'text', 'created_at', 'post')
+    list_display = ('id','user', 'text', 'created_at', 'post','gif')
 
 @admin.register(TweetReplyCommentModel)
 class TweetReplyCommentAdmin(admin.ModelAdmin):
